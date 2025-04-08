@@ -1,0 +1,9 @@
+services:
+  # add app configuration
+  app:
+    build:
+      context: ./go
+      dockerfile: ./go/Dockerfile
+    ports:
+      - "8000:8000"
+      - "2348:2348"

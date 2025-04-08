@@ -3,7 +3,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package
-      value: github.com/myuser/myproject/gen/app/v1;appv1
+      value: github.com/hiroky1983/chat/go/gen/app/v1;appv1
 plugins:
   - remote: buf.build/connectrpc/go
     out: ../go/gen
