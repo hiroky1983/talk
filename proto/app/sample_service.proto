@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package app.v1;
+
+import "app/sample.proto";
+
+service SampleService {
+  rpc GetSample(GetSampleRequest) returns (GetSampleResponse) {}
+}
+
+message GetSampleRequest {
+  Sample sample = 1;
+}
+message GetSampleResponse {
+  Sample sample = 1;
+}

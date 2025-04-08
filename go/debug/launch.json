@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "name": "Attach to Process",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "host": "localhost",
+      "port": 2348
+    }
+  ]
+}
