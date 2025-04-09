@@ -2,9 +2,9 @@ root = "."
 tmp_dir = "../tmp"
 
 [build]
-cmd = "go build -o ./tmp/main ."
-bin = "./tmp/main"
-full_bin = "dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue ./tmp/main"
+cmd = "go build -o ../tmp/main ."
+bin = "../tmp/main"
+full_bin = "dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue ../tmp/main"
 include_ext = ["go", "tpl", "tmpl", "html"]
 exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules"]
 include_dir = []

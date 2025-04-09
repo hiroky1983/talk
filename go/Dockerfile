@@ -12,4 +12,5 @@ RUN go install github.com/go-delve/delve/cmd/dlv@latest
 # ソースコードのコピー
 COPY . .
 
-CMD ["air", "-c", "debug/.air.toml"]
+# airの設定ファイルをデバッグディレクトリのパスに修正
+CMD ["air", "-c", "/go/debug/.air.toml"]
