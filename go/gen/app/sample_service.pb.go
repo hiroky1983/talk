@@ -119,9 +119,9 @@ const file_app_sample_service_proto_rawDesc = "" +
 	"\x11GetSampleResponse\x12&\n" +
 	"\x06sample\x18\x01 \x01(\v2\x0e.app.v1.SampleR\x06sample2S\n" +
 	"\rSampleService\x12B\n" +
-	"\tGetSample\x12\x18.app.v1.GetSampleRequest\x1a\x19.app.v1.GetSampleResponse\"\x00B\x89\x01\n" +
+	"\tGetSample\x12\x18.app.v1.GetSampleRequest\x1a\x19.app.v1.GetSampleResponse\"\x00B\x86\x01\n" +
 	"\n" +
-	"com.app.v1B\x12SampleServiceProtoP\x01Z.github.com/hiroky1983/chat/go/gen/app/v1;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
+	"com.app.v1B\x12SampleServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
 var (
 	file_app_sample_service_proto_rawDescOnce sync.Once

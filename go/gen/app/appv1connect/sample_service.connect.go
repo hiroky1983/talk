@@ -8,7 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	v1 "github.com/hiroky1983/chat/go/gen/app/v1"
+	app "github.com/hiroky1983/talk/go/gen/app"
 	http "net/http"
 	strings "strings"
 )
@@ -39,7 +39,7 @@ const (
 
 // SampleServiceClient is a client for the app.v1.SampleService service.
 type SampleServiceClient interface {
-	GetSample(context.Context, *connect.Request[v1.GetSampleRequest]) (*connect.Response[v1.GetSampleResponse], error)
+	GetSample(context.Context, *connect.Request[app.GetSampleRequest]) (*connect.Response[app.GetSampleResponse], error)
 }
 
 // NewSampleServiceClient constructs a client for the app.v1.SampleService service. By default, it
@@ -51,9 +51,9 @@ type SampleServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewSampleServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) SampleServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	sampleServiceMethods := v1.File_app_sample_service_proto.Services().ByName("SampleService").Methods()
+	sampleServiceMethods := app.File_app_sample_service_proto.Services().ByName("SampleService").Methods()
 	return &sampleServiceClient{
-		getSample: connect.NewClient[v1.GetSampleRequest, v1.GetSampleResponse](
+		getSample: connect.NewClient[app.GetSampleRequest, app.GetSampleResponse](
 			httpClient,
 			baseURL+SampleServiceGetSampleProcedure,
 			connect.WithSchema(sampleServiceMethods.ByName("GetSample")),
@@ -64,17 +64,17 @@ func NewSampleServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 
 // sampleServiceClient implements SampleServiceClient.
 type sampleServiceClient struct {
-	getSample *connect.Client[v1.GetSampleRequest, v1.GetSampleResponse]
+	getSample *connect.Client[app.GetSampleRequest, app.GetSampleResponse]
 }
 
 // GetSample calls app.v1.SampleService.GetSample.
-func (c *sampleServiceClient) GetSample(ctx context.Context, req *connect.Request[v1.GetSampleRequest]) (*connect.Response[v1.GetSampleResponse], error) {
+func (c *sampleServiceClient) GetSample(ctx context.Context, req *connect.Request[app.GetSampleRequest]) (*connect.Response[app.GetSampleResponse], error) {
 	return c.getSample.CallUnary(ctx, req)
 }
 
 // SampleServiceHandler is an implementation of the app.v1.SampleService service.
 type SampleServiceHandler interface {
-	GetSample(context.Context, *connect.Request[v1.GetSampleRequest]) (*connect.Response[v1.GetSampleResponse], error)
+	GetSample(context.Context, *connect.Request[app.GetSampleRequest]) (*connect.Response[app.GetSampleResponse], error)
 }
 
 // NewSampleServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -83,7 +83,7 @@ type SampleServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewSampleServiceHandler(svc SampleServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	sampleServiceMethods := v1.File_app_sample_service_proto.Services().ByName("SampleService").Methods()
+	sampleServiceMethods := app.File_app_sample_service_proto.Services().ByName("SampleService").Methods()
 	sampleServiceGetSampleHandler := connect.NewUnaryHandler(
 		SampleServiceGetSampleProcedure,
 		svc.GetSample,
@@ -103,6 +103,6 @@ func NewSampleServiceHandler(svc SampleServiceHandler, opts ...connect.HandlerOp
 // UnimplementedSampleServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedSampleServiceHandler struct{}
 
-func (UnimplementedSampleServiceHandler) GetSample(context.Context, *connect.Request[v1.GetSampleRequest]) (*connect.Response[v1.GetSampleResponse], error) {
+func (UnimplementedSampleServiceHandler) GetSample(context.Context, *connect.Request[app.GetSampleRequest]) (*connect.Response[app.GetSampleResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("app.v1.SampleService.GetSample is not implemented"))
 }

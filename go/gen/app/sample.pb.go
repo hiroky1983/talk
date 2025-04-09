@@ -80,9 +80,9 @@ const file_app_sample_proto_rawDesc = "" +
 	"\x10app/sample.proto\x12\x06app.v1\",\n" +
 	"\x06Sample\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04nameB\x82\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04nameB\x7f\n" +
 	"\n" +
-	"com.app.v1B\vSampleProtoP\x01Z.github.com/hiroky1983/chat/go/gen/app/v1;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
+	"com.app.v1B\vSampleProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
 var (
 	file_app_sample_proto_rawDescOnce sync.Once
