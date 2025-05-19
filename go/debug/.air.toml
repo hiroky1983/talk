@@ -1,10 +1,10 @@
 root = "."
-tmp_dir = "../tmp"
+tmp_dir = "/tmp" # ビルド成果物用の一時ディレクトリを絶対パスで指定
 
 [build]
-cmd = "go build -o ../tmp/main ."
-bin = "../tmp/main"
-full_bin = "dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue ../tmp/main"
+cmd = "go build -o /tmp/main ." # ビルド成果物を /app_tmp/main に出力
+bin = "/tmp/main"               # airが実行するバイナリのパス
+full_bin = "dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue /tmp/main" # delveが実行するバイナリのパス
 include_ext = ["go", "tpl", "tmpl", "html"]
 exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules"]
 include_dir = []

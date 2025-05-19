@@ -15,6 +15,5 @@ RUN go install github.com/go-delve/delve/cmd/dlv@latest
 # ./go ディレクトリ内の全てのファイルを /go (現在のWORKDIR) にコピー
 COPY ./go/ ./
 
-# airの設定ファイルをデバッグディレクトリのパスに修正
 # WORKDIRが /go なので、相対パスで指定
 CMD ["air", "-c", "debug/.air.toml"]

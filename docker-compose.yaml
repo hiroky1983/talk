@@ -6,4 +6,7 @@ services:
       dockerfile: ./go/Dockerfile
     ports:
       - "8000:8000"
-      - "2349:2349"
+      - "2349:2349" # .air.toml と launch.json のDelveポートに合わせる
+    volumes:
+      # ホストの ./go ディレクトリをコンテナの /go にマウントしてホットリロードを有効化
+      - ./go:/go

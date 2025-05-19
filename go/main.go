@@ -31,6 +31,11 @@ func main() {
 	// グローバルミドルウェアを追加
 	router.Use(Logger())
 
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "healthy",
+		})
+	})
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "healthy",

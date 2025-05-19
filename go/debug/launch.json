@@ -6,7 +6,7 @@
       "request": "attach",
       "mode": "remote",
       "host": "localhost",
-      "port": 2348
+      "port": 2349
     }
   ]
 }
