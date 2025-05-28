@@ -33,12 +33,12 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "healthy",
+			"message": "healthy - delve + ホットリロード動作中！",
 		})
 	})
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "healthy",
+			"message": "healthy - delve + ホットリロード動作中！",
 		})
 	})
 	router.Run(":8000")

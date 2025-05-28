@@ -1,10 +1,10 @@
 root = "."
-tmp_dir = "/tmp" # ビルド成果物用の一時ディレクトリを絶対パスで指定
+tmp_dir = "tmp" # ビルド成果物用の一時ディレクトリを相対パスで指定
 
 [build]
-cmd = "go build -gcflags \"all=-N -l\" -o tmp/main ." # ビルド成果物を /bin/main に出力
-bin = "/bin/main"               # airが実行するバイナリのパス
-full_bin = "APP_USER=air dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue ./bin/main" # delveが実行するバイナリのパス
+cmd = "go build -gcflags \"all=-N -l\" -o tmp/main ." # デバッグ情報付きでビルド
+bin = "tmp/main"               # airが実行するバイナリのパス
+full_bin = "APP_USER=air dlv --listen=:2349 --headless=true --api-version=2 --accept-multiclient exec --continue tmp/main" # delveでデバッグ実行
 include_ext = ["go", "tpl", "tmpl", "html"]
 exclude_dir = ["assets", "tmp", "vendor", "frontend/node_modules"]
 include_dir = []
@@ -17,7 +17,7 @@ delay = 1000 # ms
 stop_on_error = true
 send_interrupt = false
 kill_delay = 500 # ms
-args_bin = ["hello", "world"]
+# args_bin = ["hello", "world"]
 
 [log]
 time = false
