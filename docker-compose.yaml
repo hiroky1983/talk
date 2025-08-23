@@ -1,5 +1,5 @@
 services:
-  # add app configuration
+  # Go backend server
   app:
     build:
       context: .
@@ -10,3 +10,22 @@ services:
     volumes:
       # ホストの ./go ディレクトリをコンテナの /app にマウントしてホットリロードを有効化
       - ./go:/app
+    depends_on:
+      - ai-service
+    environment:
+      - AI_SERVICE_HOST=ai-service
+      - AI_SERVICE_PORT=50051
+      
+  # Python AI service
+  ai-service:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    ports:
+      - "50051:50051"
+    volumes:
+      - ./python:/app
+      - ./python/.env:/app/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
