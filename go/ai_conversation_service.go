@@ -1,89 +1,62 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"log"
-	"net/http"
-	"os"
+	"net"
 	"time"
 
 	"connectrpc.com/connect"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	app "github.com/hiroky1983/talk/go/gen/app"
 	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
 )
 
-// FastAPI request/response types
-type StartConversationRequest struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	Language string `json:"language"`
-}
-
-type StartConversationResponse struct {
-	SessionID    string `json:"session_id"`
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error_message"`
-}
-
-type EndConversationRequest struct {
-	SessionID string `json:"session_id"`
-	UserID    string `json:"user_id"`
-}
-
-type EndConversationResponse struct {
-	Success      bool   `json:"success"`
-	ErrorMessage string `json:"error_message"`
-}
-
-type SendMessageRequest struct {
-	UserID       string `json:"user_id"`
-	Username     string `json:"username"`
-	Language     string `json:"language"`
-	TextMessage  string `json:"text_message,omitempty"`
-	AudioData    []byte `json:"audio_data,omitempty"`
-	SessionID    string `json:"session_id,omitempty"`
-}
-
-type SendMessageResponse struct {
-	ResponseID  string `json:"response_id"`
-	TextMessage string `json:"text_message,omitempty"`
-	AudioData   string `json:"audio_data,omitempty"` // base64 encoded
-	Language    string `json:"language"`
-	Timestamp   string `json:"timestamp"` // ISO format string
-	IsFinal     bool   `json:"is_final"`
-}
-
 // AIConversationService implements the AI conversation service
 type AIConversationService struct {
-	fastapiURL string
-	httpClient *http.Client
+	grpcClient app.AIConversationServiceClient
+	grpcConn   *grpc.ClientConn
 	sessions   map[string]bool
 }
 
 // NewAIConversationService creates a new AI conversation service instance
 func NewAIConversationService() *AIConversationService {
-	fastapiURL := os.Getenv("AI_SERVICE_HOST")
-	if fastapiURL == "" {
-		fastapiURL = "localhost"
-	}
-	port := os.Getenv("AI_SERVICE_PORT")
-	if port == "" {
-		port = "8001"
-	}
-	fastapiURL = fmt.Sprintf("http://%s:%s", fastapiURL, port)
+	// Connect to Python gRPC service
+	host := "ai-service" // Docker service name
+	port := "50051"
 	
-	return &AIConversationService{
-		fastapiURL: fastapiURL,
-		httpClient: &http.Client{Timeout: 30 * time.Second},
-		sessions:   make(map[string]bool),
+	// Try to connect to gRPC server with retry logic
+	var conn *grpc.ClientConn
+	var err error
+	
+	for i := 0; i < 5; i++ {
+		conn, err = grpc.Dial(net.JoinHostPort(host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		if err == nil {
+			break
+		}
+		log.Printf("Failed to connect to gRPC server (attempt %d/5): %v", i+1, err)
+		time.Sleep(2 * time.Second)
 	}
+	
+	if err != nil {
+		log.Printf("Warning: Could not connect to gRPC server: %v", err)
+		// Continue without gRPC connection - will simulate responses
+	}
+	
+	service := &AIConversationService{
+		grpcConn: conn,
+		sessions: make(map[string]bool),
+	}
+	
+	if conn != nil {
+		service.grpcClient = app.NewAIConversationServiceClient(conn)
+	}
+	
+	return service
 }
 
 // StartConversation starts a new conversation session
@@ -93,49 +66,35 @@ func (s *AIConversationService) StartConversation(
 ) (*connect.Response[app.StartConversationResponse], error) {
 	log.Printf("Starting conversation for user %s in language %s", req.Msg.Username, req.Msg.Language)
 	
-	// Call FastAPI service
-	fastapiReq := StartConversationRequest{
-		UserID:   req.Msg.UserId,
-		Username: req.Msg.Username,
-		Language: req.Msg.Language,
+	if s.grpcClient != nil {
+		// Call Python gRPC service
+		grpcResp, err := s.grpcClient.StartConversation(ctx, &app.StartConversationRequest{
+			UserId:   req.Msg.UserId,
+			Username: req.Msg.Username,
+			Language: req.Msg.Language,
+		})
+		
+		if err != nil {
+			log.Printf("gRPC call failed: %v", err)
+			return nil, err
+		}
+		
+		// Store session
+		if grpcResp.Success {
+			s.sessions[grpcResp.SessionId] = true
+		}
+		
+		return connect.NewResponse(grpcResp), nil
 	}
 	
-	jsonData, err := json.Marshal(fastapiReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-	
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", s.fastapiURL+"/api/v1/conversation/start", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	
-	httpResp, err := s.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call FastAPI: %w", err)
-	}
-	defer httpResp.Body.Close()
-	
-	body, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-	
-	var fastapiResp StartConversationResponse
-	if err := json.Unmarshal(body, &fastapiResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-	
-	// Store session locally if successful
-	if fastapiResp.Success {
-		s.sessions[fastapiResp.SessionID] = true
-	}
+	// Fallback simulation if gRPC not available
+	sessionID := generateSessionID()
+	s.sessions[sessionID] = true
 	
 	resp := &app.StartConversationResponse{
-		SessionId:    fastapiResp.SessionID,
-		Success:      fastapiResp.Success,
-		ErrorMessage: fastapiResp.ErrorMessage,
+		SessionId:    sessionID,
+		Success:      true,
+		ErrorMessage: "",
 	}
 	
 	return connect.NewResponse(resp), nil
@@ -148,47 +107,32 @@ func (s *AIConversationService) EndConversation(
 ) (*connect.Response[app.EndConversationResponse], error) {
 	log.Printf("Ending conversation session %s", req.Msg.SessionId)
 	
-	// Call FastAPI service
-	fastapiReq := EndConversationRequest{
-		SessionID: req.Msg.SessionId,
-		UserID:    req.Msg.UserId,
+	if s.grpcClient != nil {
+		// Call Python gRPC service
+		grpcResp, err := s.grpcClient.EndConversation(ctx, &app.EndConversationRequest{
+			SessionId: req.Msg.SessionId,
+			UserId:    req.Msg.UserId,
+		})
+		
+		if err != nil {
+			log.Printf("gRPC call failed: %v", err)
+			return nil, err
+		}
+		
+		// Remove session locally if successful
+		if grpcResp.Success {
+			delete(s.sessions, req.Msg.SessionId)
+		}
+		
+		return connect.NewResponse(grpcResp), nil
 	}
 	
-	jsonData, err := json.Marshal(fastapiReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-	
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", s.fastapiURL+"/api/v1/conversation/end", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	
-	httpResp, err := s.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call FastAPI: %w", err)
-	}
-	defer httpResp.Body.Close()
-	
-	body, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-	
-	var fastapiResp EndConversationResponse
-	if err := json.Unmarshal(body, &fastapiResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-	
-	// Remove session locally if successful
-	if fastapiResp.Success {
-		delete(s.sessions, req.Msg.SessionId)
-	}
+	// Fallback simulation
+	delete(s.sessions, req.Msg.SessionId)
 	
 	resp := &app.EndConversationResponse{
-		Success:      fastapiResp.Success,
-		ErrorMessage: fastapiResp.ErrorMessage,
+		Success:      true,
+		ErrorMessage: "",
 	}
 	
 	return connect.NewResponse(resp), nil
@@ -201,93 +145,105 @@ func (s *AIConversationService) SendMessage(
 ) (*connect.Response[app.AIConversationResponse], error) {
 	log.Printf("Processing message from user %s in language %s", req.Msg.Username, req.Msg.Language)
 	
-	// Prepare FastAPI request
-	fastapiReq := SendMessageRequest{
-		UserID:   req.Msg.UserId,
-		Username: req.Msg.Username,
-		Language: req.Msg.Language,
+	if s.grpcClient != nil {
+		// Call Python gRPC service
+		grpcResp, err := s.grpcClient.SendMessage(ctx, &app.AIConversationRequest{
+			UserId:    req.Msg.UserId,
+			Username:  req.Msg.Username,
+			Language:  req.Msg.Language,
+			Content:   req.Msg.Content,
+			Timestamp: req.Msg.Timestamp,
+		})
+		
+		if err != nil {
+			log.Printf("gRPC call failed: %v", err)
+			return nil, err
+		}
+		
+		return connect.NewResponse(grpcResp), nil
 	}
 	
-	// Handle different content types
-	switch content := req.Msg.Content.(type) {
-	case *app.AIConversationRequest_TextMessage:
-		fastapiReq.TextMessage = content.TextMessage
-	case *app.AIConversationRequest_AudioData:
-		fastapiReq.AudioData = content.AudioData
+	// Fallback simulation
+	var responseText string
+	switch req.Msg.Language {
+	case "vi":
+		responseText = "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp bạn luyện tập tiếng Việt."
+	case "ja":
+		responseText = "こんにちは！AIアシスタントです。日本語の練習をお手伝いします。"
+	default:
+		responseText = "Hello! I'm your AI language learning assistant. How can I help you practice today?"
 	}
 	
-	jsonData, err := json.Marshal(fastapiReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-	
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", s.fastapiURL+"/api/v1/conversation/message", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	httpReq.Header.Set("Content-Type", "application/json")
-	
-	httpResp, err := s.httpClient.Do(httpReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call FastAPI: %w", err)
-	}
-	defer httpResp.Body.Close()
-	
-	body, err := io.ReadAll(httpResp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-	
-	var fastapiResp SendMessageResponse
-	if err := json.Unmarshal(body, &fastapiResp); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
-	}
-	
-	// Parse timestamp string
-	timestamp, err := time.Parse(time.RFC3339, fastapiResp.Timestamp)
-	if err != nil {
-		// Fallback to current time if parsing fails
-		timestamp = time.Now()
-	}
-	
-	// Convert FastAPI response to protobuf response
 	resp := &app.AIConversationResponse{
-		ResponseId: fastapiResp.ResponseID,
-		Language:   fastapiResp.Language,
-		Timestamp:  timestamppb.New(timestamp),
-		IsFinal:    fastapiResp.IsFinal,
-	}
-	
-	// Set content based on response type
-	if fastapiResp.TextMessage != "" {
-		resp.Content = &app.AIConversationResponse_TextMessage{
-			TextMessage: fastapiResp.TextMessage,
-		}
-	} else if fastapiResp.AudioData != "" {
-		// AudioData is base64 encoded in FastAPI response
-		// For now, we'll just handle text responses
-		resp.Content = &app.AIConversationResponse_TextMessage{
-			TextMessage: "Audio response received",
-		}
+		ResponseId:  generateResponseID(),
+		Language:    req.Msg.Language,
+		Timestamp:   timestamppb.Now(),
+		IsFinal:     true,
+		Content: &app.AIConversationResponse_TextMessage{
+			TextMessage: responseText,
+		},
 	}
 	
 	return connect.NewResponse(resp), nil
 }
 
 // StreamConversation handles bidirectional streaming conversation
-// Note: With FastAPI backend, this simulates streaming by calling the REST API for each message
 func (s *AIConversationService) StreamConversation(
 	ctx context.Context,
 	stream *connect.BidiStream[app.AIConversationRequest, app.AIConversationResponse],
 ) error {
-	log.Println("Starting streaming conversation (using FastAPI backend)")
+	log.Println("Starting streaming conversation")
 	
+	if s.grpcClient != nil {
+		// Use gRPC streaming
+		grpcStream, err := s.grpcClient.StreamConversation(ctx)
+		if err != nil {
+			log.Printf("Failed to start gRPC stream: %v", err)
+			return err
+		}
+		
+		// Forward messages between Connect stream and gRPC stream
+		go func() {
+			for {
+				req, err := stream.Receive()
+				if err != nil {
+					grpcStream.CloseSend()
+					return
+				}
+				
+				grpcReq := &app.AIConversationRequest{
+					UserId:    req.UserId,
+					Username:  req.Username,
+					Language:  req.Language,
+					Content:   req.Content,
+					Timestamp: req.Timestamp,
+				}
+				
+				if err := grpcStream.Send(grpcReq); err != nil {
+					log.Printf("Failed to send to gRPC stream: %v", err)
+					return
+				}
+			}
+		}()
+		
+		for {
+			grpcResp, err := grpcStream.Recv()
+			if err != nil {
+				return err
+			}
+			
+			if err := stream.Send(grpcResp); err != nil {
+				return err
+			}
+		}
+	}
+	
+	// Fallback simulation
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			// Receive message from client
 			req, err := stream.Receive()
 			if err != nil {
 				if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
@@ -298,15 +254,29 @@ func (s *AIConversationService) StreamConversation(
 			
 			log.Printf("Received streaming message from user %s", req.Username)
 			
-			// Use the SendMessage logic to call FastAPI
-			connectReq := connect.NewRequest(req)
-			connectResp, err := s.SendMessage(ctx, connectReq)
-			if err != nil {
-				return err
+			time.Sleep(500 * time.Millisecond)
+			
+			var responseText string
+			switch req.Language {
+			case "vi":
+				responseText = "Tôi đã nghe thấy tin nhắn của bạn. Hãy tiếp tục luyện tập!"
+			case "ja":
+				responseText = "メッセージを受け取りました。練習を続けましょう！"
+			default:
+				responseText = "I received your message. Let's continue practicing!"
 			}
 			
-			// Forward the response to the stream
-			if err := stream.Send(connectResp.Msg); err != nil {
+			resp := &app.AIConversationResponse{
+				ResponseId:  generateResponseID(),
+				Language:    req.Language,
+				Timestamp:   timestamppb.Now(),
+				IsFinal:     true,
+				Content: &app.AIConversationResponse_TextMessage{
+					TextMessage: responseText,
+				},
+			}
+			
+			if err := stream.Send(resp); err != nil {
 				return err
 			}
 		}
@@ -314,15 +284,14 @@ func (s *AIConversationService) StreamConversation(
 }
 
 // StreamConversationEvents handles server-side streaming of conversation events
-// Note: With FastAPI backend, this provides basic event simulation
 func (s *AIConversationService) StreamConversationEvents(
 	ctx context.Context,
 	req *connect.Request[app.StartConversationRequest],
 	stream *connect.ServerStream[app.ConversationEvent],
 ) error {
-	log.Printf("Starting conversation event stream for user %s (using FastAPI backend)", req.Msg.Username)
+	log.Printf("Starting conversation event stream for user %s", req.Msg.Username)
 	
-	// First, start a conversation via FastAPI
+	// Start a conversation first
 	startReq := connect.NewRequest(&app.StartConversationRequest{
 		UserId:   req.Msg.UserId,
 		Username: req.Msg.Username,
@@ -353,7 +322,7 @@ func (s *AIConversationService) StreamConversationEvents(
 	for {
 		select {
 		case <-ctx.Done():
-			// End conversation via FastAPI
+			// End conversation
 			endReq := connect.NewRequest(&app.EndConversationRequest{
 				SessionId: startResp.Msg.SessionId,
 				UserId:    req.Msg.UserId,
@@ -370,7 +339,6 @@ func (s *AIConversationService) StreamConversationEvents(
 			return stream.Send(endEvent)
 			
 		case <-ticker.C:
-			// Send periodic keepalive (in a real app, this would be actual events)
 			log.Println("Sending conversation keepalive event")
 		}
 	}
@@ -385,10 +353,9 @@ func generateResponseID() string {
 	return "response_" + time.Now().Format("20060102150405.000")
 }
 
-// Add middleware for handling CORS and other concerns
-func (s *AIConversationService) withMiddleware() http.Handler {
-	path, handler := appv1connect.NewAIConversationServiceHandler(s)
-	mux := http.NewServeMux()
-	mux.Handle(path, handler)
-	return mux
+// Cleanup connection on shutdown
+func (s *AIConversationService) Close() {
+	if s.grpcConn != nil {
+		s.grpcConn.Close()
+	}
 }

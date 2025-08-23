@@ -11,6 +11,7 @@ from datetime import datetime
 
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
+import time
 
 from ai_service import AIConversationService
 
@@ -20,6 +21,12 @@ from app import ai_conversation_service_pb2_grpc as ai_grpc
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def create_timestamp():
+    """Create a proper protobuf Timestamp for current time"""
+    timestamp = Timestamp()
+    timestamp.GetCurrentTime()
+    return timestamp
 
 class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
     """gRPC servicer for AI conversation"""
@@ -80,45 +87,50 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
         try:
             session_id = str(uuid.uuid4())  # Generate temp session for single messages
             
-            # Check if request has audio data
-            if request.HasField('audio_data'):
+            # Check content type using oneof
+            content_type = request.WhichOneof('content')
+            
+            if content_type == 'audio_data':
                 # Process audio message
                 response_text, response_audio = await self.ai_service.process_audio_message(
                     request.audio_data, request.language, session_id
                 )
                 
                 # Create response with audio
-                return ai_pb2.AIConversationResponse(
+                response = ai_pb2.AIConversationResponse(
                     response_id=str(uuid.uuid4()),
-                    audio_data=response_audio,
-                    text_message=response_text,
                     language=request.language,
-                    timestamp=Timestamp(),
+                    timestamp=create_timestamp(),
                     is_final=True
                 )
+                if response_audio:
+                    response.audio_data = response_audio
+                else:
+                    response.text_message = response_text
+                return response
                 
-            elif request.HasField('text_message'):
+            elif content_type == 'text_message':
                 # Process text message
                 response_text, response_audio = await self.ai_service.process_text_message(
                     request.text_message, request.language, session_id
                 )
                 
-                # Create response with both text and audio
-                return ai_pb2.AIConversationResponse(
+                # Create response with text (audio handled by frontend TTS)
+                response = ai_pb2.AIConversationResponse(
                     response_id=str(uuid.uuid4()),
-                    audio_data=response_audio,
                     text_message=response_text,
                     language=request.language,
-                    timestamp=Timestamp(),
+                    timestamp=create_timestamp(),
                     is_final=True
                 )
+                return response
             
             else:
                 return ai_pb2.AIConversationResponse(
                     response_id=str(uuid.uuid4()),
                     text_message="No message content provided",
                     language=request.language,
-                    timestamp=Timestamp(),
+                    timestamp=create_timestamp(),
                     is_final=True
                 )
                 
@@ -142,42 +154,51 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             
             async for request in request_iterator:
                 try:
-                    if hasattr(request, 'audio_data') and request.audio_data:
+                    content_type = request.WhichOneof('content')
+                    
+                    if content_type == 'audio_data':
                         response_text, response_audio = await self.ai_service.process_audio_message(
                             request.audio_data, request.language, session_id
                         )
                         
-                        # Yield audio response
-                        yield {
-                            "response_id": str(uuid.uuid4()),
-                            "audio_data": response_audio,
-                            "text_message": response_text,
-                            "language": request.language,
-                            "is_final": True
-                        }
+                        # Create proper protobuf response
+                        response = ai_pb2.AIConversationResponse(
+                            response_id=str(uuid.uuid4()),
+                            language=request.language,
+                            timestamp=create_timestamp(),
+                            is_final=True
+                        )
+                        if response_audio:
+                            response.audio_data = response_audio
+                        else:
+                            response.text_message = response_text
+                        yield response
                         
-                    elif hasattr(request, 'text_message') and request.text_message:
+                    elif content_type == 'text_message':
                         response_text, response_audio = await self.ai_service.process_text_message(
                             request.text_message, request.language, session_id
                         )
                         
-                        # Yield response
-                        yield {
-                            "response_id": str(uuid.uuid4()),
-                            "audio_data": response_audio,
-                            "text_message": response_text,
-                            "language": request.language,
-                            "is_final": True
-                        }
+                        # Create proper protobuf response
+                        response = ai_pb2.AIConversationResponse(
+                            response_id=str(uuid.uuid4()),
+                            text_message=response_text,
+                            language=request.language,
+                            timestamp=create_timestamp(),
+                            is_final=True
+                        )
+                        yield response
                         
                 except Exception as e:
                     logger.error(f"Stream processing error: {e}")
-                    yield {
-                        "response_id": str(uuid.uuid4()),
-                        "text_message": f"Error: {str(e)}",
-                        "language": request.language,
-                        "is_final": True
-                    }
+                    error_response = ai_pb2.AIConversationResponse(
+                        response_id=str(uuid.uuid4()),
+                        text_message=f"Error: {str(e)}",
+                        language=request.language if request else "en",
+                        timestamp=create_timestamp(),
+                        is_final=True
+                    )
+                    yield error_response
             
         finally:
             self.ai_service.end_conversation(session_id)
