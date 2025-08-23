@@ -318,7 +318,7 @@ export default function TalkPage() {
       } else {
         // Use TTS for the response
         setTimeout(() => {
-          generateAndPlayTTS(responseText, user.language);
+          generateAndPlayTTS(responseText);
         }, 500);
       }
     } catch (err) {
@@ -332,7 +332,7 @@ export default function TalkPage() {
     }
   };
 
-  const generateAndPlayTTS = async (text: string, language: string) => {
+  const generateAndPlayTTS = async (text: string) => {
     if (!text.trim()) return;
 
     try {
@@ -379,19 +379,6 @@ export default function TalkPage() {
       audioStream.getTracks().forEach((track) => track.stop());
     }
     router.push("/");
-  };
-
-  const changeLanguage = (newLanguage: string) => {
-    if (user) {
-      const updatedUser = { ...user, language: newLanguage };
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      // Always Vietnamese
-      if (recognition) {
-        recognition.lang = "vi-VN";
-      }
-    }
   };
 
   if (!user) {
@@ -527,18 +514,9 @@ export default function TalkPage() {
                           message.content === "Thinking..." && (
                             <div className="flex items-center gap-1 mt-1">
                               <div className="flex gap-1">
-                                <div
-                                  className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: "0ms" }}
-                                ></div>
-                                <div
-                                  className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: "150ms" }}
-                                ></div>
-                                <div
-                                  className="w-1 h-1 bg-gray-500 rounded-full animate-bounce"
-                                  style={{ animationDelay: "300ms" }}
-                                ></div>
+                                <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]"></div>
+                                <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]"></div>
+                                <div className="w-1 h-1 bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]"></div>
                               </div>
                             </div>
                           )}
@@ -555,10 +533,7 @@ export default function TalkPage() {
                                 audio.play().catch(console.error);
                               } else {
                                 // Generate TTS for the message
-                                generateAndPlayTTS(
-                                  message.content,
-                                  user.language
-                                );
+                                generateAndPlayTTS(message.content);
                               }
                             }}
                             disabled={isGeneratingAudio === message.content}
@@ -613,6 +588,7 @@ export default function TalkPage() {
                 type="button"
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={!isConnected}
+                aria-label={isRecording ? "Stop recording" : "Start recording"}
                 className={`p-4 rounded-full transition-colors ${
                   isRecording
                     ? "bg-red-500 hover:bg-red-600 animate-pulse"
