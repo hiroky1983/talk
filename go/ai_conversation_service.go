@@ -13,7 +13,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	app "github.com/hiroky1983/talk/go/gen/app"
-	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
 )
 
 // AIConversationService implements the AI conversation service
