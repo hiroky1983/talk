@@ -429,6 +429,7 @@ export default function TalkPage() {
               </span>
               {!isConnected && (
                 <button
+                  type="button"
                   onClick={startAIConversation}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
                 >
@@ -436,6 +437,7 @@ export default function TalkPage() {
                 </button>
               )}
               <button
+                type="button"
                 onClick={logout}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
               >
@@ -546,6 +548,7 @@ export default function TalkPage() {
                       {message.sender === "ai" && (
                         <div className="mt-3 flex items-center gap-2">
                           <button
+                            type="button"
                             onClick={() => {
                               if (message.audioUrl) {
                                 const audio = new Audio(message.audioUrl);
@@ -607,6 +610,7 @@ export default function TalkPage() {
           <div className="border-t p-6">
             <div className="flex items-center justify-center gap-4">
               <button
+                type="button"
                 onClick={isRecording ? stopRecording : startRecording}
                 disabled={!isConnected}
                 className={`p-4 rounded-full transition-colors ${
