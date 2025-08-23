@@ -13,14 +13,8 @@ export default function AuthPage() {
   // Detect user's preferred language on component mount
   useEffect(() => {
     setIsClient(true);
-    const browserLang = navigator.language.toLowerCase();
-    if (browserLang.startsWith('vi')) {
-      setLanguage('vi');
-    } else if (browserLang.startsWith('en')) {
-      setLanguage('en');
-    } else {
-      setLanguage('ja'); // Default to Japanese if language not supported
-    }
+    // Always default to Vietnamese
+    setLanguage('vi');
   }, []);
 
   // Prevent hydration mismatch by not rendering until client-side
@@ -83,8 +77,6 @@ export default function AuthPage() {
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
               <option value="vi">Vietnamese (Tiếng Việt)</option>
-              <option value="en">English</option>
-              <option value="ja">Japanese (日本語)</option>
             </select>
           </div>
 
