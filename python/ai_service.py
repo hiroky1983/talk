@@ -49,7 +49,7 @@ class AIConversationService:
             raise ValueError("GOOGLE_GEMINI_API_KEY not found in environment")
         
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
         
         # Initialize speech recognition if available
         if SPEECH_RECOGNITION_AVAILABLE:
@@ -64,12 +64,6 @@ class AIConversationService:
                 'speech_lang': 'vi-VN',
                 'tts_lang': 'vi',
                 'system_prompt': 'Bạn là một trợ lý AI giúp người dùng luyện tập tiếng Việt. Hãy trả lời bằng tiếng Việt một cách tự nhiên và thân thiện.'
-            },
-            'en': {
-                'name': 'English',
-                'speech_lang': 'en-US',
-                'tts_lang': 'en',
-                'system_prompt': 'You are an AI assistant helping users practice English. Respond naturally and be encouraging in their language learning journey.'
             },
             'ja': {
                 'name': 'Japanese',
