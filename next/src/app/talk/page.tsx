@@ -12,6 +12,7 @@ import {
 import { AIConversationService } from "../../gen/app/ai_conversation_service_pb";
 import { create } from "@bufbuild/protobuf";
 
+
 interface User {
   username: string;
   language: string;

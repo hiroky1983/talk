@@ -1,11 +1,12 @@
 # Core dependencies
+fastapi>=0.104.0
+uvicorn>=0.24.0
 google-generativeai>=0.3.2
-grpcio>=1.60.0
-grpcio-tools>=1.60.0
-protobuf==5.29.5
 python-dotenv>=1.0.0
+pydantic>=2.4.0
+python-multipart>=0.0.6
 
-# Optional audio dependencies - can be installed if needed
-# SpeechRecognition>=3.8.1
-# pydub>=0.25.1
-# gTTS>=2.4.0
+# Audio dependencies for speech-to-text
+SpeechRecognition>=3.8.1
+pydub>=0.25.1
+gTTS>=2.4.0

@@ -14,8 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Expose the gRPC port
-EXPOSE 50051
+# Expose the FastAPI port
+EXPOSE 8001
 
-# Start the gRPC server
-CMD ["python", "grpc_server.py"]
+# Start the FastAPI server
+CMD ["python", "fastapi_server.py"]
