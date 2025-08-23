@@ -1,100 +1,114 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from "next/image";
-import Link from "next/link";
 
-export default function Home() {
+export default function AuthPage() {
+  const [username, setUsername] = useState('');
+  const [language, setLanguage] = useState('en'); // Default to English, will be set based on OS
+  const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+
+  // Detect user's preferred language on component mount
+  useEffect(() => {
+    setIsClient(true);
+    const browserLang = navigator.language.toLowerCase();
+    if (browserLang.startsWith('vi')) {
+      setLanguage('vi');
+    } else if (browserLang.startsWith('en')) {
+      setLanguage('en');
+    } else {
+      setLanguage('ja'); // Default to Japanese if language not supported
+    }
+  }, []);
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleLogin = () => {
+    if (username.trim()) {
+      // Store user data in localStorage for now (since no DB setup required)
+      localStorage.setItem('user', JSON.stringify({ username, language }));
+      router.push('/talk');
+    }
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <div className="text-center sm:text-left">
-          <h1 className="text-2xl font-bold mb-4">Go + Next.js gRPC Chat Demo</h1>
-          <p className="text-gray-600 mb-6">
-            Real-time chat application using gRPC streaming with Connect RPC
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+        <div className="text-center mb-8">
+          <Image
+            className="mx-auto mb-4"
+            src="/next.svg"
+            alt="App logo"
+            width={120}
+            height={24}
+            priority
+          />
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Language Learning</h1>
+          <p className="text-gray-600">Practice languages with AI conversation</p>
         </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <Link
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-blue-500 text-white gap-2 hover:bg-blue-600 font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="/chat"
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+              placeholder="Enter your username"
+              onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Practice Language
+            </label>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+            >
+              <option value="vi">Vietnamese (Tiếng Việt)</option>
+              <option value="en">English</option>
+              <option value="ja">Japanese (日本語)</option>
+            </select>
+          </div>
+
+          <button
+            onClick={handleLogin}
+            disabled={!username.trim()}
+            className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
           >
-            Join Chat Room
-          </Link>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto"
-            href="http://localhost:8000/health"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Check API Status
-          </a>
+            Start Learning
+          </button>
         </div>
 
-        <div className="text-sm text-gray-600 max-w-md">
-          <h3 className="font-semibold mb-2">Features:</h3>
-          <ul className="list-disc list-inside space-y-1">
-            <li>Server-side streaming with Connect RPC</li>
-            <li>Real-time message broadcasting</li>
-            <li>Multiple chat rooms support</li>
-            <li>User join/leave notifications</li>
-            <li>HTTP/2 streaming over h2c</li>
-          </ul>
+        <div className="mt-8 text-center">
+          <div className="text-sm text-gray-600">
+            <h3 className="font-medium mb-2">Features:</h3>
+            <ul className="text-left space-y-1">
+              <li>• Voice conversation with AI</li>
+              <li>• Real-time speech recognition</li>
+              <li>• Multi-language support</li>
+              <li>• Instant AI responses</li>
+            </ul>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }

@@ -20,3 +20,8 @@ plugins:
   - remote: buf.build/connectrpc/es
     out: ../next/src/gen
     opt: target=ts
+  # Python gRPC
+  - remote: buf.build/protocolbuffers/python
+    out: ../python
+  - remote: buf.build/grpc/python
+    out: ../python

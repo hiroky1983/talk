@@ -32,15 +32,15 @@ func Logger() gin.HandlerFunc {
 }
 
 func main() {
-	// Create chat service
-	chatService := NewChatService()
+	// Create AI service
+	aiService := NewAIConversationService()
 	
 	// Create Connect RPC handlers
-	chatPath, chatHandler := appv1connect.NewChatServiceHandler(chatService)
+	aiPath, aiHandler := appv1connect.NewAIConversationServiceHandler(aiService)
 
 	// Create HTTP mux for Connect RPC
 	mux := http.NewServeMux()
-	mux.Handle(chatPath, chatHandler)
+	mux.Handle(aiPath, aiHandler)
 
 	// Create Gin router for regular HTTP endpoints
 	router := gin.Default()
@@ -58,12 +58,12 @@ func main() {
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Chat API Server - gRPC streaming enabled!",
+			"message": "AI Language Learning API Server - gRPC streaming enabled!",
 		})
 	})
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "healthy - chat service running",
+			"message": "healthy - AI conversation service running",
 		})
 	})
 
@@ -74,13 +74,14 @@ func main() {
 		mux.ServeHTTP(c.Writer, c.Request)
 	})
 
-	log.Println("Starting server on :8000")
+	log.Println("Starting AI Language Learning server on :8000")
 	log.Println("Connect RPC services available at /connect/*")
-	log.Println("Chat service endpoints:")
-	log.Println("  - /connect/app.v1.ChatService/JoinChat")
-	log.Println("  - /connect/app.v1.ChatService/SendMessage")
-	log.Println("  - /connect/app.v1.ChatService/StreamChat")
-	log.Println("  - /connect/app.v1.ChatService/BiStreamChat")
+	log.Println("AI Conversation service endpoints:")
+	log.Println("  - /connect/app.v1.AIConversationService/StartConversation")
+	log.Println("  - /connect/app.v1.AIConversationService/EndConversation")
+	log.Println("  - /connect/app.v1.AIConversationService/SendMessage")
+	log.Println("  - /connect/app.v1.AIConversationService/StreamConversation")
+	log.Println("  - /connect/app.v1.AIConversationService/StreamConversationEvents")
 
 	// Use h2c for HTTP/2 without TLS (required for streaming)
 	server := &http.Server{
