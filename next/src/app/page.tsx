@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export default function AuthPage() {
   const [username, setUsername] = useState("");
-  const [language, setLanguage] = useState("en"); // Default to English, will be set based on OS
+  const [language, setLanguage] = useState("vi"); // Default to Vietnamese
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 

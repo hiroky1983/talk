@@ -96,7 +96,7 @@ class AIConversationService:
                 # Clean up temp file
                 os.unlink(temp_wav.name)
             
-            lang_config = self.language_configs.get(language, self.language_configs['en'])
+            lang_config = self.language_configs.get(language, self.language_configs['vi'])
             text = self.recognizer.recognize_google(audio, language=lang_config['speech_lang'])
             logger.info(f"Speech to text ({language}): {text}")
             return text
@@ -112,7 +112,7 @@ class AIConversationService:
             return b""
         
         try:
-            lang_config = self.language_configs.get(language, self.language_configs['en'])
+            lang_config = self.language_configs.get(language, self.language_configs['vi'])
             tts = gTTS(text=text, lang=lang_config['tts_lang'], slow=False)
             
             # Save to bytes
@@ -129,7 +129,7 @@ class AIConversationService:
         """Get AI response using Google Gemini"""
         try:
             # Get language configuration
-            lang_config = self.language_configs.get(language, self.language_configs['en'])
+            lang_config = self.language_configs.get(language, self.language_configs['vi'])
             
             # Initialize conversation history if not exists
             if session_id not in self.conversations:

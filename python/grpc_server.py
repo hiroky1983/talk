@@ -194,7 +194,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                     error_response = ai_pb2.AIConversationResponse(
                         response_id=str(uuid.uuid4()),
                         text_message=f"Error: {str(e)}",
-                        language=request.language if request else "en",
+                        language=request.language if request else "vi",
                         timestamp=create_timestamp(),
                         is_final=True
                     )
