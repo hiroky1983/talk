@@ -431,13 +431,6 @@ export default function TalkPage() {
     router.push("/");
   };
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
-  }
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -448,60 +441,72 @@ export default function TalkPage() {
               <h1 className="text-2xl font-bold text-gray-800">
                 AI Language Practice
               </h1>
-              <p className="text-gray-600">
-                Practice with:{" "}
-                {languageNames[user.language as keyof typeof languageNames]}
-              </p>
+              {user ? (
+                <p className="text-gray-600">
+                  Practice with:{" "}
+                  {languageNames[user.language as keyof typeof languageNames]}
+                </p>
+              ) : (
+                <div className="h-5 bg-gray-200 rounded animate-pulse w-48"></div>
+              )}
             </div>
-            <div className="flex items-center gap-4">
-              {/* Character Selection */}
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Character:
-                </label>
-                <select
-                  value={selectedCharacter}
-                  onChange={(e) => handleCharacterChange(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
-                >
-                  {characters.map((character) => (
-                    <option key={character.id} value={character.id}>
-                      {character.emoji} {character.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {user ? (
+              <div className="flex items-center gap-4">
+                {/* Character Selection */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Character:
+                  </label>
+                  <select
+                    value={selectedCharacter}
+                    onChange={(e) => handleCharacterChange(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                  >
+                    {characters.map((character) => (
+                      <option key={character.id} value={character.id}>
+                        {character.emoji} {character.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <span
-                className={`px-3 py-1 rounded-full text-sm ${
-                  isConnected
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
-                }`}
-              >
-                {isConnected
-                  ? `Connected to ${
-                      characters.find((c) => c.id === selectedCharacter)?.name
-                    }`
-                  : "Disconnected"}
-              </span>
-              {!isConnected && (
+                <span
+                  className={`px-3 py-1 rounded-full text-sm ${
+                    isConnected
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {isConnected
+                    ? `Connected to ${
+                        characters.find((c) => c.id === selectedCharacter)?.name
+                      }`
+                    : "Disconnected"}
+                </span>
+                {!isConnected && (
+                  <button
+                    type="button"
+                    onClick={startAIConversation}
+                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
+                  >
+                    Connect to AI
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={startAIConversation}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
+                  onClick={logout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
                 >
-                  Connect to AI
+                  Logout
                 </button>
-              )}
-              <button
-                type="button"
-                onClick={logout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
-              >
-                Logout
-              </button>
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-24"></div>
+                <div className="h-8 bg-gray-200 rounded animate-pulse w-20"></div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -519,7 +524,17 @@ export default function TalkPage() {
       <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
         <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {conversation.length === 0 ? (
+            {!user ? (
+              <div className="text-center text-gray-500 py-12">
+                <div className="text-4xl mb-4">🎤</div>
+                <h3 className="text-lg font-medium mb-2">
+                  Loading your profile...
+                </h3>
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                </div>
+              </div>
+            ) : conversation.length === 0 ? (
               <div className="text-center text-gray-500 py-12">
                 <div className="text-4xl mb-4">
                   {characters.find((c) => c.id === selectedCharacter)?.emoji ||
@@ -667,54 +682,84 @@ export default function TalkPage() {
 
           {/* Recording controls */}
           <div className="border-t p-6">
-            <div className="flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={isRecording ? stopRecording : startRecording}
-                disabled={!isConnected}
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
-                className={`p-4 rounded-full transition-colors ${
-                  isRecording
-                    ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                    : "bg-blue-500 hover:bg-blue-600"
-                } disabled:bg-gray-300 text-white`}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+            {user ? (
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={isRecording ? stopRecording : startRecording}
+                  disabled={!isConnected}
+                  aria-label={
+                    isRecording ? "Stop recording" : "Start recording"
+                  }
+                  className={`p-4 rounded-full transition-colors ${
+                    isRecording
+                      ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  } disabled:bg-gray-300 text-white`}
                 >
-                  {isRecording ? (
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z"
-                      clipRule="evenodd"
-                    />
-                  ) : (
+                  <svg
+                    className="w-6 h-6"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    {isRecording ? (
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z"
+                        clipRule="evenodd"
+                      />
+                    ) : (
+                      <path
+                        fillRule="evenodd"
+                        d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
+                        clipRule="evenodd"
+                      />
+                    )}
+                  </svg>
+                </button>
+                <div className="text-center">
+                  <div className="font-medium">
+                    {isRecording
+                      ? "Recording & Transcribing..."
+                      : "Tap to speak"}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {isRecording
+                      ? "Click again to stop"
+                      : "Hold conversation with AI"}
+                  </div>
+                  {isRecording && transcribedText && (
+                    <div className="text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded">
+                      "{transcribedText}"
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-4">
+                <div className="p-4 rounded-full bg-gray-200">
+                  <svg
+                    className="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     <path
                       fillRule="evenodd"
                       d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
                       clipRule="evenodd"
                     />
-                  )}
-                </svg>
-              </button>
-              <div className="text-center">
-                <div className="font-medium">
-                  {isRecording ? "Recording & Transcribing..." : "Tap to speak"}
+                  </svg>
                 </div>
-                <div className="text-sm text-gray-600">
-                  {isRecording
-                    ? "Click again to stop"
-                    : "Hold conversation with AI"}
-                </div>
-                {isRecording && transcribedText && (
-                  <div className="text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded">
-                    "{transcribedText}"
+                <div className="text-center">
+                  <div className="font-medium text-gray-400">
+                    Please wait...
                   </div>
-                )}
+                  <div className="text-sm text-gray-400">
+                    Loading audio controls
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
