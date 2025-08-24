@@ -34,7 +34,7 @@ interface ConversationMessage {
 
 export default function TalkPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [selectedCharacter, setSelectedCharacter] = useState<string>('friend');
+  const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
   const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -67,23 +67,23 @@ export default function TalkPage() {
 
   const characters: Character[] = [
     {
-      id: 'friend',
-      name: 'Friend',
-      description: 'A friendly companion for casual conversation',
-      emoji: '👫'
+      id: "friend",
+      name: "ホアン",
+      description: "A friendly companion for casual conversation",
+      emoji: "👨",
     },
     {
-      id: 'parent',
-      name: 'Parent',
-      description: 'A caring parent figure who gives advice and support',
-      emoji: '👨‍👩‍👧‍👦'
+      id: "parent",
+      name: "お母さん",
+      description: "A caring parent figure who gives advice and support",
+      emoji: "👩",
     },
     {
-      id: 'sister',
-      name: 'Sister',
-      description: 'A playful sister who shares daily life stories',
-      emoji: '👭'
-    }
+      id: "sister",
+      name: "妹",
+      description: "A playful sister who shares daily life stories",
+      emoji: "👧",
+    },
   ];
 
   const scrollToBottom = () => {
@@ -167,6 +167,26 @@ export default function TalkPage() {
         "Microphone access denied. Please enable microphone permissions to use voice chat."
       );
       setIsConnected(false);
+    }
+  };
+
+  const handleCharacterChange = async (newCharacter: string) => {
+    if (newCharacter === selectedCharacter) return;
+
+    // If connected, end current session and start new one with new character
+    if (isConnected && sessionId) {
+      await endAIConversation();
+      setSelectedCharacter(newCharacter);
+      // Clear conversation history when switching characters
+      setConversation([]);
+      // Wait a bit then start new conversation
+      setTimeout(() => {
+        startAIConversation();
+      }, 500);
+    } else {
+      setSelectedCharacter(newCharacter);
+      // Clear conversation history when switching characters
+      setConversation([]);
     }
   };
 
@@ -266,29 +286,6 @@ export default function TalkPage() {
       console.error("Failed to end conversation:", err);
     }
   };
-
-  const handleCharacterChange = async (newCharacter: string) => {
-    if (newCharacter === selectedCharacter) return;
-    
-    // If connected, end current session and start new one with new character
-    if (isConnected && sessionId) {
-      await endAIConversation();
-      setSelectedCharacter(newCharacter);
-      // Clear conversation history when switching characters
-      setConversation([]);
-      // Wait a bit then start new conversation
-      setTimeout(() => {
-        if (user && audioStream) {
-          startAIConversation();
-        }
-      }, 500);
-    } else {
-      setSelectedCharacter(newCharacter);
-      // Clear conversation history when switching characters
-      setConversation([]);
-    }
-  };
-
   const sendToAI = async (audioBlob: Blob, transcribedUserText: string) => {
     if (!user) return;
 
@@ -441,7 +438,6 @@ export default function TalkPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
@@ -466,7 +462,7 @@ export default function TalkPage() {
                 <select
                   value={selectedCharacter}
                   onChange={(e) => handleCharacterChange(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
                 >
                   {characters.map((character) => (
                     <option key={character.id} value={character.id}>
@@ -475,7 +471,7 @@ export default function TalkPage() {
                   ))}
                 </select>
               </div>
-              
+
               <span
                 className={`px-3 py-1 rounded-full text-sm ${
                   isConnected
@@ -483,7 +479,11 @@ export default function TalkPage() {
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {isConnected ? `Connected to ${characters.find(c => c.id === selectedCharacter)?.name}` : "Disconnected"}
+                {isConnected
+                  ? `Connected to ${
+                      characters.find((c) => c.id === selectedCharacter)?.name
+                    }`
+                  : "Disconnected"}
               </span>
               {!isConnected && (
                 <button
@@ -522,13 +522,18 @@ export default function TalkPage() {
             {conversation.length === 0 ? (
               <div className="text-center text-gray-500 py-12">
                 <div className="text-4xl mb-4">
-                  {characters.find(c => c.id === selectedCharacter)?.emoji || '🎤'}
+                  {characters.find((c) => c.id === selectedCharacter)?.emoji ||
+                    "🎤"}
                 </div>
                 <h3 className="text-lg font-medium mb-2">
-                  Start your conversation with {characters.find(c => c.id === selectedCharacter)?.name}!
+                  Start your conversation with{" "}
+                  {characters.find((c) => c.id === selectedCharacter)?.name}!
                 </h3>
                 <p className="mb-2">
-                  {characters.find(c => c.id === selectedCharacter)?.description}
+                  {
+                    characters.find((c) => c.id === selectedCharacter)
+                      ?.description
+                  }
                 </p>
                 <p>
                   Click the microphone button below to begin practicing your{" "}
@@ -571,7 +576,10 @@ export default function TalkPage() {
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm">
-                          {message.sender === "user" ? "You" : characters.find(c => c.id === selectedCharacter)?.name || "AI Assistant"}
+                          {message.sender === "user"
+                            ? "You"
+                            : characters.find((c) => c.id === selectedCharacter)
+                                ?.name || "AI Assistant"}
                         </span>
                         <span
                           className={`text-xs ${
