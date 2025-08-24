@@ -1,7 +1,7 @@
 # Core dependencies
 grpcio>=1.59.0
 grpcio-tools>=1.59.0
-protobuf>=5.26.0,<6.0
+protobuf>=6.32.0
 google-genai
 python-dotenv>=1.0.0
 
