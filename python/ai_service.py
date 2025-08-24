@@ -8,7 +8,7 @@ import asyncio
 import logging
 from typing import AsyncIterator, Dict, Any
 from dotenv import load_dotenv
-import google.generativeai as genai
+import google.genai as genai
 import io
 import tempfile
 
@@ -21,18 +21,18 @@ except ImportError:
     logging.warning("SpeechRecognition not available")
 
 try:
-    from gtts import gTTS
-    TTS_AVAILABLE = True
-except ImportError:
-    TTS_AVAILABLE = False
-    logging.warning("gTTS not available")
-
-try:
     from pydub import AudioSegment
     AUDIO_PROCESSING_AVAILABLE = True
 except ImportError:
     AUDIO_PROCESSING_AVAILABLE = False
     logging.warning("pydub not available")
+
+try:
+    from gtts import gTTS
+    TTS_AVAILABLE = True
+except ImportError:
+    TTS_AVAILABLE = False
+    logging.warning("gTTS not available")
 
 # Load environment variables
 load_dotenv()
@@ -48,8 +48,9 @@ class AIConversationService:
         if not api_key:
             raise ValueError("GOOGLE_GEMINI_API_KEY not found in environment")
         
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        self.client = genai.Client(api_key=api_key)
+        # Also keep a text generation model for fallback
+        self.text_model = 'gemini-2.0-flash-exp'
         
         # Initialize speech recognition if available
         if SPEECH_RECOGNITION_AVAILABLE:
@@ -63,13 +64,29 @@ class AIConversationService:
                 'name': 'Vietnamese',
                 'speech_lang': 'vi-VN',
                 'tts_lang': 'vi',
-                'system_prompt': 'Bạn là một trợ lý AI giúp người dùng luyện tập tiếng Việt. Hãy trả lời bằng tiếng Việt một cách tự nhiên và thân thiện.'
+                'system_prompt': '''Bạn là một người bạn thân thiện đang trò chuyện với tôi bằng tiếng Việt. Hãy:
+
+- Phản ứng tự nhiên với những gì tôi nói (dùng "À!", "Ồ!", "Thật không?", "Hay quá!")
+- Hỏi thêm để hiểu rõ hơn ("Vậy sao?", "Rồi thế nào?", "Bạn cảm thấy thế nào?")
+- Chia sẻ ý kiến hoặc cảm nhận của bạn
+- Trả lời ngắn và tự nhiên (1-2 câu)
+- Tránh dạy học hay giải thích dài dòng
+
+Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'''
             },
             'ja': {
                 'name': 'Japanese',
                 'speech_lang': 'ja-JP',
                 'tts_lang': 'ja',
-                'system_prompt': '日本語の練習を手伝うAIアシスタントです。自然で親しみやすい日本語で応答してください。'
+                'system_prompt': '''あなたは私と日本語で普通に話している友達です。以下のように会話してください：
+
+- 私が言ったことに自然に反応する（「えー！」「そうなんだ」「へー」「いいね！」）
+- 気になることがあったら質問する（「どうだった？」「それで？」「どう思う？」）
+- 自分の意見や感想を言う
+- 短く自然に話す（1-2文程度）
+- 教える感じではなく、普通の会話として
+
+私たちは友達同士で話しているだけです。'''
             }
         }
         
@@ -106,9 +123,9 @@ class AIConversationService:
             return "Could not process audio input"
     
     def text_to_speech(self, text: str, language: str) -> bytes:
-        """Convert text to speech audio data"""
+        """Convert text to speech audio data using gTTS"""
         if not TTS_AVAILABLE:
-            # Return empty bytes if TTS not available
+            logger.warning("gTTS not available, returning empty audio")
             return b""
         
         try:
@@ -148,8 +165,9 @@ class AIConversationService:
             
             # Generate response
             response = await asyncio.to_thread(
-                self.model.generate_content,
-                f"{lang_config['system_prompt']}\n\nConversation:\n{conversation_context}\n\nAI:"
+                self.client.models.generate_content,
+                model=self.text_model,
+                contents=f"{lang_config['system_prompt']}\n\nConversation:\n{conversation_context}\n\nAI:"
             )
             
             ai_response = response.text.strip()
@@ -199,15 +217,15 @@ class AIConversationService:
                 self.text_to_speech, ai_response_text, language
             )
             
+            # Check if audio was generated successfully
+            if not ai_response_audio:
+                raise ValueError("Failed to generate audio response")
+            
             return ai_response_text, ai_response_audio
             
         except Exception as e:
             logger.error(f"Process text message error: {e}")
-            error_msg = "Sorry, I couldn't process your message."
-            error_audio = await asyncio.to_thread(
-                self.text_to_speech, error_msg, language
-            )
-            return error_msg, error_audio
+            raise e
     
     def start_conversation(self, session_id: str) -> bool:
         """Start a new conversation session"""
