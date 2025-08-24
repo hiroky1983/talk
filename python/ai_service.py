@@ -28,10 +28,17 @@ except ImportError:
     logging.warning("pydub not available")
 
 try:
-    from gtts import gTTS
-    TTS_AVAILABLE = True
+    from google.cloud import texttospeech
+    CLOUD_TTS_AVAILABLE = True
 except ImportError:
-    TTS_AVAILABLE = False
+    CLOUD_TTS_AVAILABLE = False
+    logging.warning("Google Cloud Text-to-Speech not available")
+
+try:
+    from gtts import gTTS
+    GTTS_AVAILABLE = True
+except ImportError:
+    GTTS_AVAILABLE = False
     logging.warning("gTTS not available")
 
 # Load environment variables
@@ -52,19 +59,36 @@ class AIConversationService:
         # Also keep a text generation model for fallback
         self.text_model = 'gemini-2.0-flash-exp'
         
+        # Initialize Google Cloud Text-to-Speech client
+        self.tts_client = None
+        if CLOUD_TTS_AVAILABLE:
+            try:
+                # Set up credentials path
+                credentials_path = os.path.join(os.path.dirname(__file__), 'certificates', 'certificates.json')
+                if os.path.exists(credentials_path):
+                    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
+                    logger.info(f"Using credentials from: {credentials_path}")
+                
+                self.tts_client = texttospeech.TextToSpeechClient()
+                logger.info("Google Cloud Text-to-Speech initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Google Cloud TTS: {e}")
+                logger.info("TTS service will not be available until credentials are configured")
+        
         # Initialize speech recognition if available
         if SPEECH_RECOGNITION_AVAILABLE:
             self.recognizer = sr.Recognizer()
         else:
             self.recognizer = None
         
-        # Language configurations
-        self.language_configs = {
-            'vi': {
-                'name': 'Vietnamese',
-                'speech_lang': 'vi-VN',
-                'tts_lang': 'vi',
-                'system_prompt': '''Bạn là một người bạn thân thiện đang trò chuyện với tôi bằng tiếng Việt. Hãy:
+        # Character and language configurations
+        self.character_configs = {
+            'friend': {
+                'vi': {
+                    'name': 'Vietnamese Friend',
+                    'speech_lang': 'vi-VN',
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-A'},
+                    'system_prompt': '''Bạn là một người bạn thân thiện đang trò chuyện với tôi bằng tiếng Việt. Hãy:
 
 - Phản ứng tự nhiên với những gì tôi nói (dùng "À!", "Ồ!", "Thật không?", "Hay quá!")
 - Hỏi thêm để hiểu rõ hơn ("Vậy sao?", "Rồi thế nào?", "Bạn cảm thấy thế nào?")
@@ -73,12 +97,12 @@ class AIConversationService:
 - Tránh dạy học hay giải thích dài dòng
 
 Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'''
-            },
-            'ja': {
-                'name': 'Japanese',
-                'speech_lang': 'ja-JP',
-                'tts_lang': 'ja',
-                'system_prompt': '''あなたは私と日本語で普通に話している友達です。以下のように会話してください：
+                },
+                'ja': {
+                    'name': 'Japanese Friend',
+                    'speech_lang': 'ja-JP',
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-A'},
+                    'system_prompt': '''あなたは私と日本語で普通に話している友達です。以下のように会話してください：
 
 - 私が言ったことに自然に反応する（「えー！」「そうなんだ」「へー」「いいね！」）
 - 気になることがあったら質問する（「どうだった？」「それで？」「どう思う？」）
@@ -87,6 +111,67 @@ Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'
 - 教える感じではなく、普通の会話として
 
 私たちは友達同士で話しているだけです。'''
+                }
+            },
+            'parent': {
+                'vi': {
+                    'name': 'Vietnamese Parent',
+                    'speech_lang': 'vi-VN',
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-B'},
+                    'system_prompt': '''Bạn là bố/mẹ đang nói chuyện với con bằng tiếng Việt. Hãy:
+
+- Thể hiện sự quan tâm và yêu thương ("Con có khỏe không?", "Bố/mẹ lo lắm đấy")
+- Chia sẻ kinh nghiệm và lời khuyên nhẹ nhàng
+- Hỏi về cuộc sống, học tập, công việc
+- Nói chuyện ấm áp và tự nhiên (1-2 câu)
+- Không quá nghiêm khắc, chỉ là nói chuyện bình thường
+
+Chúng ta là gia đình đang trò chuyện.'''
+                },
+                'ja': {
+                    'name': 'Japanese Parent',
+                    'speech_lang': 'ja-JP',
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-C'},
+                    'system_prompt': '''あなたは私の親として日本語で話しています：
+
+- 優しく心配してくれる（「元気？」「大丈夫？」「お疲れさま」）
+- 経験に基づいた軽いアドバイスをくれる
+- 日常生活について聞いてくれる
+- 温かく自然に話す（1-2文程度）
+- 厳しすぎず、普通の家族の会話として
+
+私たちは家族として話しています。'''
+                }
+            },
+            'sister': {
+                'vi': {
+                    'name': 'Vietnamese Sister',
+                    'speech_lang': 'vi-VN',
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-A'},
+                    'system_prompt': '''Bạn là em gái/chị gái đang nói chuyện bằng tiếng Việt. Hãy:
+
+- Tỏ ra thân thiết và hơi tinh nghịch ("Anh/chị làm gì đấy?", "Hehe")
+- Chia sẻ những chuyện hàng ngày
+- Hỏi những câu hỏi tò mò
+- Nói chuyện vui vẻ và tự nhiên (1-2 câu)
+- Có thể hơi nghịch ngợm nhưng thương yêu
+
+Chúng ta là anh chị em ruột.'''
+                },
+                'ja': {
+                    'name': 'Japanese Sister',
+                    'speech_lang': 'ja-JP',
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-A'},
+                    'system_prompt': '''あなたは私の妹/姉として日本語で話しています：
+
+- 親しげで少しいたずらっぽく（「何してるの？」「へへ」）
+- 日常のことを共有する
+- 好奇心旺盛な質問をする
+- 楽しく自然に話す（1-2文程度）
+- 少しいたずらっ子だけど愛情がある
+
+私たちは兄弟姉妹です。'''
+                }
             }
         }
         
@@ -113,8 +198,9 @@ Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'
                 # Clean up temp file
                 os.unlink(temp_wav.name)
             
-            lang_config = self.language_configs.get(language, self.language_configs['vi'])
-            text = self.recognizer.recognize_google(audio, language=lang_config['speech_lang'])
+            # Default to friend character for speech recognition
+            char_config = self.character_configs.get('friend', {}).get(language, self.character_configs['friend']['vi'])
+            text = self.recognizer.recognize_google(audio, language=char_config['speech_lang'])
             logger.info(f"Speech to text ({language}): {text}")
             return text
             
@@ -122,36 +208,62 @@ Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'
             logger.error(f"Speech to text error: {e}")
             return "Could not process audio input"
     
-    def text_to_speech(self, text: str, language: str) -> bytes:
-        """Convert text to speech audio data using gTTS"""
-        if not TTS_AVAILABLE:
-            logger.warning("gTTS not available, returning empty audio")
+    def text_to_speech(self, text: str, language: str, character: str = 'friend') -> bytes:
+        """Convert text to speech audio data using Google Cloud Text-to-Speech"""
+        if not CLOUD_TTS_AVAILABLE or not self.tts_client:
+            logger.warning("Google Cloud Text-to-Speech not available, returning empty audio")
             return b""
         
         try:
-            lang_config = self.language_configs.get(language, self.language_configs['vi'])
-            tts = gTTS(text=text, lang=lang_config['tts_lang'], slow=False)
+            # Get character and language configuration
+            char_config = self.character_configs.get(character, {}).get(language)
+            if not char_config:
+                # Fallback to friend character in the same language or Vietnamese
+                char_config = (self.character_configs.get('friend', {}).get(language) or 
+                              self.character_configs['friend']['vi'])
             
-            # Save to bytes
-            with io.BytesIO() as audio_buffer:
-                tts.write_to_fp(audio_buffer)
-                audio_buffer.seek(0)
-                return audio_buffer.getvalue()
+            # Configure the synthesis input
+            synthesis_input = texttospeech.SynthesisInput(text=text)
+            
+            # Build the voice request
+            voice = texttospeech.VoiceSelectionParams(
+                language_code=char_config['voice']['language_code'],
+                name=char_config['voice']['name']
+            )
+            
+            # Select the audio file format
+            audio_config = texttospeech.AudioConfig(
+                audio_encoding=texttospeech.AudioEncoding.MP3
+            )
+            
+            # Perform the text-to-speech request
+            response = self.tts_client.synthesize_speech(
+                input=synthesis_input,
+                voice=voice,
+                audio_config=audio_config
+            )
+            
+            logger.info(f"Text to speech ({language}, {character}): Generated audio for '{text[:50]}...'")
+            return response.audio_content
                 
         except Exception as e:
             logger.error(f"Text to speech error: {e}")
             return b""
     
-    async def get_ai_response(self, message: str, language: str, session_id: str) -> str:
+    async def get_ai_response(self, message: str, language: str, session_id: str, character: str = 'friend') -> str:
         """Get AI response using Google Gemini"""
         try:
-            # Get language configuration
-            lang_config = self.language_configs.get(language, self.language_configs['vi'])
+            # Get character and language configuration
+            char_config = self.character_configs.get(character, {}).get(language)
+            if not char_config:
+                # Fallback to friend character in the same language or Vietnamese
+                char_config = (self.character_configs.get('friend', {}).get(language) or 
+                              self.character_configs['friend']['vi'])
             
             # Initialize conversation history if not exists
             if session_id not in self.conversations:
                 self.conversations[session_id] = [
-                    {"role": "system", "content": lang_config['system_prompt']}
+                    {"role": "system", "content": char_config['system_prompt']}
                 ]
             
             # Add user message to history
@@ -167,7 +279,7 @@ Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'
             response = await asyncio.to_thread(
                 self.client.models.generate_content,
                 model=self.text_model,
-                contents=f"{lang_config['system_prompt']}\n\nConversation:\n{conversation_context}\n\nAI:"
+                contents=f"{char_config['system_prompt']}\n\nConversation:\n{conversation_context}\n\nAI:"
             )
             
             ai_response = response.text.strip()
@@ -182,39 +294,39 @@ Chúng ta đang trò chuyện bình thường, không phải trong lớp học.'
             logger.error(f"AI response error: {e}")
             return "Sorry, I couldn't process your request. Please try again."
     
-    async def process_audio_message(self, audio_data: bytes, language: str, session_id: str) -> tuple[str, bytes]:
+    async def process_audio_message(self, audio_data: bytes, language: str, session_id: str, character: str = 'friend') -> tuple[str, bytes]:
         """Process audio message and return text response and audio response"""
         try:
             # Convert speech to text
             user_text = self.speech_to_text(audio_data, language)
             
             # Get AI response
-            ai_response_text = await self.get_ai_response(user_text, language, session_id)
+            ai_response_text = await self.get_ai_response(user_text, language, session_id, character)
             
             # Convert AI response to speech
             ai_response_audio = await asyncio.to_thread(
-                self.text_to_speech, ai_response_text, language
+                self.text_to_speech, ai_response_text, language, character
             )
+            
+            # Check if audio was generated successfully
+            if not ai_response_audio:
+                raise ValueError("Failed to generate audio response")
             
             return ai_response_text, ai_response_audio
             
         except Exception as e:
             logger.error(f"Process audio message error: {e}")
-            error_msg = "Sorry, I couldn't process your audio message."
-            error_audio = await asyncio.to_thread(
-                self.text_to_speech, error_msg, language
-            )
-            return error_msg, error_audio
+            raise e
     
-    async def process_text_message(self, text: str, language: str, session_id: str) -> tuple[str, bytes]:
+    async def process_text_message(self, text: str, language: str, session_id: str, character: str = 'friend') -> tuple[str, bytes]:
         """Process text message and return text response and audio response"""
         try:
             # Get AI response
-            ai_response_text = await self.get_ai_response(text, language, session_id)
+            ai_response_text = await self.get_ai_response(text, language, session_id, character)
             
             # Convert AI response to speech
             ai_response_audio = await asyncio.to_thread(
-                self.text_to_speech, ai_response_text, language
+                self.text_to_speech, ai_response_text, language, character
             )
             
             # Check if audio was generated successfully
