@@ -93,7 +93,8 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             if success:
                 self.active_sessions.add(session_id)
             
-            logger.info(f"Started conversation for user {request.user_id}, session: {session_id}")
+            character = request.character if request.character else 'friend'
+            logger.info(f"Started conversation for user {request.user_id}, session: {session_id}, character: {character}")
             
             return ai_pb2.StartConversationResponse(
                 session_id=session_id,
@@ -135,6 +136,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
         """Process a single message and return response"""
         try:
             session_id = str(uuid.uuid4())  # Generate temp session for single messages
+            character = request.character if request.character else 'friend'
             
             # Check content type using oneof
             content_type = request.WhichOneof('content')
@@ -142,7 +144,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             if content_type == 'audio_data':
                 # Process audio message
                 response_text, response_audio = await self.ai_service.process_audio_message(
-                    request.audio_data, request.language, session_id
+                    request.audio_data, request.language, session_id, character
                 )
                 
                 # Create response with audio only
@@ -158,7 +160,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             elif content_type == 'text_message':
                 # Process text message
                 response_text, response_audio = await self.ai_service.process_text_message(
-                    request.text_message, request.language, session_id
+                    request.text_message, request.language, session_id, character
                 )
                 
                 # Create response with audio data only
@@ -194,6 +196,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
     async def StreamConversation(self, request_iterator, context):
         """Handle bidirectional streaming conversation"""
         session_id = str(uuid.uuid4())
+        character = 'friend'  # Default character
         
         try:
             self.ai_service.start_conversation(session_id)
@@ -201,11 +204,15 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             
             async for request in request_iterator:
                 try:
+                    # Get character from request (use previous character if not specified)
+                    if request.character:
+                        character = request.character
+                    
                     content_type = request.WhichOneof('content')
                     
                     if content_type == 'audio_data':
                         response_text, response_audio = await self.ai_service.process_audio_message(
-                            request.audio_data, request.language, session_id
+                            request.audio_data, request.language, session_id, character
                         )
                         
                         # Create proper protobuf response with audio only
@@ -220,7 +227,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                         
                     elif content_type == 'text_message':
                         response_text, response_audio = await self.ai_service.process_text_message(
-                            request.text_message, request.language, session_id
+                            request.text_message, request.language, session_id, character
                         )
                         
                         # Create proper protobuf response with audio data only

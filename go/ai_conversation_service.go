@@ -68,9 +68,10 @@ func (s *AIConversationService) StartConversation(
 	if s.grpcClient != nil {
 		// Call Python gRPC service
 		grpcResp, err := s.grpcClient.StartConversation(ctx, &app.StartConversationRequest{
-			UserId:   req.Msg.UserId,
-			Username: req.Msg.Username,
-			Language: req.Msg.Language,
+			UserId:    req.Msg.UserId,
+			Username:  req.Msg.Username,
+			Language:  req.Msg.Language,
+			Character: req.Msg.Character,
 		})
 		
 		if err != nil {
@@ -150,6 +151,7 @@ func (s *AIConversationService) SendMessage(
 			UserId:    req.Msg.UserId,
 			Username:  req.Msg.Username,
 			Language:  req.Msg.Language,
+			Character: req.Msg.Character,
 			Content:   req.Msg.Content,
 			Timestamp: req.Msg.Timestamp,
 		})
@@ -214,6 +216,7 @@ func (s *AIConversationService) StreamConversation(
 					UserId:    req.UserId,
 					Username:  req.Username,
 					Language:  req.Language,
+					Character: req.Character,
 					Content:   req.Content,
 					Timestamp: req.Timestamp,
 				}
@@ -292,9 +295,10 @@ func (s *AIConversationService) StreamConversationEvents(
 	
 	// Start a conversation first
 	startReq := connect.NewRequest(&app.StartConversationRequest{
-		UserId:   req.Msg.UserId,
-		Username: req.Msg.Username,
-		Language: req.Msg.Language,
+		UserId:    req.Msg.UserId,
+		Username:  req.Msg.Username,
+		Language:  req.Msg.Language,
+		Character: req.Msg.Character,
 	})
 	
 	startResp, err := s.StartConversation(ctx, startReq)

@@ -17,6 +17,13 @@ interface User {
   language: string;
 }
 
+interface Character {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+}
+
 interface ConversationMessage {
   id: string;
   sender: "user" | "ai";
@@ -27,6 +34,7 @@ interface ConversationMessage {
 
 export default function TalkPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<string>('friend');
   const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -56,6 +64,27 @@ export default function TalkPage() {
   const languageNames = {
     vi: "Vietnamese (Tiếng Việt)",
   };
+
+  const characters: Character[] = [
+    {
+      id: 'friend',
+      name: 'Friend',
+      description: 'A friendly companion for casual conversation',
+      emoji: '👫'
+    },
+    {
+      id: 'parent',
+      name: 'Parent',
+      description: 'A caring parent figure who gives advice and support',
+      emoji: '👨‍👩‍👧‍👦'
+    },
+    {
+      id: 'sister',
+      name: 'Sister',
+      description: 'A playful sister who shares daily life stories',
+      emoji: '👭'
+    }
+  ];
 
   const scrollToBottom = () => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -201,6 +230,7 @@ export default function TalkPage() {
           userId: `user_${user.username}`,
           username: user.username,
           language: user.language,
+          character: selectedCharacter,
         })
       );
 
@@ -234,6 +264,28 @@ export default function TalkPage() {
       setIsConnected(false);
     } catch (err) {
       console.error("Failed to end conversation:", err);
+    }
+  };
+
+  const handleCharacterChange = async (newCharacter: string) => {
+    if (newCharacter === selectedCharacter) return;
+    
+    // If connected, end current session and start new one with new character
+    if (isConnected && sessionId) {
+      await endAIConversation();
+      setSelectedCharacter(newCharacter);
+      // Clear conversation history when switching characters
+      setConversation([]);
+      // Wait a bit then start new conversation
+      setTimeout(() => {
+        if (user && audioStream) {
+          startAIConversation();
+        }
+      }, 500);
+    } else {
+      setSelectedCharacter(newCharacter);
+      // Clear conversation history when switching characters
+      setConversation([]);
     }
   };
 
@@ -271,6 +323,7 @@ export default function TalkPage() {
           userId: `user_${user.username}`,
           username: user.username,
           language: user.language,
+          character: selectedCharacter,
           content: {
             case: "audioData",
             value: audioBytes,
@@ -405,6 +458,24 @@ export default function TalkPage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
+              {/* Character Selection */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Character:
+                </label>
+                <select
+                  value={selectedCharacter}
+                  onChange={(e) => handleCharacterChange(e.target.value)}
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                >
+                  {characters.map((character) => (
+                    <option key={character.id} value={character.id}>
+                      {character.emoji} {character.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
               <span
                 className={`px-3 py-1 rounded-full text-sm ${
                   isConnected
@@ -412,7 +483,7 @@ export default function TalkPage() {
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {isConnected ? "Connected" : "Disconnected"}
+                {isConnected ? `Connected to ${characters.find(c => c.id === selectedCharacter)?.name}` : "Disconnected"}
               </span>
               {!isConnected && (
                 <button
@@ -450,10 +521,15 @@ export default function TalkPage() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {conversation.length === 0 ? (
               <div className="text-center text-gray-500 py-12">
-                <div className="text-4xl mb-4">🎤</div>
+                <div className="text-4xl mb-4">
+                  {characters.find(c => c.id === selectedCharacter)?.emoji || '🎤'}
+                </div>
                 <h3 className="text-lg font-medium mb-2">
-                  Start your conversation!
+                  Start your conversation with {characters.find(c => c.id === selectedCharacter)?.name}!
                 </h3>
+                <p className="mb-2">
+                  {characters.find(c => c.id === selectedCharacter)?.description}
+                </p>
                 <p>
                   Click the microphone button below to begin practicing your{" "}
                   {languageNames[user.language as keyof typeof languageNames]}.
@@ -495,7 +571,7 @@ export default function TalkPage() {
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm">
-                          {message.sender === "user" ? "You" : "AI Assistant"}
+                          {message.sender === "user" ? "You" : characters.find(c => c.id === selectedCharacter)?.name || "AI Assistant"}
                         </span>
                         <span
                           className={`text-xs ${

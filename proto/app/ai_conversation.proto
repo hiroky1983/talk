@@ -9,6 +9,7 @@ message AIConversationRequest {
   string user_id = 1;
   string username = 2;
   string language = 3; // Language code (vi, en, ja)
+  string character = 7; // Character type (friend, parent, sister)
   oneof content {
     bytes audio_data = 4; // Audio data for speech input
     string text_message = 5; // Text message input
@@ -54,6 +55,7 @@ message StartConversationRequest {
   string user_id = 1;
   string username = 2;
   string language = 3;
+  string character = 4; // Character type (friend, parent, sister)
 }
 
 message StartConversationResponse {

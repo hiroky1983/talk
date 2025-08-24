@@ -79,10 +79,11 @@ func (ConversationEvent_EventType) EnumDescriptor() ([]byte, []int) {
 
 // AI Conversation message types
 type AIConversationRequest struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	UserId   string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Username string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Language string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"` // Language code (vi, en, ja)
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	UserId    string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username  string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Language  string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`   // Language code (vi, en, ja)
+	Character string                 `protobuf:"bytes,7,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
 	// Types that are valid to be assigned to Content:
 	//
 	//	*AIConversationRequest_AudioData
@@ -140,6 +141,13 @@ func (x *AIConversationRequest) GetUsername() string {
 func (x *AIConversationRequest) GetLanguage() string {
 	if x != nil {
 		return x.Language
+	}
+	return ""
+}
+
+func (x *AIConversationRequest) GetCharacter() string {
+	if x != nil {
+		return x.Character
 	}
 	return ""
 }
@@ -443,6 +451,7 @@ type StartConversationRequest struct {
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
+	Character     string                 `protobuf:"bytes,4,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -494,6 +503,13 @@ func (x *StartConversationRequest) GetUsername() string {
 func (x *StartConversationRequest) GetLanguage() string {
 	if x != nil {
 		return x.Language
+	}
+	return ""
+}
+
+func (x *StartConversationRequest) GetCharacter() string {
+	if x != nil {
+		return x.Character
 	}
 	return ""
 }
@@ -666,11 +682,12 @@ var File_app_ai_conversation_proto protoreflect.FileDescriptor
 
 const file_app_ai_conversation_proto_rawDesc = "" +
 	"\n" +
-	"\x19app/ai_conversation.proto\x12\x06app.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf3\x01\n" +
+	"\x19app/ai_conversation.proto\x12\x06app.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x91\x02\n" +
 	"\x15AIConversationRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1f\n" +
+	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
+	"\tcharacter\x18\a \x01(\tR\tcharacter\x12\x1f\n" +
 	"\n" +
 	"audio_data\x18\x04 \x01(\fH\x00R\taudioData\x12#\n" +
 	"\ftext_message\x18\x05 \x01(\tH\x00R\vtextMessage\x128\n" +
@@ -703,11 +720,12 @@ const file_app_ai_conversation_proto_rawDesc = "" +
 	"\x12CONVERSATION_ENDED\x10\x03\x12\t\n" +
 	"\x05ERROR\x10\x04B\f\n" +
 	"\n" +
-	"event_data\"k\n" +
+	"event_data\"\x89\x01\n" +
 	"\x18StartConversationRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\blanguage\x18\x03 \x01(\tR\blanguage\"y\n" +
+	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
+	"\tcharacter\x18\x04 \x01(\tR\tcharacter\"y\n" +
 	"\x19StartConversationResponse\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x18\n" +
