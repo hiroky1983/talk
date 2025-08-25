@@ -63,7 +63,7 @@ func (s *AIConversationService) StartConversation(
 	ctx context.Context,
 	req *connect.Request[app.StartConversationRequest],
 ) (*connect.Response[app.StartConversationResponse], error) {
-	log.Printf("Starting conversation for user %s in language %s", req.Msg.Username, req.Msg.Language)
+	log.Printf("Starting conversation for user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
 	
 	if s.grpcClient != nil {
 		// Call Python gRPC service
@@ -143,7 +143,7 @@ func (s *AIConversationService) SendMessage(
 	ctx context.Context,
 	req *connect.Request[app.AIConversationRequest],
 ) (*connect.Response[app.AIConversationResponse], error) {
-	log.Printf("Processing message from user %s in language %s", req.Msg.Username, req.Msg.Language)
+	log.Printf("Processing message from user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
 	
 	if s.grpcClient != nil {
 		// Call Python gRPC service
@@ -164,13 +164,32 @@ func (s *AIConversationService) SendMessage(
 		return connect.NewResponse(grpcResp), nil
 	}
 	
-	// Fallback simulation
+	// Fallback simulation with character-specific responses
 	var responseText string
+	character := req.Msg.Character
+	if character == "" {
+		character = "friend"
+	}
+
 	switch req.Msg.Language {
 	case "vi":
-		responseText = "Xin chào! Tôi là trợ lý AI. Tôi có thể giúp bạn luyện tập tiếng Việt."
+		switch character {
+		case "parent":
+			responseText = "Con có khỏe không? Mẹ sẵn sàng lắng nghe con chia sẻ."
+		case "sister":
+			responseText = "Anh/chị làm gì đấy? Em muốn nghe chuyện nè!"
+		default: // friend
+			responseText = "Chào bạn! Mình là bạn AI. Chúng ta trò chuyện nhé!"
+		}
 	case "ja":
-		responseText = "こんにちは！AIアシスタントです。日本語の練習をお手伝いします。"
+		switch character {
+		case "parent":
+			responseText = "元気？お母さんはいつでも聞いてるからね。"
+		case "sister":
+			responseText = "何してるの？お姉ちゃんと話そうよー！"
+		default: // friend
+			responseText = "やあ！友達として日本語の練習を手伝うよ。"
+		}
 	default:
 		responseText = "Hello! I'm your AI language learning assistant. How can I help you practice today?"
 	}
@@ -258,12 +277,31 @@ func (s *AIConversationService) StreamConversation(
 			
 			time.Sleep(500 * time.Millisecond)
 			
+			character := req.Character
+			if character == "" {
+				character = "friend"
+			}
+
 			var responseText string
 			switch req.Language {
 			case "vi":
-				responseText = "Tôi đã nghe thấy tin nhắn của bạn. Hãy tiếp tục luyện tập!"
+				switch character {
+				case "parent":
+					responseText = "Mẹ nghe rồi con. Hãy kể cho mẹ nghe thêm nhé!"
+				case "sister":
+					responseText = "Em nghe thấy rồi! Kể tiếp đi anh/chị!"
+				default:
+					responseText = "Tôi đã nghe thấy tin nhắn của bạn. Hãy tiếp tục trò chuyện!"
+				}
 			case "ja":
-				responseText = "メッセージを受け取りました。練習を続けましょう！"
+				switch character {
+				case "parent":
+					responseText = "お母さんは聞いてるよ。もっと話してね。"
+				case "sister":
+					responseText = "聞いた聞いた！続きを教えて！"
+				default:
+					responseText = "メッセージを受け取ったよ。続けて話そう！"
+				}
 			default:
 				responseText = "I received your message. Let's continue practicing!"
 			}

@@ -35,6 +35,7 @@ interface ConversationMessage {
 export default function TalkPage() {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("vi");
   const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -63,6 +64,7 @@ export default function TalkPage() {
 
   const languageNames = {
     vi: "Vietnamese (Tiếng Việt)",
+    ja: "Japanese (日本語)",
   };
 
   const characters: Character[] = [
@@ -105,6 +107,13 @@ export default function TalkPage() {
     initializeAudioPermissions();
   }, [router]);
 
+  // Update speech recognition language when selectedLanguage changes
+  useEffect(() => {
+    if (recognition) {
+      recognition.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
+    }
+  }, [selectedLanguage, recognition]);
+
   useEffect(() => {
     // Start AI conversation when user is available and audio is ready
     if (user && audioStream && !isConnected && !sessionId) {
@@ -142,7 +151,7 @@ export default function TalkPage() {
 
         recognitionInstance.continuous = true;
         recognitionInstance.interimResults = true;
-        recognitionInstance.lang = "vi-VN";
+        recognitionInstance.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
 
         recognitionInstance.onresult = (event: any) => {
           let finalTranscript = "";
@@ -186,6 +195,26 @@ export default function TalkPage() {
     } else {
       setSelectedCharacter(newCharacter);
       // Clear conversation history when switching characters
+      setConversation([]);
+    }
+  };
+
+  const handleLanguageChange = async (newLanguage: string) => {
+    if (newLanguage === selectedLanguage) return;
+
+    // If connected, end current session and start new one with new language
+    if (isConnected && sessionId) {
+      await endAIConversation();
+      setSelectedLanguage(newLanguage);
+      // Clear conversation history when switching languages
+      setConversation([]);
+      // Wait a bit then start new conversation
+      setTimeout(() => {
+        startAIConversation();
+      }, 500);
+    } else {
+      setSelectedLanguage(newLanguage);
+      // Clear conversation history when switching languages
       setConversation([]);
     }
   };
@@ -249,7 +278,7 @@ export default function TalkPage() {
         create(StartConversationRequestSchema, {
           userId: `user_${user.username}`,
           username: user.username,
-          language: user.language,
+          language: selectedLanguage,
           character: selectedCharacter,
         })
       );
@@ -319,7 +348,7 @@ export default function TalkPage() {
         create(AIConversationRequestSchema, {
           userId: `user_${user.username}`,
           username: user.username,
-          language: user.language,
+          language: selectedLanguage,
           character: selectedCharacter,
           content: {
             case: "audioData",
@@ -392,8 +421,8 @@ export default function TalkPage() {
       if ("speechSynthesis" in window) {
         const utterance = new SpeechSynthesisUtterance(text);
 
-        // Always use Vietnamese
-        utterance.lang = "vi-VN";
+        // Use selected language
+        utterance.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
 
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
@@ -441,17 +470,30 @@ export default function TalkPage() {
               <h1 className="text-2xl font-bold text-gray-800">
                 AI Language Practice
               </h1>
-              {user ? (
-                <p className="text-gray-600">
-                  Practice with:{" "}
-                  {languageNames[user.language as keyof typeof languageNames]}
-                </p>
-              ) : (
-                <div className="h-5 bg-gray-200 rounded animate-pulse w-48"></div>
-              )}
+              <p className="text-gray-600">
+                Practice with: {languageNames[selectedLanguage as keyof typeof languageNames]}
+              </p>
             </div>
             {user ? (
               <div className="flex items-center gap-4">
+                {/* Language Selection */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Language:
+                  </label>
+                  <select
+                    value={selectedLanguage}
+                    onChange={(e) => handleLanguageChange(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                  >
+                    {Object.entries(languageNames).map(([code, name]) => (
+                      <option key={code} value={code}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Character Selection */}
                 <div className="flex items-center gap-2">
                   <label className="text-sm font-medium text-gray-700">
@@ -552,7 +594,7 @@ export default function TalkPage() {
                 </p>
                 <p>
                   Click the microphone button below to begin practicing your{" "}
-                  {languageNames[user.language as keyof typeof languageNames]}.
+                  {languageNames[selectedLanguage as keyof typeof languageNames]}.
                 </p>
               </div>
             ) : (

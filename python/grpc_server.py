@@ -94,7 +94,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 self.active_sessions.add(session_id)
             
             character = request.character if request.character else 'friend'
-            logger.info(f"Started conversation for user {request.user_id}, session: {session_id}, character: {character}")
+            logger.info(f"Started conversation for user {request.user_id}, session: {session_id}, language: {request.language}, character: {character}")
             
             return ai_pb2.StartConversationResponse(
                 session_id=session_id,
