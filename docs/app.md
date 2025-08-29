@@ -81,7 +81,7 @@ OS のマイクに繋いで AI と会話を行います
 - **Google Cloud Text-to-Speech API**: メイン音声合成エンジン
   - キャラクターごとに **Neural2** ボイスを使用
   - 高品質な音声生成
-- **gTTS**: フォールバック用（認証失敗時）
+- **gTTS**: フォールバック用（認証失敗時、`vi`や`ja`など基本言語コードのみ対応）
 
 ## 開発・デプロイ
 
@@ -135,6 +135,6 @@ docker compose up --build -d
 #### 音声設定詳細
 | キャラクター | 性別・年齢 | ベトナム語音声 | 日本語音声 |
 |------------|-----------|---------------|-----------|
-| Friend     | 男性20代   | vi-VN-Neural2-B | ja-JP-Neural2-C |
+| Friend     | 男性20代   | vi-VN-Neural2-A | ja-JP-Neural2-C |
 | Parent     | 女性40代   | vi-VN-Neural2-A | ja-JP-Neural2-A |
 | Sister     | 女性24歳   | vi-VN-Neural2-A | ja-JP-Neural2-A |

@@ -87,7 +87,7 @@ class AIConversationService:
                 'vi': {
                     'name': 'Vietnamese Friend',
                     'speech_lang': 'vi-VN',
-                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Neural2-B'},  # Male voice
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Neural2-A'},  # Male voice
                     'system_prompt': '''Bạn là một người bạn nam 20 tuổi đang trò chuyện với tôi bằng tiếng Việt. Hãy:
 
 - Phản ứng tự nhiên với những gì tôi nói (dùng "À!", "Ồ!", "Thật không?", "Hay quá!")
@@ -250,7 +250,8 @@ Chúng ta là anh chị em ruột.'''
         # Fallback to gTTS if Google Cloud TTS is unavailable or fails
         if GTTS_AVAILABLE:
             try:
-                tts = gTTS(text=text, lang=char_config['speech_lang'])
+                gtts_lang = char_config['speech_lang'].split('-')[0]
+                tts = gTTS(text=text, lang=gtts_lang)
                 with io.BytesIO() as audio_buffer:
                     tts.write_to_fp(audio_buffer)
                     audio_buffer.seek(0)
