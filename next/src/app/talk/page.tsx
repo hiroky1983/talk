@@ -53,6 +53,11 @@ export default function TalkPage() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   );
+  const currentUserMessageId = useRef<string | null>(null);
+  const audioStreamController = useRef<{
+    enqueue: (chunk: Uint8Array) => void;
+    close: () => void;
+  } | null>(null);
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
@@ -162,6 +167,15 @@ export default function TalkPage() {
           }
           if (finalTranscript) {
             setTranscribedText(finalTranscript);
+            if (currentUserMessageId.current) {
+              setConversation((prev) =>
+                prev.map((msg) =>
+                  msg.id === currentUserMessageId.current
+                    ? { ...msg, content: finalTranscript }
+                    : msg
+                )
+              );
+            }
           }
         };
 
@@ -224,31 +238,142 @@ export default function TalkPage() {
       await initializeAudioPermissions();
       return;
     }
+    if (!user) return;
 
     try {
       const recorder = new MediaRecorder(audioStream);
-      const audioChunks: BlobPart[] = [];
 
       // Reset transcribed text
       setTranscribedText("");
 
-      recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
+      // Create conversation placeholders
+      const userId = `user_${Date.now()}`;
+      const aiId = `ai_${Date.now()}`;
+      currentUserMessageId.current = userId;
+      setConversation((prev) => [
+        ...prev,
+        {
+          id: userId,
+          sender: "user",
+          content: "[Recording...]",
+          timestamp: new Date(),
+        },
+        {
+          id: aiId,
+          sender: "ai",
+          content: "Thinking...",
+          timestamp: new Date(),
+        },
+      ]);
+      setStreamingMessageId(aiId);
+
+      // Setup streaming queue
+      const audioQueue: Uint8Array[] = [];
+      let resolveQueue: (() => void) | null = null;
+      let closed = false;
+
+      audioStreamController.current = {
+        enqueue: (chunk: Uint8Array) => {
+          audioQueue.push(chunk);
+          resolveQueue?.();
+        },
+        close: () => {
+          closed = true;
+          resolveQueue?.();
+        },
       };
 
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+      async function* requestStream() {
+        while (!closed || audioQueue.length > 0) {
+          if (audioQueue.length === 0) {
+            await new Promise<void>((resolve) => {
+              resolveQueue = resolve;
+            });
+            continue;
+          }
+          const chunk = audioQueue.shift()!;
+          yield create(AIConversationRequestSchema, {
+            userId: `user_${user.username}`,
+            username: user.username,
+            language: selectedLanguage,
+            character: selectedCharacter,
+            content: {
+              case: "audioData",
+              value: chunk,
+            },
+            timestamp: {
+              seconds: BigInt(Math.floor(Date.now() / 1000)),
+              nanos: 0,
+            },
+          });
+        }
+      }
 
-        // Stop speech recognition
+      let latestText = "";
+      let receivedAudio = false;
+
+      (async () => {
+        try {
+          for await (const response of client.streamConversation(requestStream())) {
+            const contentCase = response.content?.case;
+            if (contentCase === "textMessage") {
+              latestText = response.content.value;
+              setConversation((prev) =>
+                prev.map((msg) =>
+                  msg.id === aiId ? { ...msg, content: latestText } : msg
+                )
+              );
+            } else if (contentCase === "audioData") {
+              receivedAudio = true;
+              const audioUrl = URL.createObjectURL(
+                new Blob([response.content.value], { type: "audio/mp3" })
+              );
+              setConversation((prev) =>
+                prev.map((msg) => (msg.id === aiId ? { ...msg, audioUrl } : msg))
+              );
+              const audio = new Audio(audioUrl);
+              audio.play().catch(console.error);
+            }
+          }
+          if (!receivedAudio && latestText) {
+            setTimeout(() => {
+              generateAndPlayTTS(latestText);
+            }, 500);
+          }
+        } catch (err) {
+          console.error("Streaming error", err);
+          setError(
+            `Failed to send message to AI service: ${
+              err instanceof Error ? err.message : "Unknown error"
+            }`
+          );
+        } finally {
+          setStreamingMessageId(null);
+        }
+      })();
+
+      recorder.ondataavailable = async (event) => {
+        const bytes = new Uint8Array(await event.data.arrayBuffer());
+        audioStreamController.current?.enqueue(bytes);
+      };
+
+      recorder.onstop = () => {
+        audioStreamController.current?.close();
         if (recognition) {
           recognition.stop();
         }
-
-        // Send to AI service with transcribed text
-        await sendToAI(audioBlob, transcribedText);
+        setIsRecording(false);
+        const finalText =
+          transcribedText || "[音声入力] 音声を認識できませんでした";
+        setConversation((prev) =>
+          prev.map((msg) =>
+            msg.id === userId ? { ...msg, content: finalText } : msg
+          )
+        );
+        currentUserMessageId.current = null;
       };
 
-      recorder.start();
+      recorder.start(250);
 
       // Start speech recognition
       if (recognition) {
@@ -266,7 +391,6 @@ export default function TalkPage() {
   const stopRecording = () => {
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
-      setIsRecording(false);
     }
   };
 
@@ -315,96 +439,6 @@ export default function TalkPage() {
       console.error("Failed to end conversation:", err);
     }
   };
-  const sendToAI = async (audioBlob: Blob, transcribedUserText: string) => {
-    if (!user) return;
-
-    try {
-      // Add user message immediately
-      const userMessage: ConversationMessage = {
-        id: `user_${Date.now()}`,
-        sender: "user",
-        content: transcribedUserText || "[音声入力] 音声を認識できませんでした",
-        timestamp: new Date(),
-      };
-
-      // Add placeholder AI message for streaming
-      const aiMessageId = `ai_${Date.now()}`;
-      const aiMessage: ConversationMessage = {
-        id: aiMessageId,
-        sender: "ai",
-        content: "Thinking...",
-        timestamp: new Date(),
-      };
-
-      setConversation((prev) => [...prev, userMessage, aiMessage]);
-      setStreamingMessageId(aiMessageId);
-
-      // Convert audio blob to bytes
-      const audioBytes = new Uint8Array(await audioBlob.arrayBuffer());
-
-      // Create request stream that sends the audio message
-      async function* requestStream() {
-        yield create(AIConversationRequestSchema, {
-          userId: `user_${user.username}`,
-          username: user.username,
-          language: selectedLanguage,
-          character: selectedCharacter,
-          content: {
-            case: "audioData",
-            value: audioBytes,
-          },
-          timestamp: {
-            seconds: BigInt(Math.floor(Date.now() / 1000)),
-            nanos: 0,
-          },
-        });
-      }
-
-      let latestText = "";
-      let receivedAudio = false;
-
-      // Stream responses from the AI service
-      for await (const response of client.streamConversation(requestStream())) {
-        const contentCase = response.content?.case;
-        if (contentCase === "textMessage") {
-          latestText = response.content.value;
-          setConversation((prev) =>
-            prev.map((msg) =>
-              msg.id === aiMessageId ? { ...msg, content: latestText } : msg
-            )
-          );
-        } else if (contentCase === "audioData") {
-          receivedAudio = true;
-          const audioUrl = URL.createObjectURL(
-            new Blob([response.content.value], { type: "audio/mp3" })
-          );
-          setConversation((prev) =>
-            prev.map((msg) =>
-              msg.id === aiMessageId ? { ...msg, audioUrl } : msg
-            )
-          );
-          const audio = new Audio(audioUrl);
-          audio.play().catch(console.error);
-        }
-      }
-
-      // If no audio was received, fallback to client-side TTS
-      if (!receivedAudio && latestText) {
-        setTimeout(() => {
-          generateAndPlayTTS(latestText);
-        }, 500);
-      }
-    } catch (err) {
-      setError(
-        `Failed to send message to AI service: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-    } finally {
-      setStreamingMessageId(null);
-    }
-  };
-
   const generateAndPlayTTS = async (text: string) => {
     if (!text.trim()) return;
 
