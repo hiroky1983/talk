@@ -87,7 +87,7 @@ class AIConversationService:
                 'vi': {
                     'name': 'Vietnamese Friend',
                     'speech_lang': 'vi-VN',
-                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-B'},  # Male voice
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Neural2-B'},  # Male voice
                     'system_prompt': '''Bạn là một người bạn nam 20 tuổi đang trò chuyện với tôi bằng tiếng Việt. Hãy:
 
 - Phản ứng tự nhiên với những gì tôi nói (dùng "À!", "Ồ!", "Thật không?", "Hay quá!")
@@ -101,7 +101,7 @@ Chúng ta đang trò chuyện bình thường, không phài trong lớp học.''
                 'ja': {
                     'name': 'Japanese Friend',
                     'speech_lang': 'ja-JP',
-                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-C'},  # Male voice
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Neural2-C'},  # Male voice
                     'system_prompt': '''あなたは私と日本語で普通に話している20代男性の友達です。以下のように会話してください：
 
 - 私が言ったことに自然に反応する（「えー！」「そうなんだ」「へー」「いいね！」）
@@ -117,7 +117,7 @@ Chúng ta đang trò chuyện bình thường, không phài trong lớp học.''
                 'vi': {
                     'name': 'Vietnamese Parent',
                     'speech_lang': 'vi-VN',
-                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-A'},  # Female voice
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Neural2-A'},  # Female voice
                     'system_prompt': '''Bạn là một người mẹ 40 tuổi đang nói chuyện với con bằng tiếng Việt. Hãy:
 
 - Thể hiện sự quan tâm và yêu thương như một người mẹ ("Con có khỏe không?", "Mẹ lo lắm đấy")
@@ -131,7 +131,7 @@ Chúng ta là gia đình đang trò chuyện.'''
                 'ja': {
                     'name': 'Japanese Parent',
                     'speech_lang': 'ja-JP',
-                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-A'},  # Female voice
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Neural2-A'},  # Female voice
                     'system_prompt': '''あなたは私の40代の母親として日本語で話しています：
 
 - 優しく心配してくれる母親らしく（「元気？」「大丈夫？」「お疲れさま」）
@@ -147,7 +147,7 @@ Chúng ta là gia đình đang trò chuyện.'''
                 'vi': {
                     'name': 'Vietnamese Sister',
                     'speech_lang': 'vi-VN',
-                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Standard-A'},  # Female voice
+                    'voice': {'language_code': 'vi-VN', 'name': 'vi-VN-Neural2-A'},  # Female voice
                     'system_prompt': '''Bạn là em gái 24 tuổi đang nói chuyện bằng tiếng Việt. Hãy:
 
 - Tỏ ra thân thiết và hơi tinh nghịch như cô gái 24 tuổi ("Anh/chị làm gì đấy?", "Hehe")
@@ -161,7 +161,7 @@ Chúng ta là anh chị em ruột.'''
                 'ja': {
                     'name': 'Japanese Sister',
                     'speech_lang': 'ja-JP',
-                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Standard-A'},  # Female voice
+                    'voice': {'language_code': 'ja-JP', 'name': 'ja-JP-Neural2-A'},  # Female voice
                     'system_prompt': '''あなたは私の24歳の妹として日本語で話しています：
 
 - 親しげで少しいたずらっぽい24歳女性らしく（「何してるの？」「へへ」）
@@ -210,45 +210,57 @@ Chúng ta là anh chị em ruột.'''
     
     def text_to_speech(self, text: str, language: str, character: str = 'friend') -> bytes:
         """Convert text to speech audio data using Google Cloud Text-to-Speech"""
-        if not CLOUD_TTS_AVAILABLE or not self.tts_client:
-            logger.warning("Google Cloud Text-to-Speech not available, returning empty audio")
-            return b""
-        
-        try:
-            # Get character and language configuration
-            char_config = self.character_configs.get(character, {}).get(language)
-            if not char_config:
-                # Fallback to friend character in the same language or Vietnamese
-                char_config = (self.character_configs.get('friend', {}).get(language) or 
-                              self.character_configs['friend']['vi'])
-            
-            # Configure the synthesis input
-            synthesis_input = texttospeech.SynthesisInput(text=text)
-            
-            # Build the voice request
-            voice = texttospeech.VoiceSelectionParams(
-                language_code=char_config['voice']['language_code'],
-                name=char_config['voice']['name']
-            )
-            
-            # Select the audio file format
-            audio_config = texttospeech.AudioConfig(
-                audio_encoding=texttospeech.AudioEncoding.MP3
-            )
-            
-            # Perform the text-to-speech request
-            response = self.tts_client.synthesize_speech(
-                input=synthesis_input,
-                voice=voice,
-                audio_config=audio_config
-            )
-            
-            logger.info(f"Text to speech ({language}, {character}): Generated audio for '{text[:50]}...'")
-            return response.audio_content
-                
-        except Exception as e:
-            logger.error(f"Text to speech error: {e}")
-            return b""
+        # Get character and language configuration
+        char_config = self.character_configs.get(character, {}).get(language)
+        if not char_config:
+            # Fallback to friend character in the same language or Vietnamese
+            char_config = (self.character_configs.get('friend', {}).get(language) or
+                          self.character_configs['friend']['vi'])
+
+        # Try Google Cloud Text-to-Speech first
+        if CLOUD_TTS_AVAILABLE and self.tts_client:
+            try:
+                # Configure the synthesis input
+                synthesis_input = texttospeech.SynthesisInput(text=text)
+
+                # Build the voice request
+                voice = texttospeech.VoiceSelectionParams(
+                    language_code=char_config['voice']['language_code'],
+                    name=char_config['voice']['name']
+                )
+
+                # Select the audio file format
+                audio_config = texttospeech.AudioConfig(
+                    audio_encoding=texttospeech.AudioEncoding.MP3
+                )
+
+                # Perform the text-to-speech request
+                response = self.tts_client.synthesize_speech(
+                    input=synthesis_input,
+                    voice=voice,
+                    audio_config=audio_config
+                )
+
+                logger.info(f"Text to speech ({language}, {character}): Generated audio for '{text[:50]}...'")
+                return response.audio_content
+
+            except Exception as e:
+                logger.error(f"Text to speech error: {e}")
+
+        # Fallback to gTTS if Google Cloud TTS is unavailable or fails
+        if GTTS_AVAILABLE:
+            try:
+                tts = gTTS(text=text, lang=char_config['speech_lang'])
+                with io.BytesIO() as audio_buffer:
+                    tts.write_to_fp(audio_buffer)
+                    audio_buffer.seek(0)
+                    logger.info(f"gTTS fallback ({language}, {character}): Generated audio for '{text[:50]}...'")
+                    return audio_buffer.read()
+            except Exception as e:
+                logger.error(f"gTTS fallback error: {e}")
+
+        logger.warning("Text-to-Speech unavailable, returning empty audio")
+        return b""
     
     async def get_ai_response(self, message: str, language: str, session_id: str, character: str = 'friend') -> str:
         """Get AI response using Google Gemini"""
