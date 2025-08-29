@@ -9,6 +9,7 @@ import logging
 from typing import AsyncIterator, Dict, Any
 from dotenv import load_dotenv
 import google.genai as genai
+from google.genai import types as genai_types
 import io
 import tempfile
 
@@ -26,13 +27,6 @@ try:
 except ImportError:
     AUDIO_PROCESSING_AVAILABLE = False
     logging.warning("pydub not available")
-
-try:
-    from google.cloud import texttospeech
-    CLOUD_TTS_AVAILABLE = True
-except ImportError:
-    CLOUD_TTS_AVAILABLE = False
-    logging.warning("Google Cloud Text-to-Speech not available")
 
 try:
     from gtts import gTTS
@@ -56,24 +50,9 @@ class AIConversationService:
             raise ValueError("GOOGLE_GEMINI_API_KEY not found in environment")
         
         self.client = genai.Client(api_key=api_key)
-        # Also keep a text generation model for fallback
+        # Text and speech models
         self.text_model = 'gemini-2.0-flash-exp'
-        
-        # Initialize Google Cloud Text-to-Speech client
-        self.tts_client = None
-        if CLOUD_TTS_AVAILABLE:
-            try:
-                # Set up credentials path
-                credentials_path = os.path.join(os.path.dirname(__file__), 'certificates', 'certificates.json')
-                if os.path.exists(credentials_path):
-                    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credentials_path
-                    logger.info(f"Using credentials from: {credentials_path}")
-                
-                self.tts_client = texttospeech.TextToSpeechClient()
-                logger.info("Google Cloud Text-to-Speech initialized successfully")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Google Cloud TTS: {e}")
-                logger.info("TTS service will not be available until credentials are configured")
+        self.tts_model = 'text-to-speech'
         
         # Initialize speech recognition if available
         if SPEECH_RECOGNITION_AVAILABLE:
@@ -209,7 +188,7 @@ Chúng ta là anh chị em ruột.'''
             return "Could not process audio input"
     
     def text_to_speech(self, text: str, language: str, character: str = 'friend') -> bytes:
-        """Convert text to speech audio data using Google Cloud Text-to-Speech"""
+        """Convert text to speech audio data using Gemini API Text-to-Speech"""
         # Get character and language configuration
         char_config = self.character_configs.get(character, {}).get(language)
         if not char_config:
@@ -217,37 +196,34 @@ Chúng ta là anh chị em ruột.'''
             char_config = (self.character_configs.get('friend', {}).get(language) or
                           self.character_configs['friend']['vi'])
 
-        # Try Google Cloud Text-to-Speech first
-        if CLOUD_TTS_AVAILABLE and self.tts_client:
-            try:
-                # Configure the synthesis input
-                synthesis_input = texttospeech.SynthesisInput(text=text)
+        # Try Gemini API Text-to-Speech first
+        try:
+            speech_config = genai_types.SpeechConfig(
+                voice_config=genai_types.VoiceConfig(
+                    prebuilt_voice_config=genai_types.PrebuiltVoiceConfig(
+                        voice_name=char_config['voice']['name']
+                    )
+                ),
+                language_code=char_config['speech_lang']
+            )
 
-                # Build the voice request
-                voice = texttospeech.VoiceSelectionParams(
-                    language_code=char_config['voice']['language_code'],
-                    name=char_config['voice']['name']
+            response = self.client.models.generate_content(
+                model=self.tts_model,
+                contents=text,
+                config=genai_types.GenerateContentConfig(
+                    response_mime_type="audio/mp3",
+                    speech_config=speech_config
                 )
+            )
 
-                # Select the audio file format
-                audio_config = texttospeech.AudioConfig(
-                    audio_encoding=texttospeech.AudioEncoding.MP3
-                )
+            audio_data = response.candidates[0].content.parts[0].inline_data.data
+            logger.info(f"Text to speech ({language}, {character}): Generated audio for '{text[:50]}...'")
+            return audio_data
 
-                # Perform the text-to-speech request
-                response = self.tts_client.synthesize_speech(
-                    input=synthesis_input,
-                    voice=voice,
-                    audio_config=audio_config
-                )
+        except Exception as e:
+            logger.error(f"Gemini TTS error: {e}")
 
-                logger.info(f"Text to speech ({language}, {character}): Generated audio for '{text[:50]}...'")
-                return response.audio_content
-
-            except Exception as e:
-                logger.error(f"Text to speech error: {e}")
-
-        # Fallback to gTTS if Google Cloud TTS is unavailable or fails
+        # Fallback to gTTS if Gemini TTS is unavailable or fails
         if GTTS_AVAILABLE:
             try:
                 gtts_lang = char_config['speech_lang'].split('-')[0]

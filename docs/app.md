@@ -52,8 +52,7 @@ OS のマイクに繋いで AI と会話を行います
 
 #### AI サービス
 - **Python 3.11**
-- **Google Gemini API**: AI会話生成
-- **Google Cloud Text-to-Speech**: 音声合成
+- **Google Gemini API**: AI会話生成・音声合成
 - **gRPC**: サービス間通信
 
 #### インフラ・ツール
@@ -78,19 +77,13 @@ OS のマイクに繋いで AI と会話を行います
 - バックエンド: Google Speech-to-Text API（オプション）
 
 #### 音声合成（出力）
-- **Google Cloud Text-to-Speech API**: メイン音声合成エンジン
-  - キャラクターごとに **Neural2** ボイスを使用
-  - 高品質な音声生成
-- **gTTS**: フォールバック用（認証失敗時、`vi`や`ja`など基本言語コードのみ対応）
+- **Gemini API Text-to-Speech**: メイン音声合成エンジン
+  - キャラクターごとに指定したボイスで自然な音声を生成
+- **gTTS**: フォールバック用（`vi`や`ja`など基本言語コードのみ対応）
 
 ## 開発・デプロイ
 
 ### 必要な環境変数
-
-#### Google Cloud認証
-```bash
-GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
-```
 
 #### AI サービス
 ```bash
