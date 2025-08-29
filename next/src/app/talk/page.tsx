@@ -339,13 +339,12 @@ export default function TalkPage() {
       setConversation((prev) => [...prev, userMessage, aiMessage]);
       setStreamingMessageId(aiMessageId);
 
-      // For now, use the simple SendMessage instead of streaming
       // Convert audio blob to bytes
       const audioBytes = new Uint8Array(await audioBlob.arrayBuffer());
 
-      // Send the audio message using unary call
-      const response = await client.sendMessage(
-        create(AIConversationRequestSchema, {
+      // Create request stream that sends the audio message
+      async function* requestStream() {
+        yield create(AIConversationRequestSchema, {
           userId: `user_${user.username}`,
           username: user.username,
           language: selectedLanguage,
@@ -358,46 +357,41 @@ export default function TalkPage() {
             seconds: BigInt(Math.floor(Date.now() / 1000)),
             nanos: 0,
           },
-        })
-      );
+        });
+      }
 
-      // Process the response
-      const responseText =
-        response.content?.case === "textMessage"
-          ? response.content.value
-          : "AI response received";
-      const responseAudio =
-        response.content?.case === "audioData"
-          ? response.content.value
-          : undefined;
+      let latestText = "";
+      let receivedAudio = false;
 
-      // Update the AI message with the response
-      setConversation((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMessageId
-            ? {
-                ...msg,
-                content: responseText,
-                audioUrl: responseAudio
-                  ? URL.createObjectURL(
-                      new Blob([responseAudio], { type: "audio/mp3" })
-                    )
-                  : undefined,
-              }
-            : msg
-        )
-      );
+      // Stream responses from the AI service
+      for await (const response of client.streamConversation(requestStream())) {
+        const contentCase = response.content?.case;
+        if (contentCase === "textMessage") {
+          latestText = response.content.value;
+          setConversation((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId ? { ...msg, content: latestText } : msg
+            )
+          );
+        } else if (contentCase === "audioData") {
+          receivedAudio = true;
+          const audioUrl = URL.createObjectURL(
+            new Blob([response.content.value], { type: "audio/mp3" })
+          );
+          setConversation((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMessageId ? { ...msg, audioUrl } : msg
+            )
+          );
+          const audio = new Audio(audioUrl);
+          audio.play().catch(console.error);
+        }
+      }
 
-      // Auto-play AI response
-      if (responseAudio) {
-        const audio = new Audio(
-          URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" }))
-        );
-        audio.play().catch(console.error);
-      } else {
-        // Use TTS for the response
+      // If no audio was received, fallback to client-side TTS
+      if (!receivedAudio && latestText) {
         setTimeout(() => {
-          generateAndPlayTTS(responseText);
+          generateAndPlayTTS(latestText);
         }, 500);
       }
     } catch (err) {

@@ -214,32 +214,51 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                         response_text, response_audio = await self.ai_service.process_audio_message(
                             request.audio_data, request.language, session_id, character
                         )
-                        
-                        # Create proper protobuf response with audio only
-                        response = ai_pb2.AIConversationResponse(
+
+                        # First, stream back the generated text so the client can update the UI
+                        text_resp = ai_pb2.AIConversationResponse(
+                            response_id=str(uuid.uuid4()),
+                            language=request.language,
+                            timestamp=create_timestamp(),
+                            is_final=False,
+                            text_message=response_text,
+                        )
+                        yield text_resp
+
+                        # Then stream the audio data as a final message
+                        audio_resp = ai_pb2.AIConversationResponse(
                             response_id=str(uuid.uuid4()),
                             language=request.language,
                             timestamp=create_timestamp(),
                             is_final=True,
-                            audio_data=response_audio
+                            audio_data=response_audio,
                         )
-                        yield response
-                        
+                        yield audio_resp
+
                     elif content_type == 'text_message':
                         response_text, response_audio = await self.ai_service.process_text_message(
                             request.text_message, request.language, session_id, character
                         )
-                        
-                        # Create proper protobuf response with audio data only
-                        response = ai_pb2.AIConversationResponse(
+
+                        # Stream the text response first
+                        text_resp = ai_pb2.AIConversationResponse(
+                            response_id=str(uuid.uuid4()),
+                            language=request.language,
+                            timestamp=create_timestamp(),
+                            is_final=False,
+                            text_message=response_text,
+                        )
+                        yield text_resp
+
+                        # Followed by the audio response if available
+                        audio_resp = ai_pb2.AIConversationResponse(
                             response_id=str(uuid.uuid4()),
                             language=request.language,
                             timestamp=create_timestamp(),
                             is_final=True,
-                            audio_data=response_audio
+                            audio_data=response_audio,
                         )
-                            
-                        yield response
+                        yield audio_resp
                         
                 except Exception as e:
                     logger.error(f"Stream processing error: {e}")
