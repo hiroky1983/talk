@@ -14,10 +14,4 @@ service AIConversationService {
   
   // Send a single message and get response (unary)
   rpc SendMessage(AIConversationRequest) returns (AIConversationResponse);
-  
-  // Bidirectional streaming conversation
-  rpc StreamConversation(stream AIConversationRequest) returns (stream AIConversationResponse);
-  
-  // Stream conversation events (server-side streaming)
-  rpc StreamConversationEvents(StartConversationRequest) returns (stream ConversationEvent);
 }

@@ -4,12 +4,10 @@ gRPC Server for AI Conversation Service
 """
 
 import os
-import sys
 import asyncio
 import logging
 import uuid
 from concurrent import futures
-from datetime import datetime
 
 import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -193,68 +191,6 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 is_final=True
             )
     
-    async def StreamConversation(self, request_iterator, context):
-        """Handle bidirectional streaming conversation"""
-        session_id = str(uuid.uuid4())
-        character = 'friend'  # Default character
-        
-        try:
-            self.ai_service.start_conversation(session_id)
-            logger.info(f"Started streaming conversation: {session_id}")
-            
-            async for request in request_iterator:
-                try:
-                    # Get character from request (use previous character if not specified)
-                    if request.character:
-                        character = request.character
-                    
-                    content_type = request.WhichOneof('content')
-                    
-                    if content_type == 'audio_data':
-                        response_text, response_audio = await self.ai_service.process_audio_message(
-                            request.audio_data, request.language, session_id, character
-                        )
-                        
-                        # Create proper protobuf response with audio only
-                        response = ai_pb2.AIConversationResponse(
-                            response_id=str(uuid.uuid4()),
-                            language=request.language,
-                            timestamp=create_timestamp(),
-                            is_final=True,
-                            audio_data=response_audio
-                        )
-                        yield response
-                        
-                    elif content_type == 'text_message':
-                        response_text, response_audio = await self.ai_service.process_text_message(
-                            request.text_message, request.language, session_id, character
-                        )
-                        
-                        # Create proper protobuf response with audio data only
-                        response = ai_pb2.AIConversationResponse(
-                            response_id=str(uuid.uuid4()),
-                            language=request.language,
-                            timestamp=create_timestamp(),
-                            is_final=True,
-                            audio_data=response_audio
-                        )
-                            
-                        yield response
-                        
-                except Exception as e:
-                    logger.error(f"Stream processing error: {e}")
-                    error_response = ai_pb2.AIConversationResponse(
-                        response_id=str(uuid.uuid4()),
-                        text_message=f"Error: {str(e)}",
-                        language=request.language if request else "vi",
-                        timestamp=create_timestamp(),
-                        is_final=True
-                    )
-                    yield error_response
-            
-        finally:
-            self.ai_service.end_conversation(session_id)
-            logger.info(f"Ended streaming conversation: {session_id}")
 
 async def serve():
     """Start the gRPC server"""
