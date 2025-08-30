@@ -34,7 +34,7 @@ func Logger() gin.HandlerFunc {
 func main() {
 	// Create AI service
 	aiService := NewAIConversationService()
-	
+
 	// Create Connect RPC handlers
 	aiPath, aiHandler := appv1connect.NewAIConversationServiceHandler(aiService)
 
@@ -45,7 +45,7 @@ func main() {
 	// Create Gin router for regular HTTP endpoints
 	router := gin.Default()
 	router.Use(Logger())
-	
+
 	// Configure CORS
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3003"},
@@ -53,7 +53,7 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms"},
 		ExposeHeaders:    []string{"Content-Length", "Connect-Protocol-Version"},
 		AllowCredentials: true,
-		MaxAge:          12 * time.Hour,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	router.GET("/", func(c *gin.Context) {
@@ -80,15 +80,13 @@ func main() {
 	log.Println("  - /connect/app.v1.AIConversationService/StartConversation")
 	log.Println("  - /connect/app.v1.AIConversationService/EndConversation")
 	log.Println("  - /connect/app.v1.AIConversationService/SendMessage")
-	log.Println("  - /connect/app.v1.AIConversationService/StreamConversation")
-	log.Println("  - /connect/app.v1.AIConversationService/StreamConversationEvents")
 
 	// Use h2c for HTTP/2 without TLS (required for streaming)
 	server := &http.Server{
 		Addr:    ":8000",
 		Handler: h2c.NewHandler(router, &http2.Server{}),
 	}
-	
+
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start:", err)
 	}

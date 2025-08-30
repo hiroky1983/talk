@@ -28,28 +28,6 @@ message AIConversationResponse {
   bool is_final = 6; // Whether this is the final response for the request
 }
 
-// Streaming conversation events
-message ConversationEvent {
-  enum EventType {
-    CONVERSATION_STARTED = 0;
-    USER_MESSAGE = 1;
-    AI_RESPONSE = 2;
-    CONVERSATION_ENDED = 3;
-    ERROR = 4;
-  }
-  
-  EventType type = 1;
-  string user_id = 2;
-  string session_id = 3;
-  google.protobuf.Timestamp timestamp = 4;
-  
-  oneof event_data {
-    AIConversationRequest user_message = 5;
-    AIConversationResponse ai_response = 6;
-    string error_message = 7;
-  }
-}
-
 // Session management
 message StartConversationRequest {
   string user_id = 1;
