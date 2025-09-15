@@ -38,11 +38,7 @@ func main() {
 	// Create Connect RPC handlers
 	aiPath, aiHandler := appv1connect.NewAIConversationServiceHandler(aiService)
 
-	// Create HTTP mux for Connect RPC
-	mux := http.NewServeMux()
-	mux.Handle(aiPath, aiHandler)
-
-	// Create Gin router for regular HTTP endpoints
+	// Create Gin router
 	router := gin.Default()
 	router.Use(Logger())
 	
@@ -56,6 +52,7 @@ func main() {
 		MaxAge:          12 * time.Hour,
 	}))
 
+	// Regular HTTP endpoints
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "AI Language Learning API Server - gRPC streaming enabled!",
@@ -67,21 +64,17 @@ func main() {
 		})
 	})
 
-	// Mount Connect RPC handlers at /connect/*
-	router.Any("/connect/*proxyPath", func(c *gin.Context) {
-		// Strip the /connect prefix and proxy to the Connect handler
-		c.Request.URL.Path = c.Param("proxyPath")
-		mux.ServeHTTP(c.Writer, c.Request)
-	})
+	// Mount Connect RPC handler directly
+	router.Any(aiPath, gin.WrapH(aiHandler))
 
 	log.Println("Starting AI Language Learning server on :8000")
-	log.Println("Connect RPC services available at /connect/*")
+	log.Println("Connect RPC service available at:", aiPath)
 	log.Println("AI Conversation service endpoints:")
-	log.Println("  - /connect/app.v1.AIConversationService/StartConversation")
-	log.Println("  - /connect/app.v1.AIConversationService/EndConversation")
-	log.Println("  - /connect/app.v1.AIConversationService/SendMessage")
-	log.Println("  - /connect/app.v1.AIConversationService/StreamConversation")
-	log.Println("  - /connect/app.v1.AIConversationService/StreamConversationEvents")
+	log.Printf("  - %s/StartConversation", aiPath)
+	log.Printf("  - %s/EndConversation", aiPath)
+	log.Printf("  - %s/SendMessage", aiPath)
+	log.Printf("  - %s/StreamConversation", aiPath)
+	log.Printf("  - %s/StreamConversationEvents", aiPath)
 
 	// Use h2c for HTTP/2 without TLS (required for streaming)
 	server := &http.Server{

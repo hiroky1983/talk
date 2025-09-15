@@ -78,8 +78,7 @@ export default function TalkScreen() {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   );
-  const [streamConnection, setStreamConnection] = useState<any>(null);
-  const [isStreamConnected, setIsStreamConnected] = useState(false);
+
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
@@ -90,24 +89,6 @@ export default function TalkScreen() {
 
   const scrollToBottom = () => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const initializeStreamConnection = async () => {
-    try {
-      if (streamConnection) {
-        setStreamConnection(null);
-      }
-
-      // Connect-RPCのストリーミング接続を初期化
-      // 注意: 実際のConnect-RPCの実装に合わせて調整が必要
-      console.log("Initializing stream connection...");
-      setIsStreamConnected(true);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to initialize stream:", err);
-      setError("Failed to initialize streaming connection");
-      setIsStreamConnected(false);
-    }
   };
 
   const handleStreamResponse = (response: any) => {
@@ -248,7 +229,6 @@ export default function TalkScreen() {
       await initializeAudioPermissions();
       return;
     }
-
     try {
       const recorder = new MediaRecorder(audioStream, {
         mimeType: "audio/webm;codecs=opus",
@@ -256,7 +236,9 @@ export default function TalkScreen() {
 
       // リアルタイムで音声チャンクを送信
       recorder.ondataavailable = async (event) => {
-        if (event.data.size > 0 && streamConnection) {
+        if (event.data.size > 0) {
+          console.log(event.data);
+
           await sendAudioChunkToAI(event.data);
         }
       };
@@ -292,9 +274,6 @@ export default function TalkScreen() {
       setSessionId(response.sessionId);
       setIsConnected(true);
 
-      // ストリーミング接続を初期化
-      await initializeStreamConnection();
-
       const systemMessage: ConversationMessage = {
         id: `sys_${Date.now()}`,
         sender: "ai",
@@ -317,12 +296,6 @@ export default function TalkScreen() {
   const endAIConversation = async () => {
     if (!user || !sessionId) return;
     try {
-      // ストリーミング接続を終了
-      if (isStreamConnected) {
-        setStreamConnection(null);
-        setIsStreamConnected(false);
-      }
-
       const request = create(EndConversationRequestSchema, {
         sessionId,
         userId: `user_${user.username}`,
@@ -336,7 +309,7 @@ export default function TalkScreen() {
   };
 
   const sendAudioChunkToAI = async (audioChunk: Blob) => {
-    if (!user || !isStreamConnected) return;
+    if (!user) return;
 
     try {
       const arrayBuffer = await audioChunk.arrayBuffer();
@@ -351,13 +324,16 @@ export default function TalkScreen() {
         timestamp: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
       });
 
-      // 一旦、単発のsendMessageを使用（後でストリーミングに変更）
-      console.log("Sending audio chunk to AI...", audioData.length, "bytes");
-      const response = await client.sendMessage(request);
+      console.log(
+        "Sending audio chunk to AI...",
+        audioData.length,
+        "bytes",
+        "format:",
+        audioChunk.type
+      );
 
-      if (response) {
-        handleStreamResponse(response);
-      }
+      const response = await client.sendMessage(request);
+      handleStreamResponse(response);
     } catch (err) {
       console.error("Failed to send audio chunk:", err);
       setError(
