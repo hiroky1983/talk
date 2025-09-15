@@ -15,16 +15,6 @@ class AIConversationServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.StartConversation = channel.unary_unary(
-                '/app.v1.AIConversationService/StartConversation',
-                request_serializer=app_dot_ai__conversation__pb2.StartConversationRequest.SerializeToString,
-                response_deserializer=app_dot_ai__conversation__pb2.StartConversationResponse.FromString,
-                _registered_method=True)
-        self.EndConversation = channel.unary_unary(
-                '/app.v1.AIConversationService/EndConversation',
-                request_serializer=app_dot_ai__conversation__pb2.EndConversationRequest.SerializeToString,
-                response_deserializer=app_dot_ai__conversation__pb2.EndConversationResponse.FromString,
-                _registered_method=True)
         self.SendMessage = channel.unary_unary(
                 '/app.v1.AIConversationService/SendMessage',
                 request_serializer=app_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
@@ -35,30 +25,11 @@ class AIConversationServiceStub(object):
                 request_serializer=app_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
                 response_deserializer=app_dot_ai__conversation__pb2.AIConversationResponse.FromString,
                 _registered_method=True)
-        self.StreamConversationEvents = channel.unary_stream(
-                '/app.v1.AIConversationService/StreamConversationEvents',
-                request_serializer=app_dot_ai__conversation__pb2.StartConversationRequest.SerializeToString,
-                response_deserializer=app_dot_ai__conversation__pb2.ConversationEvent.FromString,
-                _registered_method=True)
 
 
 class AIConversationServiceServicer(object):
     """AI Conversation Service
     """
-
-    def StartConversation(self, request, context):
-        """Start a new conversation session
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def EndConversation(self, request, context):
-        """End a conversation session
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
 
     def SendMessage(self, request, context):
         """Send a single message and get response (unary)
@@ -74,26 +45,9 @@ class AIConversationServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamConversationEvents(self, request, context):
-        """Stream conversation events (server-side streaming)
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_AIConversationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'StartConversation': grpc.unary_unary_rpc_method_handler(
-                    servicer.StartConversation,
-                    request_deserializer=app_dot_ai__conversation__pb2.StartConversationRequest.FromString,
-                    response_serializer=app_dot_ai__conversation__pb2.StartConversationResponse.SerializeToString,
-            ),
-            'EndConversation': grpc.unary_unary_rpc_method_handler(
-                    servicer.EndConversation,
-                    request_deserializer=app_dot_ai__conversation__pb2.EndConversationRequest.FromString,
-                    response_serializer=app_dot_ai__conversation__pb2.EndConversationResponse.SerializeToString,
-            ),
             'SendMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.SendMessage,
                     request_deserializer=app_dot_ai__conversation__pb2.AIConversationRequest.FromString,
@@ -103,11 +57,6 @@ def add_AIConversationServiceServicer_to_server(servicer, server):
                     servicer.StreamConversation,
                     request_deserializer=app_dot_ai__conversation__pb2.AIConversationRequest.FromString,
                     response_serializer=app_dot_ai__conversation__pb2.AIConversationResponse.SerializeToString,
-            ),
-            'StreamConversationEvents': grpc.unary_stream_rpc_method_handler(
-                    servicer.StreamConversationEvents,
-                    request_deserializer=app_dot_ai__conversation__pb2.StartConversationRequest.FromString,
-                    response_serializer=app_dot_ai__conversation__pb2.ConversationEvent.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -120,60 +69,6 @@ def add_AIConversationServiceServicer_to_server(servicer, server):
 class AIConversationService(object):
     """AI Conversation Service
     """
-
-    @staticmethod
-    def StartConversation(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/app.v1.AIConversationService/StartConversation',
-            app_dot_ai__conversation__pb2.StartConversationRequest.SerializeToString,
-            app_dot_ai__conversation__pb2.StartConversationResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def EndConversation(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/app.v1.AIConversationService/EndConversation',
-            app_dot_ai__conversation__pb2.EndConversationRequest.SerializeToString,
-            app_dot_ai__conversation__pb2.EndConversationResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
 
     @staticmethod
     def SendMessage(request,
@@ -219,33 +114,6 @@ class AIConversationService(object):
             '/app.v1.AIConversationService/StreamConversation',
             app_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
             app_dot_ai__conversation__pb2.AIConversationResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def StreamConversationEvents(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(
-            request,
-            target,
-            '/app.v1.AIConversationService/StreamConversationEvents',
-            app_dot_ai__conversation__pb2.StartConversationRequest.SerializeToString,
-            app_dot_ai__conversation__pb2.ConversationEvent.FromString,
             options,
             channel_credentials,
             insecure,

@@ -4,11 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import {
-  AIConversationRequestSchema,
-  StartConversationRequestSchema,
-  EndConversationRequestSchema,
-} from "../gen/app/ai_conversation_pb";
+import { AIConversationRequestSchema } from "../gen/app/ai_conversation_pb";
 import { AIConversationService } from "../gen/app/ai_conversation_service_pb";
 import { create } from "@bufbuild/protobuf";
 import TalkHeader from "./TalkHeader";
@@ -171,15 +167,6 @@ export default function TalkScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, audioStream, isConnected, sessionId]);
 
-  useEffect(() => {
-    return () => {
-      if (sessionId) {
-        endAIConversation();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
-
   const initializeAudioPermissions = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -197,7 +184,6 @@ export default function TalkScreen() {
   const handleCharacterChange = async (newCharacter: string) => {
     if (newCharacter === selectedCharacter) return;
     if (isConnected && sessionId) {
-      await endAIConversation();
       setSelectedCharacter(newCharacter);
       setConversation([]);
       setTimeout(() => {
@@ -212,7 +198,6 @@ export default function TalkScreen() {
   const handleLanguageChange = async (newLanguage: string) => {
     if (newLanguage === selectedLanguage) return;
     if (isConnected && sessionId) {
-      await endAIConversation();
       setSelectedLanguage(newLanguage);
       setConversation([]);
       setTimeout(() => {
@@ -264,16 +249,6 @@ export default function TalkScreen() {
   const startAIConversation = async () => {
     if (!user) return;
     try {
-      const request = create(StartConversationRequestSchema, {
-        userId: `user_${user.username}`,
-        username: user.username,
-        language: selectedLanguage,
-        character: selectedCharacter,
-      });
-      const response = await client.startConversation(request);
-      setSessionId(response.sessionId);
-      setIsConnected(true);
-
       const systemMessage: ConversationMessage = {
         id: `sys_${Date.now()}`,
         sender: "ai",
@@ -290,21 +265,6 @@ export default function TalkScreen() {
         }`
       );
       setIsConnected(false);
-    }
-  };
-
-  const endAIConversation = async () => {
-    if (!user || !sessionId) return;
-    try {
-      const request = create(EndConversationRequestSchema, {
-        sessionId,
-        userId: `user_${user.username}`,
-      });
-      await client.endConversation(request);
-      setIsConnected(false);
-      setSessionId(null);
-    } catch (err) {
-      console.error("Failed to end conversation:", err);
     }
   };
 
@@ -373,7 +333,6 @@ export default function TalkScreen() {
   };
 
   const logout = async () => {
-    await endAIConversation();
     localStorage.removeItem("user");
     if (audioStream) {
       audioStream.getTracks().forEach((track) => track.stop());

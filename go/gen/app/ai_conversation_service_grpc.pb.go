@@ -19,11 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AIConversationService_StartConversation_FullMethodName        = "/app.v1.AIConversationService/StartConversation"
-	AIConversationService_EndConversation_FullMethodName          = "/app.v1.AIConversationService/EndConversation"
-	AIConversationService_SendMessage_FullMethodName              = "/app.v1.AIConversationService/SendMessage"
-	AIConversationService_StreamConversation_FullMethodName       = "/app.v1.AIConversationService/StreamConversation"
-	AIConversationService_StreamConversationEvents_FullMethodName = "/app.v1.AIConversationService/StreamConversationEvents"
+	AIConversationService_SendMessage_FullMethodName        = "/app.v1.AIConversationService/SendMessage"
+	AIConversationService_StreamConversation_FullMethodName = "/app.v1.AIConversationService/StreamConversation"
 )
 
 // AIConversationServiceClient is the client API for AIConversationService service.
@@ -32,16 +29,10 @@ const (
 //
 // AI Conversation Service
 type AIConversationServiceClient interface {
-	// Start a new conversation session
-	StartConversation(ctx context.Context, in *StartConversationRequest, opts ...grpc.CallOption) (*StartConversationResponse, error)
-	// End a conversation session
-	EndConversation(ctx context.Context, in *EndConversationRequest, opts ...grpc.CallOption) (*EndConversationResponse, error)
 	// Send a single message and get response (unary)
 	SendMessage(ctx context.Context, in *AIConversationRequest, opts ...grpc.CallOption) (*AIConversationResponse, error)
 	// Bidirectional streaming conversation
 	StreamConversation(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[AIConversationRequest, AIConversationResponse], error)
-	// Stream conversation events (server-side streaming)
-	StreamConversationEvents(ctx context.Context, in *StartConversationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConversationEvent], error)
 }
 
 type aIConversationServiceClient struct {
@@ -50,26 +41,6 @@ type aIConversationServiceClient struct {
 
 func NewAIConversationServiceClient(cc grpc.ClientConnInterface) AIConversationServiceClient {
 	return &aIConversationServiceClient{cc}
-}
-
-func (c *aIConversationServiceClient) StartConversation(ctx context.Context, in *StartConversationRequest, opts ...grpc.CallOption) (*StartConversationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StartConversationResponse)
-	err := c.cc.Invoke(ctx, AIConversationService_StartConversation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *aIConversationServiceClient) EndConversation(ctx context.Context, in *EndConversationRequest, opts ...grpc.CallOption) (*EndConversationResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EndConversationResponse)
-	err := c.cc.Invoke(ctx, AIConversationService_EndConversation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *aIConversationServiceClient) SendMessage(ctx context.Context, in *AIConversationRequest, opts ...grpc.CallOption) (*AIConversationResponse, error) {
@@ -95,41 +66,16 @@ func (c *aIConversationServiceClient) StreamConversation(ctx context.Context, op
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIConversationService_StreamConversationClient = grpc.BidiStreamingClient[AIConversationRequest, AIConversationResponse]
 
-func (c *aIConversationServiceClient) StreamConversationEvents(ctx context.Context, in *StartConversationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ConversationEvent], error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &AIConversationService_ServiceDesc.Streams[1], AIConversationService_StreamConversationEvents_FullMethodName, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &grpc.GenericClientStream[StartConversationRequest, ConversationEvent]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type AIConversationService_StreamConversationEventsClient = grpc.ServerStreamingClient[ConversationEvent]
-
 // AIConversationServiceServer is the server API for AIConversationService service.
 // All implementations must embed UnimplementedAIConversationServiceServer
 // for forward compatibility.
 //
 // AI Conversation Service
 type AIConversationServiceServer interface {
-	// Start a new conversation session
-	StartConversation(context.Context, *StartConversationRequest) (*StartConversationResponse, error)
-	// End a conversation session
-	EndConversation(context.Context, *EndConversationRequest) (*EndConversationResponse, error)
 	// Send a single message and get response (unary)
 	SendMessage(context.Context, *AIConversationRequest) (*AIConversationResponse, error)
 	// Bidirectional streaming conversation
 	StreamConversation(grpc.BidiStreamingServer[AIConversationRequest, AIConversationResponse]) error
-	// Stream conversation events (server-side streaming)
-	StreamConversationEvents(*StartConversationRequest, grpc.ServerStreamingServer[ConversationEvent]) error
 	mustEmbedUnimplementedAIConversationServiceServer()
 }
 
@@ -140,20 +86,11 @@ type AIConversationServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAIConversationServiceServer struct{}
 
-func (UnimplementedAIConversationServiceServer) StartConversation(context.Context, *StartConversationRequest) (*StartConversationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StartConversation not implemented")
-}
-func (UnimplementedAIConversationServiceServer) EndConversation(context.Context, *EndConversationRequest) (*EndConversationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EndConversation not implemented")
-}
 func (UnimplementedAIConversationServiceServer) SendMessage(context.Context, *AIConversationRequest) (*AIConversationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
 }
 func (UnimplementedAIConversationServiceServer) StreamConversation(grpc.BidiStreamingServer[AIConversationRequest, AIConversationResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamConversation not implemented")
-}
-func (UnimplementedAIConversationServiceServer) StreamConversationEvents(*StartConversationRequest, grpc.ServerStreamingServer[ConversationEvent]) error {
-	return status.Errorf(codes.Unimplemented, "method StreamConversationEvents not implemented")
 }
 func (UnimplementedAIConversationServiceServer) mustEmbedUnimplementedAIConversationServiceServer() {}
 func (UnimplementedAIConversationServiceServer) testEmbeddedByValue()                               {}
@@ -174,42 +111,6 @@ func RegisterAIConversationServiceServer(s grpc.ServiceRegistrar, srv AIConversa
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&AIConversationService_ServiceDesc, srv)
-}
-
-func _AIConversationService_StartConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartConversationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AIConversationServiceServer).StartConversation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AIConversationService_StartConversation_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AIConversationServiceServer).StartConversation(ctx, req.(*StartConversationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AIConversationService_EndConversation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EndConversationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AIConversationServiceServer).EndConversation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AIConversationService_EndConversation_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AIConversationServiceServer).EndConversation(ctx, req.(*EndConversationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AIConversationService_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -237,17 +138,6 @@ func _AIConversationService_StreamConversation_Handler(srv interface{}, stream g
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type AIConversationService_StreamConversationServer = grpc.BidiStreamingServer[AIConversationRequest, AIConversationResponse]
 
-func _AIConversationService_StreamConversationEvents_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StartConversationRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(AIConversationServiceServer).StreamConversationEvents(m, &grpc.GenericServerStream[StartConversationRequest, ConversationEvent]{ServerStream: stream})
-}
-
-// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type AIConversationService_StreamConversationEventsServer = grpc.ServerStreamingServer[ConversationEvent]
-
 // AIConversationService_ServiceDesc is the grpc.ServiceDesc for AIConversationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -255,14 +145,6 @@ var AIConversationService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "app.v1.AIConversationService",
 	HandlerType: (*AIConversationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "StartConversation",
-			Handler:    _AIConversationService_StartConversation_Handler,
-		},
-		{
-			MethodName: "EndConversation",
-			Handler:    _AIConversationService_EndConversation_Handler,
-		},
 		{
 			MethodName: "SendMessage",
 			Handler:    _AIConversationService_SendMessage_Handler,
@@ -274,11 +156,6 @@ var AIConversationService_ServiceDesc = grpc.ServiceDesc{
 			Handler:       _AIConversationService_StreamConversation_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
-		},
-		{
-			StreamName:    "StreamConversationEvents",
-			Handler:       _AIConversationService_StreamConversationEvents_Handler,
-			ServerStreams: true,
 		},
 	},
 	Metadata: "app/ai_conversation_service.proto",

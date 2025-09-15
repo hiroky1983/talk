@@ -19,7 +19,6 @@ import (
 type AIConversationService struct {
 	grpcClient app.AIConversationServiceClient
 	grpcConn   *grpc.ClientConn
-	sessions   map[string]bool
 }
 
 // NewAIConversationService creates a new AI conversation service instance
@@ -48,7 +47,6 @@ func NewAIConversationService() *AIConversationService {
 	
 	service := &AIConversationService{
 		grpcConn: conn,
-		sessions: make(map[string]bool),
 	}
 	
 	if conn != nil {
@@ -58,85 +56,7 @@ func NewAIConversationService() *AIConversationService {
 	return service
 }
 
-// StartConversation starts a new conversation session
-func (s *AIConversationService) StartConversation(
-	ctx context.Context,
-	req *connect.Request[app.StartConversationRequest],
-) (*connect.Response[app.StartConversationResponse], error) {
-	log.Printf("Starting conversation for user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
-	
-	if s.grpcClient != nil {
-		// Call Python gRPC service
-		grpcResp, err := s.grpcClient.StartConversation(ctx, &app.StartConversationRequest{
-			UserId:    req.Msg.UserId,
-			Username:  req.Msg.Username,
-			Language:  req.Msg.Language,
-			Character: req.Msg.Character,
-		})
-		
-		if err != nil {
-			log.Printf("gRPC call failed: %v", err)
-			return nil, err
-		}
-		
-		// Store session
-		if grpcResp.Success {
-			s.sessions[grpcResp.SessionId] = true
-		}
-		
-		return connect.NewResponse(grpcResp), nil
-	}
-	
-	// Fallback simulation if gRPC not available
-	sessionID := generateSessionID()
-	s.sessions[sessionID] = true
-	
-	resp := &app.StartConversationResponse{
-		SessionId:    sessionID,
-		Success:      true,
-		ErrorMessage: "",
-	}
-	
-	return connect.NewResponse(resp), nil
-}
 
-// EndConversation ends a conversation session
-func (s *AIConversationService) EndConversation(
-	ctx context.Context,
-	req *connect.Request[app.EndConversationRequest],
-) (*connect.Response[app.EndConversationResponse], error) {
-	log.Printf("Ending conversation session %s", req.Msg.SessionId)
-	
-	if s.grpcClient != nil {
-		// Call Python gRPC service
-		grpcResp, err := s.grpcClient.EndConversation(ctx, &app.EndConversationRequest{
-			SessionId: req.Msg.SessionId,
-			UserId:    req.Msg.UserId,
-		})
-		
-		if err != nil {
-			log.Printf("gRPC call failed: %v", err)
-			return nil, err
-		}
-		
-		// Remove session locally if successful
-		if grpcResp.Success {
-			delete(s.sessions, req.Msg.SessionId)
-		}
-		
-		return connect.NewResponse(grpcResp), nil
-	}
-	
-	// Fallback simulation
-	delete(s.sessions, req.Msg.SessionId)
-	
-	resp := &app.EndConversationResponse{
-		Success:      true,
-		ErrorMessage: "",
-	}
-	
-	return connect.NewResponse(resp), nil
-}
 
 // SendMessage processes a single message and returns a response
 func (s *AIConversationService) SendMessage(
@@ -323,73 +243,9 @@ func (s *AIConversationService) StreamConversation(
 	}
 }
 
-// StreamConversationEvents handles server-side streaming of conversation events
-func (s *AIConversationService) StreamConversationEvents(
-	ctx context.Context,
-	req *connect.Request[app.StartConversationRequest],
-	stream *connect.ServerStream[app.ConversationEvent],
-) error {
-	log.Printf("Starting conversation event stream for user %s", req.Msg.Username)
-	
-	// Start a conversation first
-	startReq := connect.NewRequest(&app.StartConversationRequest{
-		UserId:    req.Msg.UserId,
-		Username:  req.Msg.Username,
-		Language:  req.Msg.Language,
-		Character: req.Msg.Character,
-	})
-	
-	startResp, err := s.StartConversation(ctx, startReq)
-	if err != nil {
-		return err
-	}
-	
-	// Send initial conversation started event
-	event := &app.ConversationEvent{
-		Type:      app.ConversationEvent_CONVERSATION_STARTED,
-		UserId:    req.Msg.UserId,
-		SessionId: startResp.Msg.SessionId,
-		Timestamp: timestamppb.Now(),
-	}
-	
-	if err := stream.Send(event); err != nil {
-		return err
-	}
-	
-	// Keep the stream alive and send periodic events
-	ticker := time.NewTicker(30 * time.Second)
-	defer ticker.Stop()
-	
-	for {
-		select {
-		case <-ctx.Done():
-			// End conversation
-			endReq := connect.NewRequest(&app.EndConversationRequest{
-				SessionId: startResp.Msg.SessionId,
-				UserId:    req.Msg.UserId,
-			})
-			s.EndConversation(ctx, endReq)
-			
-			// Send conversation ended event
-			endEvent := &app.ConversationEvent{
-				Type:      app.ConversationEvent_CONVERSATION_ENDED,
-				UserId:    req.Msg.UserId,
-				SessionId: startResp.Msg.SessionId,
-				Timestamp: timestamppb.Now(),
-			}
-			return stream.Send(endEvent)
-			
-		case <-ticker.C:
-			log.Println("Sending conversation keepalive event")
-		}
-	}
-}
+
 
 // Helper functions
-func generateSessionID() string {
-	return "session_" + time.Now().Format("20060102150405")
-}
-
 func generateResponseID() string {
 	return "response_" + time.Now().Format("20060102150405.000")
 }

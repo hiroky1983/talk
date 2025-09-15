@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AIConversationRequest, AIConversationResponse, ConversationEvent, EndConversationRequest, EndConversationResponse, StartConversationRequest, StartConversationResponse } from "./ai_conversation_pb.js";
+import { AIConversationRequest, AIConversationResponse } from "./ai_conversation_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -14,28 +14,6 @@ import { MethodKind } from "@bufbuild/protobuf";
 export const AIConversationService = {
   typeName: "app.v1.AIConversationService",
   methods: {
-    /**
-     * Start a new conversation session
-     *
-     * @generated from rpc app.v1.AIConversationService.StartConversation
-     */
-    startConversation: {
-      name: "StartConversation",
-      I: StartConversationRequest,
-      O: StartConversationResponse,
-      kind: MethodKind.Unary,
-    },
-    /**
-     * End a conversation session
-     *
-     * @generated from rpc app.v1.AIConversationService.EndConversation
-     */
-    endConversation: {
-      name: "EndConversation",
-      I: EndConversationRequest,
-      O: EndConversationResponse,
-      kind: MethodKind.Unary,
-    },
     /**
      * Send a single message and get response (unary)
      *
@@ -57,17 +35,6 @@ export const AIConversationService = {
       I: AIConversationRequest,
       O: AIConversationResponse,
       kind: MethodKind.BiDiStreaming,
-    },
-    /**
-     * Stream conversation events (server-side streaming)
-     *
-     * @generated from rpc app.v1.AIConversationService.StreamConversationEvents
-     */
-    streamConversationEvents: {
-      name: "StreamConversationEvents",
-      I: StartConversationRequest,
-      O: ConversationEvent,
-      kind: MethodKind.ServerStreaming,
     },
   }
 } as const;

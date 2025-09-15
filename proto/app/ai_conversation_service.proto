@@ -6,18 +6,9 @@ import "app/ai_conversation.proto";
 
 // AI Conversation Service
 service AIConversationService {
-  // Start a new conversation session
-  rpc StartConversation(StartConversationRequest) returns (StartConversationResponse);
-  
-  // End a conversation session
-  rpc EndConversation(EndConversationRequest) returns (EndConversationResponse);
-  
   // Send a single message and get response (unary)
   rpc SendMessage(AIConversationRequest) returns (AIConversationResponse);
   
   // Bidirectional streaming conversation
   rpc StreamConversation(stream AIConversationRequest) returns (stream AIConversationResponse);
-  
-  // Stream conversation events (server-side streaming)
-  rpc StreamConversationEvents(StartConversationRequest) returns (stream ConversationEvent);
 }

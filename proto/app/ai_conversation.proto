@@ -63,13 +63,3 @@ message StartConversationResponse {
   bool success = 2;
   string error_message = 3;
 }
-
-message EndConversationRequest {
-  string session_id = 1;
-  string user_id = 2;
-}
-
-message EndConversationResponse {
-  bool success = 1;
-  string error_message = 2;
-}
