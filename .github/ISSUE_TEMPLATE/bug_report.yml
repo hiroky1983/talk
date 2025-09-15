@@ -1,0 +1,79 @@
+name: Bug Report
+description: バグを報告する
+title: "[Bug] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        バグを報告していただき、ありがとうございます。以下の情報を提供してください。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: バグの説明
+      description: バグの詳細な説明を記載してください
+      placeholder: 何が起こったか、何が期待されていたかを説明してください
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 再現手順
+      description: バグを再現するための手順を記載してください
+      placeholder: |
+        1. '...'に移動
+        2. '...'をクリック
+        3. '...'まで下にスクロール
+        4. エラーを確認
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待される動作
+      description: 何が起こることを期待していましたか？
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 実際の動作
+      description: 実際に何が起こりましたか？
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境情報
+      description: 関連する環境情報を記載してください
+      placeholder: |
+        - OS: [例: macOS 14.0]
+        - ブラウザ: [例: Chrome 120.0]
+        - Node.js: [例: 18.17.0]
+        - Python: [例: 3.11.0]
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・エラーメッセージ
+      description: 関連するログやエラーメッセージがあれば記載してください
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 追加情報
+      description: その他の関連情報があれば記載してください
+    validations:
+      required: false
