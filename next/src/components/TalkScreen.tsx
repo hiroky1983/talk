@@ -72,14 +72,14 @@ export default function TalkScreen() {
   );
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [recognition, setRecognition] = useState<any>(null);
-  const [transcribedText, setTranscribedText] = useState<string>("");
   const [isGeneratingAudio, setIsGeneratingAudio] = useState<string | null>(
     null
   );
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   );
+  const [streamConnection, setStreamConnection] = useState<any>(null);
+  const [isStreamConnected, setIsStreamConnected] = useState(false);
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
@@ -92,46 +92,79 @@ export default function TalkScreen() {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const initializeStreamConnection = async () => {
+    try {
+      if (streamConnection) {
+        setStreamConnection(null);
+      }
+
+      // Connect-RPCのストリーミング接続を初期化
+      // 注意: 実際のConnect-RPCの実装に合わせて調整が必要
+      console.log("Initializing stream connection...");
+      setIsStreamConnected(true);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to initialize stream:", err);
+      setError("Failed to initialize streaming connection");
+      setIsStreamConnected(false);
+    }
+  };
+
   const handleStreamResponse = (response: any) => {
     const responseText =
-      response.content?.case === "textMessage"
-        ? response.content.value
-        : "AI response received";
+      response.content?.case === "textMessage" ? response.content.value : "";
     const responseAudio =
       response.content?.case === "audioData"
         ? response.content.value
         : undefined;
 
-    if (streamingMessageId) {
+    // 新しいAI応答の開始
+    if (response.isNewMessage && !streamingMessageId) {
+      const aiMessageId = `ai_${Date.now()}`;
+      const aiMessage: ConversationMessage = {
+        id: aiMessageId,
+        sender: "ai",
+        content: responseText || "...",
+        timestamp: new Date(),
+      };
+      setConversation((prev) => [...prev, aiMessage]);
+      setStreamingMessageId(aiMessageId);
+    }
+    // 既存のメッセージを更新
+    else if (streamingMessageId) {
       setConversation((prev) =>
         prev.map((msg) =>
           msg.id === streamingMessageId
             ? {
                 ...msg,
-                content: responseText,
+                content: responseText || msg.content,
                 audioUrl: responseAudio
                   ? URL.createObjectURL(
                       new Blob([responseAudio], { type: "audio/mp3" })
                     )
-                  : undefined,
+                  : msg.audioUrl,
               }
             : msg
         )
       );
 
+      // 音声があれば即座に再生
       if (responseAudio) {
         const audio = new Audio(
           URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" }))
         );
         audio.play().catch(console.error);
-      } else {
+      }
+    }
+
+    // 応答完了
+    if (response.isFinal) {
+      setStreamingMessageId(null);
+      // 最終的にTTSで読み上げ（音声がない場合）
+      if (responseText && !responseAudio) {
         setTimeout(() => {
           generateAndPlayTTS(responseText);
-        }, 500);
-      }
-
-      if (response.isFinal) {
-        setStreamingMessageId(null);
+        }, 100);
       }
     }
   };
@@ -149,12 +182,6 @@ export default function TalkScreen() {
     setUser(JSON.parse(userData));
     initializeAudioPermissions();
   }, [router]);
-
-  useEffect(() => {
-    if (recognition) {
-      recognition.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
-    }
-  }, [selectedLanguage, recognition]);
 
   useEffect(() => {
     if (user && audioStream && !isConnected && !sessionId) {
@@ -178,35 +205,6 @@ export default function TalkScreen() {
       setAudioStream(stream);
       setIsConnected(true);
       setError(null);
-
-      if (
-        "webkitSpeechRecognition" in window ||
-        "SpeechRecognition" in window
-      ) {
-        const SpeechRecognition =
-          (window as any).webkitSpeechRecognition ||
-          (window as any).SpeechRecognition;
-        const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = true;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang =
-          selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
-        recognitionInstance.onresult = (event: any) => {
-          let finalTranscript = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
-            }
-          }
-          if (finalTranscript) {
-            setTranscribedText(finalTranscript);
-          }
-        };
-        recognitionInstance.onerror = (event: any) => {
-          console.error("Speech recognition error:", event.error);
-        };
-        setRecognition(recognitionInstance);
-      }
     } catch {
       setError(
         "Microphone access denied. Please enable microphone permissions to use voice chat."
@@ -250,24 +248,22 @@ export default function TalkScreen() {
       await initializeAudioPermissions();
       return;
     }
+
     try {
-      const recorder = new MediaRecorder(audioStream);
-      const audioChunks: BlobPart[] = [];
-      setTranscribedText("");
-      recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-        if (recognition) {
-          recognition.stop();
+      const recorder = new MediaRecorder(audioStream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      // リアルタイムで音声チャンクを送信
+      recorder.ondataavailable = async (event) => {
+        if (event.data.size > 0 && streamConnection) {
+          await sendAudioChunkToAI(event.data);
         }
-        await sendToAI(audioBlob, transcribedText);
       };
-      recorder.start();
-      if (recognition) {
-        recognition.start();
-      }
+
+      // 小さなチャンク（100ms）でリアルタイム送信
+      recorder.start(100);
+
       setMediaRecorder(recorder);
       setIsRecording(true);
       setError(null);
@@ -296,10 +292,13 @@ export default function TalkScreen() {
       setSessionId(response.sessionId);
       setIsConnected(true);
 
+      // ストリーミング接続を初期化
+      await initializeStreamConnection();
+
       const systemMessage: ConversationMessage = {
         id: `sys_${Date.now()}`,
         sender: "ai",
-        content: "Connected to AI. You can start speaking!",
+        content: "Connected to AI. Ready for real-time conversation!",
         timestamp: new Date(),
       };
       setConversation([systemMessage]);
@@ -318,6 +317,12 @@ export default function TalkScreen() {
   const endAIConversation = async () => {
     if (!user || !sessionId) return;
     try {
+      // ストリーミング接続を終了
+      if (isStreamConnected) {
+        setStreamConnection(null);
+        setIsStreamConnected(false);
+      }
+
       const request = create(EndConversationRequestSchema, {
         sessionId,
         userId: `user_${user.username}`,
@@ -330,29 +335,11 @@ export default function TalkScreen() {
     }
   };
 
-  const sendToAI = async (audioBlob: Blob, text: string) => {
-    if (!user || !sessionId) return;
+  const sendAudioChunkToAI = async (audioChunk: Blob) => {
+    if (!user || !isStreamConnected) return;
+
     try {
-      const userMessage: ConversationMessage = {
-        id: `user_${Date.now()}`,
-        sender: "user",
-        content: text || "(voice message)",
-        timestamp: new Date(),
-        audioUrl: URL.createObjectURL(audioBlob),
-      };
-
-      const aiMessageId = `ai_${Date.now()}`;
-      const aiMessage: ConversationMessage = {
-        id: aiMessageId,
-        sender: "ai",
-        content: "Thinking...",
-        timestamp: new Date(),
-      };
-
-      setConversation((prev) => [...prev, userMessage, aiMessage]);
-      setStreamingMessageId(aiMessageId);
-
-      const arrayBuffer = await audioBlob.arrayBuffer();
+      const arrayBuffer = await audioChunk.arrayBuffer();
       const audioData = new Uint8Array(arrayBuffer);
 
       const request = create(AIConversationRequestSchema, {
@@ -360,28 +347,24 @@ export default function TalkScreen() {
         username: user.username,
         language: selectedLanguage,
         character: selectedCharacter,
-        content: text
-          ? { case: "textMessage" as const, value: text }
-          : { case: "audioData" as const, value: audioData },
+        content: { case: "audioData" as const, value: audioData },
         timestamp: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
-        sessionId,
       });
 
-      // Send individual request to AI service
+      // 一旦、単発のsendMessageを使用（後でストリーミングに変更）
+      console.log("Sending audio chunk to AI...", audioData.length, "bytes");
       const response = await client.sendMessage(request);
 
-      // Handle the response directly
       if (response) {
         handleStreamResponse(response);
       }
     } catch (err) {
-      console.error("Failed to send to AI:", err);
+      console.error("Failed to send audio chunk:", err);
       setError(
-        `Failed to send message to AI: ${
+        `Failed to send audio chunk: ${
           err instanceof Error ? err.message : "Unknown error"
         }`
       );
-      setStreamingMessageId(null);
     }
   };
 
@@ -574,20 +557,13 @@ export default function TalkScreen() {
                 </button>
                 <div className="text-center">
                   <div className="font-medium">
-                    {isRecording
-                      ? "Recording & Transcribing..."
-                      : "Tap to speak"}
+                    {isRecording ? "Recording..." : "Tap to speak"}
                   </div>
                   <div className="text-sm text-gray-600">
                     {isRecording
                       ? "Click again to stop"
                       : "Hold conversation with AI"}
                   </div>
-                  {isRecording && transcribedText && (
-                    <div className="text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded">
-                      "{transcribedText}"
-                    </div>
-                  )}
                 </div>
               </div>
             ) : (
