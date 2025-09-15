@@ -33,6 +33,32 @@ interface ConversationMessage {
   audioUrl?: string;
 }
 
+const characters: Character[] = [
+  {
+    id: "friend",
+    name: "ホアン",
+    description: "A friendly companion for casual conversation",
+    emoji: "👨",
+  },
+  {
+    id: "parent",
+    name: "お母さん",
+    description: "A caring parent figure who gives advice and support",
+    emoji: "👩",
+  },
+  {
+    id: "sister",
+    name: "妹",
+    description: "A playful sister who shares daily life stories",
+    emoji: "👧",
+  },
+];
+
+const languageNames = {
+  vi: "Vietnamese (Tiếng Việt)",
+  ja: "Japanese (日本語)",
+} as const;
+
 export default function TalkScreen() {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
@@ -61,32 +87,6 @@ export default function TalkScreen() {
     baseUrl: "http://localhost:8000/connect",
   });
   const client = createClient(AIConversationService, transport);
-
-  const languageNames = {
-    vi: "Vietnamese (Tiếng Việt)",
-    ja: "Japanese (日本語)",
-  } as const;
-
-  const characters: Character[] = [
-    {
-      id: "friend",
-      name: "ホアン",
-      description: "A friendly companion for casual conversation",
-      emoji: "👨",
-    },
-    {
-      id: "parent",
-      name: "お母さん",
-      description: "A caring parent figure who gives advice and support",
-      emoji: "👩",
-    },
-    {
-      id: "sister",
-      name: "妹",
-      description: "A playful sister who shares daily life stories",
-      emoji: "👧",
-    },
-  ];
 
   const scrollToBottom = () => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
