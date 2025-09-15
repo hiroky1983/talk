@@ -11,6 +11,7 @@ import {
 } from "../gen/app/ai_conversation_pb";
 import { AIConversationService } from "../gen/app/ai_conversation_service_pb";
 import { create } from "@bufbuild/protobuf";
+import TalkHeader from "./TalkHeader";
 
 interface User {
   username: string;
@@ -40,19 +41,25 @@ export default function TalkScreen() {
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [recognition, setRecognition] = useState<any>(null);
   const [transcribedText, setTranscribedText] = useState<string>("");
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState<string | null>(null);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
-  const [streamConnection, setStreamConnection] = useState<any>(null);
-  const [isStreamConnected, setIsStreamConnected] = useState(false);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState<string | null>(
+    null
+  );
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+    null
+  );
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
-  const transport = createConnectTransport({ baseUrl: "http://localhost:8000/connect" });
+  const transport = createConnectTransport({
+    baseUrl: "http://localhost:8000/connect",
+  });
   const client = createClient(AIConversationService, transport);
 
   const languageNames = {
@@ -61,51 +68,39 @@ export default function TalkScreen() {
   } as const;
 
   const characters: Character[] = [
-    { id: "friend", name: "ホアン", description: "A friendly companion for casual conversation", emoji: "👨" },
-    { id: "parent", name: "お母さん", description: "A caring parent figure who gives advice and support", emoji: "👩" },
-    { id: "sister", name: "妹", description: "A playful sister who shares daily life stories", emoji: "👧" },
+    {
+      id: "friend",
+      name: "ホアン",
+      description: "A friendly companion for casual conversation",
+      emoji: "👨",
+    },
+    {
+      id: "parent",
+      name: "お母さん",
+      description: "A caring parent figure who gives advice and support",
+      emoji: "👩",
+    },
+    {
+      id: "sister",
+      name: "妹",
+      description: "A playful sister who shares daily life stories",
+      emoji: "👧",
+    },
   ];
 
   const scrollToBottom = () => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const initializeStream = async () => {
-    try {
-      if (streamConnection) {
-        await streamConnection.requests.complete();
-      }
-
-      const stream = client.streamConversation();
-      setStreamConnection(stream);
-      setIsStreamConnected(true);
-
-      stream.responses.onMessage((response: any) => {
-        handleStreamResponse(response);
-      });
-
-      stream.responses.onError((err: any) => {
-        console.error("Stream error:", err);
-        setError(`Streaming error: ${err.message}`);
-        setIsStreamConnected(false);
-        setStreamConnection(null);
-      });
-
-      stream.responses.onComplete(() => {
-        console.log("Stream completed");
-        setIsStreamConnected(false);
-        setStreamConnection(null);
-      });
-    } catch (err) {
-      console.error("Failed to initialize stream:", err);
-      setError("Failed to initialize streaming connection");
-      setIsStreamConnected(false);
-    }
-  };
-
   const handleStreamResponse = (response: any) => {
-    const responseText = response.content?.case === "textMessage" ? response.content.value : "AI response received";
-    const responseAudio = response.content?.case === "audioData" ? response.content.value : undefined;
+    const responseText =
+      response.content?.case === "textMessage"
+        ? response.content.value
+        : "AI response received";
+    const responseAudio =
+      response.content?.case === "audioData"
+        ? response.content.value
+        : undefined;
 
     if (streamingMessageId) {
       setConversation((prev) =>
@@ -114,14 +109,20 @@ export default function TalkScreen() {
             ? {
                 ...msg,
                 content: responseText,
-                audioUrl: responseAudio ? URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" })) : undefined,
+                audioUrl: responseAudio
+                  ? URL.createObjectURL(
+                      new Blob([responseAudio], { type: "audio/mp3" })
+                    )
+                  : undefined,
               }
             : msg
         )
       );
 
       if (responseAudio) {
-        const audio = new Audio(URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" })));
+        const audio = new Audio(
+          URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" }))
+        );
         audio.play().catch(console.error);
       } else {
         setTimeout(() => {
@@ -131,19 +132,6 @@ export default function TalkScreen() {
 
       if (response.isFinal) {
         setStreamingMessageId(null);
-      }
-    }
-  };
-
-  const closeStream = async () => {
-    if (streamConnection) {
-      try {
-        await streamConnection.requests.complete();
-        setStreamConnection(null);
-        setIsStreamConnected(false);
-        console.log("Stream connection closed");
-      } catch (err) {
-        console.error("Error closing stream:", err);
       }
     }
   };
@@ -176,18 +164,10 @@ export default function TalkScreen() {
   }, [user, audioStream, isConnected, sessionId]);
 
   useEffect(() => {
-    if (user && !isStreamConnected) {
-      initializeStream();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isStreamConnected]);
-
-  useEffect(() => {
     return () => {
       if (sessionId) {
         endAIConversation();
       }
-      closeStream();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
@@ -199,12 +179,18 @@ export default function TalkScreen() {
       setIsConnected(true);
       setError(null);
 
-      if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      if (
+        "webkitSpeechRecognition" in window ||
+        "SpeechRecognition" in window
+      ) {
+        const SpeechRecognition =
+          (window as any).webkitSpeechRecognition ||
+          (window as any).SpeechRecognition;
         const recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = true;
         recognitionInstance.interimResults = true;
-        recognitionInstance.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
+        recognitionInstance.lang =
+          selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
         recognitionInstance.onresult = (event: any) => {
           let finalTranscript = "";
           for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -222,7 +208,9 @@ export default function TalkScreen() {
         setRecognition(recognitionInstance);
       }
     } catch {
-      setError("Microphone access denied. Please enable microphone permissions to use voice chat.");
+      setError(
+        "Microphone access denied. Please enable microphone permissions to use voice chat."
+      );
       setIsConnected(false);
     }
   };
@@ -319,7 +307,9 @@ export default function TalkScreen() {
     } catch (err) {
       console.error("Failed to start conversation:", err);
       setError(
-        `Failed to connect to AI service: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Failed to connect to AI service: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
       );
       setIsConnected(false);
     }
@@ -370,72 +360,28 @@ export default function TalkScreen() {
         username: user.username,
         language: selectedLanguage,
         character: selectedCharacter,
-        content: {
-          case: text ? "textMessage" : "audioData",
-          value: text ? text : audioData,
-        },
+        content: text
+          ? { case: "textMessage" as const, value: text }
+          : { case: "audioData" as const, value: audioData },
         timestamp: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
         sessionId,
       });
 
-      if (!isStreamConnected || !streamConnection) {
-        setError("Streaming connection not available. Reconnecting...");
-        await initializeStream();
-      }
+      // Send individual request to AI service
+      const response = await client.sendMessage(request);
 
-      if (streamConnection) {
-        await streamConnection.requests.send(request);
+      // Handle the response directly
+      if (response) {
+        handleStreamResponse(response);
       }
     } catch (err) {
       console.error("Failed to send to AI:", err);
       setError(
-        `Failed to send message to AI: ${err instanceof Error ? err.message : "Unknown error"}`
+        `Failed to send message to AI: ${
+          err instanceof Error ? err.message : "Unknown error"
+        }`
       );
       setStreamingMessageId(null);
-      await initializeStream();
-    }
-  };
-
-  const sendTextMessage = async (text: string) => {
-    if (!user || !text.trim()) return;
-    if (!isStreamConnected || !streamConnection) {
-      setError("Streaming connection not available. Reconnecting...");
-      await initializeStream();
-      return;
-    }
-    try {
-      const userMessage: ConversationMessage = {
-        id: `user_${Date.now()}`,
-        sender: "user",
-        content: text,
-        timestamp: new Date(),
-      };
-      const aiMessageId = `ai_${Date.now()}`;
-      const aiMessage: ConversationMessage = {
-        id: aiMessageId,
-        sender: "ai",
-        content: "Thinking...",
-        timestamp: new Date(),
-      };
-      setConversation((prev) => [...prev, userMessage, aiMessage]);
-      setStreamingMessageId(aiMessageId);
-
-      const request = create(AIConversationRequestSchema, {
-        userId: `user_${user.username}`,
-        username: user.username,
-        language: selectedLanguage,
-        character: selectedCharacter,
-        content: { case: "textMessage", value: text },
-        timestamp: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
-      });
-      await streamConnection.requests.send(request);
-    } catch (err) {
-      console.error("Failed to send streaming text message:", err);
-      setError(
-        `Failed to send text message via streaming: ${err instanceof Error ? err.message : "Unknown error"}`
-      );
-      setStreamingMessageId(null);
-      await initializeStream();
     }
   };
 
@@ -477,82 +423,25 @@ export default function TalkScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">AI Language Practice</h1>
-              <p className="text-gray-600">
-                Practice with: {languageNames[selectedLanguage as keyof typeof languageNames]}
-              </p>
-            </div>
-            {user ? (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">Language:</label>
-                  <select
-                    value={selectedLanguage}
-                    onChange={(e) => handleLanguageChange(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
-                  >
-                    {Object.entries(languageNames).map(([code, name]) => (
-                      <option key={code} value={code}>
-                        {name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">Character:</label>
-                  <select
-                    value={selectedCharacter}
-                    onChange={(e) => handleCharacterChange(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
-                  >
-                    {characters.map((character) => (
-                      <option key={character.id} value={character.id}>
-                        {character.emoji} {character.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex gap-2">
-                  <span className={`px-3 py-1 rounded-full text-sm ${isConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                    {isConnected ? `Connected to ${characters.find((c) => c.id === selectedCharacter)?.name}` : "Disconnected"}
-                  </span>
-                  <span className={`px-3 py-1 rounded-full text-sm ${isStreamConnected ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}`}>
-                    {isStreamConnected ? "Streaming" : "No Stream"}
-                  </span>
-                </div>
-                {!isConnected && (
-                  <button type="button" onClick={startAIConversation} className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
-                    Connect to AI
-                  </button>
-                )}
-                {!isStreamConnected && (
-                  <button type="button" onClick={initializeStream} className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                    Connect Stream
-                  </button>
-                )}
-                <button type="button" onClick={logout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
-                <div className="h-8 bg-gray-200 rounded animate-pulse w-24"></div>
-                <div className="h-8 bg-gray-200 rounded animate-pulse w-20"></div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+    <>
+      <TalkHeader
+        user={user}
+        selectedLanguage={selectedLanguage}
+        selectedCharacter={selectedCharacter}
+        isConnected={isConnected}
+        languageNames={languageNames}
+        characters={characters}
+        onLanguageChange={handleLanguageChange}
+        onCharacterChange={handleCharacterChange}
+        onStartConversation={startAIConversation}
+        onLogout={logout}
+      />
 
       {error && (
         <div className="max-w-4xl mx-auto w-full px-4 py-2">
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded">{error}</div>
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded">
+            {error}
+          </div>
         </div>
       )}
 
@@ -562,16 +451,40 @@ export default function TalkScreen() {
             {!user ? (
               <div className="text-center text-gray-500">Loading...</div>
             ) : conversation.length === 0 ? (
-              <div className="text-center text-gray-500">Start a conversation by speaking or typing!</div>
+              <div className="text-center text-gray-500">
+                Start a conversation by speaking!
+              </div>
             ) : (
               conversation.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${message.sender === "user" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-900"}`}>
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.sender === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
+                      message.sender === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-900"
+                    }`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="flex-1">
-                        <div className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</div>
-                        <div className={`text-xs mt-1 ${message.sender === "user" ? "text-blue-100" : "text-gray-500"}`}>
-                          {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                          {message.content}
+                        </div>
+                        <div
+                          className={`text-xs mt-1 ${
+                            message.sender === "user"
+                              ? "text-blue-100"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {message.timestamp.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </div>
                       </div>
                       {message.sender === "ai" && (
@@ -581,7 +494,9 @@ export default function TalkScreen() {
                             onClick={() => generateAndPlayTTS(message.content)}
                             disabled={isGeneratingAudio === message.content}
                             className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              isGeneratingAudio === message.content ? "bg-blue-100 text-blue-800" : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                              isGeneratingAudio === message.content
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
                             }`}
                           >
                             {isGeneratingAudio === message.content ? (
@@ -591,8 +506,16 @@ export default function TalkScreen() {
                               </>
                             ) : (
                               <>
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.82L6.966 15.5H2a1 1 0 01-1-1v-4a1 1 0 011-1h4.966l1.417-1.32a1 1 0 01.617-.084z" clipRule="evenodd" />
+                                <svg
+                                  className="w-3 h-3"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.82L6.966 15.5H2a1 1 0 01-1-1v-4a1 1 0 011-1h4.966l1.417-1.32a1 1 0 01.617-.084z"
+                                    clipRule="evenodd"
+                                  />
                                 </svg>
                                 🔊 Play
                               </>
@@ -619,43 +542,82 @@ export default function TalkScreen() {
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
-                  disabled={!isConnected || !isStreamConnected}
-                  aria-label={isRecording ? "Stop recording" : "Start recording"}
-                  className={`p-4 rounded-full transition-colors ${isRecording ? "bg-red-500 hover:bg-red-600 animate-pulse" : "bg-blue-500 hover:bg-blue-600"} disabled:bg-gray-300 text-white`}
+                  disabled={!isConnected}
+                  aria-label={
+                    isRecording ? "Stop recording" : "Start recording"
+                  }
+                  className={`p-4 rounded-full transition-colors ${
+                    isRecording
+                      ? "bg-red-500 hover:bg-red-600 animate-pulse"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  } disabled:bg-gray-300 text-white`}
                 >
-                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <svg
+                    className="w-6 h-6"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
                     {isRecording ? (
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z"
+                        clipRule="evenodd"
+                      />
                     ) : (
-                      <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
+                        clipRule="evenodd"
+                      />
                     )}
                   </svg>
                 </button>
                 <div className="text-center">
-                  <div className="font-medium">{isRecording ? "Recording & Transcribing..." : "Tap to speak"}</div>
-                  <div className="text-sm text-gray-600">{isRecording ? "Click again to stop" : "Hold conversation with AI"}</div>
+                  <div className="font-medium">
+                    {isRecording
+                      ? "Recording & Transcribing..."
+                      : "Tap to speak"}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {isRecording
+                      ? "Click again to stop"
+                      : "Hold conversation with AI"}
+                  </div>
                   {isRecording && transcribedText && (
-                    <div className="text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded">"{transcribedText}"</div>
+                    <div className="text-sm text-blue-600 mt-2 p-2 bg-blue-50 rounded">
+                      "{transcribedText}"
+                    </div>
                   )}
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-center gap-4">
                 <div className="p-4 rounded-full bg-gray-200">
-                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                  <svg
+                    className="w-6 h-6 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-gray-400">Please wait...</div>
-                  <div className="text-sm text-gray-400">Loading audio controls</div>
+                  <div className="font-medium text-gray-400">
+                    Please wait...
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    Loading audio controls
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-
