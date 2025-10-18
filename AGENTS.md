@@ -4,9 +4,11 @@
 - Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`).
 - gRPC APIs defined in `proto/app/` with Buf-driven codegen to `go/gen/`, `next/src/gen/`, and Python stubs.
 - Local dev via Docker Compose with hot reload; Go debugger on port `2349`.
+- React Native mobile clients live under `mobile/` with shared business logic mirroring the web app's flows.
 
 ## Project Structure & Module Organization
 - `next/` — Next.js app (App Router, TypeScript, Tailwind). Tests near code or `next/__tests__/`.
+- `mobile/` — React Native app using Expo. Keep feature modules aligned with `next/` counterparts for parity.
 - `go/` — Gin + Connect RPC backend. Tests with `*_test.go`.
 - `python/` — AI service (Gemini integration). Tests in `python/tests/`.
 - `proto/` — Protobuf schemas. Use Buf for lint/format/generate.
@@ -17,15 +19,18 @@
 - Proto (from `proto/`): `make setup` · `make fmt` · `make lint` · `make generate`.
 - Go (from `go/`): `make run` (hot reload) · `make build` · `make tidy` · `make lint-fix` · `go test ./... -race -cover`.
 - Next (from `next/`): `npm i` · `npm run dev` · `npm run build && npm start` · `npm run lint` · `npm test`.
+- Mobile (from `mobile/`): `npm i` · `npx expo start` for local dev · `npm run lint` · `npm test` (Jest) · use Expo Go or emulator for verification.
 - Python (from `python/`): `pip install -r requirements.txt` · `pytest -q --maxfail=1 --disable-warnings`.
 
 ## Coding Style & Naming Conventions
 - Go: `go fmt ./...`; exported `CamelCase`; packages lower-case; one package per folder.
 - TypeScript: ESLint + Prettier (`npm run lint`); files `kebab-case.ts/tsx`; React components `PascalCase`.
+- Mobile: Follow React Native conventions; leverage shared UI primitives in `mobile/src/components/`; prefer TypeScript with `PascalCase` components and hooks in `camelCase`.
 - Python: `ruff .` and `black .`; modules `snake_case.py`; classes `CapWords`; functions `snake_case`.
 
 ## Testing Guidelines
 - Frontend: `*.test.ts(x)` next to code or `next/__tests__/`; run `npm test`.
+- Mobile: colocate Jest and Detox tests beside features under `mobile/src/`; favor React Native Testing Library for component coverage.
 - Go: table-driven tests; run `go test ./... -race -cover`.
 - Python: tests under `python/tests/`; run `pytest` (add `--cov` for coverage).
 - Aim for high confidence on changed lines; include error paths.
