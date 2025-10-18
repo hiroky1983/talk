@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+
+# Expo
+.expo
+.expo-shared
+web-build
+
+# Metro
+*.log
+
+# Misc
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+.idea
+.vscode

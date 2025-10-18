@@ -1,0 +1,25 @@
+{
+  "name": "talk-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest"
+  },
+  "dependencies": {
+    "expo": "~51.0.8",
+    "expo-status-bar": "~1.12.0",
+    "react": "18.2.0",
+    "react-native": "0.74.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.5",
+    "@types/react": "^18.2.73",
+    "@types/react-native": "^0.73.0",
+    "jest-expo": "^51.0.2",
+    "typescript": "^5.4.5"
+  }
+}
