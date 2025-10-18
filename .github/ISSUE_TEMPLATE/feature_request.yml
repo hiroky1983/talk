@@ -59,6 +59,8 @@ body:
         - label: Frontend (Next.js)
         - label: Backend API (Go)
         - label: gRPC Protocol
+        - label: Infrastructure (Terraform)
+        - label: Mobile (React Native/Expo)
         - label: Documentation
         - label: その他
 
