@@ -30,3 +30,8 @@ plugins:
     out: ../python
   - remote: buf.build/grpc/python
     out: ../python
+  # OpenAPI v2
+  - remote: buf.build/grpc-ecosystem/openapiv2
+    out: ../docs/openapi
+    opt:
+      - allow_merge
