@@ -1,6 +1,7 @@
 version: v2
-module:
-  name: buf.build/hiroky1983/talk
+modules:
+  - path: .
+    name: buf.build/hiroky1983/talk
 deps:
   - buf.build/googleapis/googleapis
 breaking:

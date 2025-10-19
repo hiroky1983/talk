@@ -1,0 +1,78 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "app/ai_conversation.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "AIConversationService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AIConversationResponse": {
+      "type": "object",
+      "properties": {
+        "responseId": {
+          "type": "string"
+        },
+        "audioData": {
+          "type": "string",
+          "format": "byte",
+          "title": "AI audio response"
+        },
+        "textMessage": {
+          "type": "string",
+          "title": "AI text response"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language of the response"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "isFinal": {
+          "type": "boolean",
+          "title": "Whether this is the final response for the request"
+        }
+      }
+    }
+  }
+}
