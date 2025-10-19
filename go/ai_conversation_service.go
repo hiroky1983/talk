@@ -26,11 +26,11 @@ func NewAIConversationService() *AIConversationService {
 	// Connect to Python gRPC service
 	host := "ai-service" // Docker service name
 	port := "50051"
-	
+
 	// Try to connect to gRPC server with retry logic
 	var conn *grpc.ClientConn
 	var err error
-	
+
 	for i := 0; i < 5; i++ {
 		conn, err = grpc.Dial(net.JoinHostPort(host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err == nil {
@@ -39,24 +39,22 @@ func NewAIConversationService() *AIConversationService {
 		log.Printf("Failed to connect to gRPC server (attempt %d/5): %v", i+1, err)
 		time.Sleep(2 * time.Second)
 	}
-	
+
 	if err != nil {
 		log.Printf("Warning: Could not connect to gRPC server: %v", err)
 		// Continue without gRPC connection - will simulate responses
 	}
-	
+
 	service := &AIConversationService{
 		grpcConn: conn,
 	}
-	
+
 	if conn != nil {
 		service.grpcClient = app.NewAIConversationServiceClient(conn)
 	}
-	
+
 	return service
 }
-
-
 
 // SendMessage processes a single message and returns a response
 func (s *AIConversationService) SendMessage(
@@ -64,7 +62,7 @@ func (s *AIConversationService) SendMessage(
 	req *connect.Request[app.AIConversationRequest],
 ) (*connect.Response[app.AIConversationResponse], error) {
 	log.Printf("Processing message from user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
-	
+
 	if s.grpcClient != nil {
 		// Call Python gRPC service
 		grpcResp, err := s.grpcClient.SendMessage(ctx, &app.AIConversationRequest{
@@ -75,15 +73,15 @@ func (s *AIConversationService) SendMessage(
 			Content:   req.Msg.Content,
 			Timestamp: req.Msg.Timestamp,
 		})
-		
+
 		if err != nil {
 			log.Printf("gRPC call failed: %v", err)
 			return nil, err
 		}
-		
+
 		return connect.NewResponse(grpcResp), nil
 	}
-	
+
 	// Fallback simulation with character-specific responses
 	var responseText string
 	character := req.Msg.Character
@@ -113,17 +111,17 @@ func (s *AIConversationService) SendMessage(
 	default:
 		responseText = "Hello! I'm your AI language learning assistant. How can I help you practice today?"
 	}
-	
+
 	resp := &app.AIConversationResponse{
-		ResponseId:  generateResponseID(),
-		Language:    req.Msg.Language,
-		Timestamp:   timestamppb.Now(),
-		IsFinal:     true,
+		ResponseId: generateResponseID(),
+		Language:   req.Msg.Language,
+		Timestamp:  timestamppb.Now(),
+		IsFinal:    true,
 		Content: &app.AIConversationResponse_TextMessage{
 			TextMessage: responseText,
 		},
 	}
-	
+
 	return connect.NewResponse(resp), nil
 }
 
@@ -133,7 +131,7 @@ func (s *AIConversationService) StreamConversation(
 	stream *connect.BidiStream[app.AIConversationRequest, app.AIConversationResponse],
 ) error {
 	log.Println("Starting streaming conversation")
-	
+
 	if s.grpcClient != nil {
 		// Use gRPC streaming
 		grpcStream, err := s.grpcClient.StreamConversation(ctx)
@@ -141,7 +139,7 @@ func (s *AIConversationService) StreamConversation(
 			log.Printf("Failed to start gRPC stream: %v", err)
 			return err
 		}
-		
+
 		// Forward messages between Connect stream and gRPC stream
 		go func() {
 			for {
@@ -150,7 +148,7 @@ func (s *AIConversationService) StreamConversation(
 					grpcStream.CloseSend()
 					return
 				}
-				
+
 				grpcReq := &app.AIConversationRequest{
 					UserId:    req.UserId,
 					Username:  req.Username,
@@ -159,26 +157,26 @@ func (s *AIConversationService) StreamConversation(
 					Content:   req.Content,
 					Timestamp: req.Timestamp,
 				}
-				
+
 				if err := grpcStream.Send(grpcReq); err != nil {
 					log.Printf("Failed to send to gRPC stream: %v", err)
 					return
 				}
 			}
 		}()
-		
+
 		for {
 			grpcResp, err := grpcStream.Recv()
 			if err != nil {
 				return err
 			}
-			
+
 			if err := stream.Send(grpcResp); err != nil {
 				return err
 			}
 		}
 	}
-	
+
 	// Fallback simulation
 	for {
 		select {
@@ -192,11 +190,11 @@ func (s *AIConversationService) StreamConversation(
 				}
 				return err
 			}
-			
+
 			log.Printf("Received streaming message from user %s", req.Username)
-			
+
 			time.Sleep(500 * time.Millisecond)
-			
+
 			character := req.Character
 			if character == "" {
 				character = "friend"
@@ -225,25 +223,23 @@ func (s *AIConversationService) StreamConversation(
 			default:
 				responseText = "I received your message. Let's continue practicing!"
 			}
-			
+
 			resp := &app.AIConversationResponse{
-				ResponseId:  generateResponseID(),
-				Language:    req.Language,
-				Timestamp:   timestamppb.Now(),
-				IsFinal:     true,
+				ResponseId: generateResponseID(),
+				Language:   req.Language,
+				Timestamp:  timestamppb.Now(),
+				IsFinal:    true,
 				Content: &app.AIConversationResponse_TextMessage{
 					TextMessage: responseText,
 				},
 			}
-			
+
 			if err := stream.Send(resp); err != nil {
 				return err
 			}
 		}
 	}
 }
-
-
 
 // Helper functions
 func generateResponseID() string {
