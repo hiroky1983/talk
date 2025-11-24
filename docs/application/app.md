@@ -150,8 +150,8 @@ docker compose up --build -d
 
 #### 音声設定詳細
 
-| キャラクター | 性別・年齢 | ベトナム語音声   | 日本語音声       |
-| ------------ | ---------- | ---------------- | ---------------- |
-| Friend       | 男性 20 代 | vi-VN-Standard-B | ja-JP-Standard-C |
-| Parent       | 女性 40 代 | vi-VN-Standard-A | ja-JP-Standard-A |
-| Sister       | 女性 24 歳 | vi-VN-Standard-A | ja-JP-Standard-A |
+| キャラクター | 性別・年齢   | ベトナム語音声          | 日本語音声            |
+| ------ | ------- | ---------------- | ---------------- |
+| Friend | 男性 20 代 | vi-VN-Standard-B | ja-JP-Standard-C |
+| Parent | 女性 40 代 | vi-VN-Standard-A | ja-JP-Standard-A |
+| Sister | 女性 24 歳 | vi-VN-Standard-A | ja-JP-Standard-A |

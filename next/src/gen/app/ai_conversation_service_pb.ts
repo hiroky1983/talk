@@ -4,15 +4,21 @@
 
 import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { AIConversationRequestSchema, AIConversationResponseSchema } from "./ai_conversation_pb";
+import type {
+  AIConversationRequestSchema,
+  AIConversationResponseSchema,
+} from "./ai_conversation_pb";
 import { file_app_ai_conversation } from "./ai_conversation_pb";
-import { file_google_api_annotations } from "../google/api/annotations_pb";
 
 /**
  * Describes the file app/ai_conversation_service.proto.
  */
-export const file_app_ai_conversation_service: GenFile = /*@__PURE__*/
-  fileDesc("CiFhcHAvYWlfY29udmVyc2F0aW9uX3NlcnZpY2UucHJvdG8SBmFwcC52MTKiAgoVQUlDb252ZXJzYXRpb25TZXJ2aWNlEnIKC1NlbmRNZXNzYWdlEh0uYXBwLnYxLkFJQ29udmVyc2F0aW9uUmVxdWVzdBoeLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlc3BvbnNlIiSC0+STAh46ASoiGS92MS9jb252ZXJzYXRpb25zL21lc3NhZ2USlAEKElN0cmVhbUNvbnZlcnNhdGlvbhIdLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlcXVlc3QaHi5hcHAudjEuQUlDb252ZXJzYXRpb25SZXNwb25zZSI7gtPkkwI1OgEqIjAvYXBwLnYxLkFJQ29udmVyc2F0aW9uU2VydmljZS9TdHJlYW1Db252ZXJzYXRpb24oATABQo4BCgpjb20uYXBwLnYxQhpBaUNvbnZlcnNhdGlvblNlcnZpY2VQcm90b1ABWitnaXRodWIuY29tL2hpcm9reTE5ODMvdGFsay9nby9nZW4vYXBwO2FwcHYxogIDQVhYqgIGQXBwLlYxygIGQXBwXFYx4gISQXBwXFYxXEdQQk1ldGFkYXRh6gIHQXBwOjpWMWIGcHJvdG8z", [file_app_ai_conversation, file_google_api_annotations]);
+export const file_app_ai_conversation_service: GenFile =
+  /*@__PURE__*/
+  fileDesc(
+    "CiFhcHAvYWlfY29udmVyc2F0aW9uX3NlcnZpY2UucHJvdG8SBmFwcC52MTKiAgoVQUlDb252ZXJzYXRpb25TZXJ2aWNlEnIKC1NlbmRNZXNzYWdlEh0uYXBwLnYxLkFJQ29udmVyc2F0aW9uUmVxdWVzdBoeLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlc3BvbnNlIiSC0+STAh46ASoiGS92MS9jb252ZXJzYXRpb25zL21lc3NhZ2USlAEKElN0cmVhbUNvbnZlcnNhdGlvbhIdLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlcXVlc3QaHi5hcHAudjEuQUlDb252ZXJzYXRpb25SZXNwb25zZSI7gtPkkwI1OgEqIjAvYXBwLnYxLkFJQ29udmVyc2F0aW9uU2VydmljZS9TdHJlYW1Db252ZXJzYXRpb24oATABQo4BCgpjb20uYXBwLnYxQhpBaUNvbnZlcnNhdGlvblNlcnZpY2VQcm90b1ABWitnaXRodWIuY29tL2hpcm9reTE5ODMvdGFsay9nby9nZW4vYXBwO2FwcHYxogIDQVhYqgIGQXBwLlYxygIGQXBwXFYx4gISQXBwXFYxXEdQQk1ldGFkYXRh6gIHQXBwOjpWMWIGcHJvdG8z",
+    [file_app_ai_conversation]
+  );
 
 /**
  * AI Conversation Service
@@ -29,7 +35,7 @@ export const AIConversationService: GenService<{
     methodKind: "unary";
     input: typeof AIConversationRequestSchema;
     output: typeof AIConversationResponseSchema;
-  },
+  };
   /**
    * Bidirectional streaming conversation
    *
@@ -39,7 +45,5 @@ export const AIConversationService: GenService<{
     methodKind: "bidi_streaming";
     input: typeof AIConversationRequestSchema;
     output: typeof AIConversationResponseSchema;
-  },
-}> = /*@__PURE__*/
-  serviceDesc(file_app_ai_conversation_service, 0);
-
+  };
+}> = /*@__PURE__*/ serviceDesc(file_app_ai_conversation_service, 0);

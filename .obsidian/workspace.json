@@ -1,0 +1,165 @@
+{
+  "main": {
+    "id": "39f4ee4f9e0f2054",
+    "type": "split",
+    "children": [
+      {
+        "id": "ea4f72767e089860",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f520d8d78ef53ae3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "docs/rule.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2fccc28f746203ca",
+    "type": "split",
+    "children": [
+      {
+        "id": "c312df3df4ec02a6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1e7b9da77cb3be93",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "c654bca528900625",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              }
+            }
+          },
+          {
+            "id": "f3bb1cbf46115837",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "7d6e1058a14fc220",
+    "type": "split",
+    "children": [
+      {
+        "id": "476de54a5ca71b3b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f784945424c84813",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "docs/rule.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "b7a84639e9c56807",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "docs/rule.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              }
+            }
+          },
+          {
+            "id": "cc69ce2113917d1d",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              }
+            }
+          },
+          {
+            "id": "77358f45e4a8a84f",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "docs/rule.md"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:クイックスイッチャーを開く": false,
+      "graph:グラフビューを開く": false,
+      "canvas:新規キャンバスを作成": false,
+      "daily-notes:今日のデイリーノートを開く": false,
+      "templates:テンプレートを挿入": false,
+      "command-palette:コマンドパレットを開く": false,
+      "markdown-importer:Markdownインポーターを開く": false
+    }
+  },
+  "active": "f520d8d78ef53ae3",
+  "lastOpenFiles": [
+    "docs/application/app.md",
+    "無題のファイル.md",
+    "docs/database/_.base",
+    "docs/rule.md",
+    "docs/database/data.base",
+    "docs/database",
+    "AGENTS.md",
+    "docs/コーディングルール.md",
+    "README.md",
+    "GEMINI.md",
+    "CLAUDE.md",
+    "next/README.md"
+  ]
+}
