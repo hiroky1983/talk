@@ -1,6 +1,8 @@
 import TalkScreen from "../../components/TalkScreen";
 
-export default function Page() {
+const Page = () => {
   return <TalkScreen />;
-}
+};
+
+export default Page;
 

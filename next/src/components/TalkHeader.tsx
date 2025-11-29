@@ -27,7 +27,7 @@ interface TalkHeaderProps {
   onLogout: () => void;
 }
 
-export default function TalkHeader({
+const TalkHeader = ({
   user,
   selectedLanguage,
   selectedCharacter,
@@ -38,7 +38,7 @@ export default function TalkHeader({
   onCharacterChange,
   onStartConversation,
   onLogout,
-}: TalkHeaderProps) {
+}: TalkHeaderProps) => {
   return (
     <div className="bg-white shadow-sm border-b">
       <div className="max-w-4xl mx-auto px-4 py-4">
@@ -130,4 +130,6 @@ export default function TalkHeader({
       </div>
     </div>
   );
-}
+};
+
+export default TalkHeader;

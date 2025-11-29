@@ -4,26 +4,15 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-export default function AuthScreen() {
+enum Language {
+  VI = "vi",
+  EN = "en",
+}
+
+const AuthScreen = () => {
   const [username, setUsername] = useState("");
-  const [language, setLanguage] = useState("vi");
-  const [isClient, setIsClient] = useState(false);
+  const [language, setLanguage] = useState(Language.VI);
   const router = useRouter();
-
-  useEffect(() => {
-    setIsClient(true);
-    setLanguage("vi");
-  }, []);
-
-  if (!isClient) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-          <div className="text-center">Loading...</div>
-        </div>
-      </div>
-    );
-  }
 
   const handleLogin = () => {
     if (username.trim()) {
@@ -67,11 +56,11 @@ export default function AuthScreen() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Practice Language</label>
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onChange={(e) => setLanguage(e.target.value as Language)}
               aria-label="Select practice language"
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
-              <option value="vi">Vietnamese (Tiếng Việt)</option>
+              <option value={Language.VI}>Vietnamese (Tiếng Việt)</option>
             </select>
           </div>
 
@@ -99,5 +88,7 @@ export default function AuthScreen() {
       </div>
     </div>
   );
-}
+};
+
+export default AuthScreen;
 

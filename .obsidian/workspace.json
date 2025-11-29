@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "docs/sets/learning.md",
+                "file": "todo/todo.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "learning"
+              "title": "todo"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "docs/sets/learning.md",
+                "file": "todo/todo.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "learningへのバックリンク"
+              "title": "todoへのバックリンク"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "docs/sets/learning.md",
+                "file": "todo/todo.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "learningからのアウトゴーイングリンク"
+              "title": "todoからのアウトゴーイングリンク"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "docs/sets/learning.md",
+                "file": "todo/todo.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "learningのアウトライン"
+              "title": "todoのアウトライン"
             }
           }
         ]
@@ -172,29 +172,29 @@
   },
   "active": "f520d8d78ef53ae3",
   "lastOpenFiles": [
+    "docs/rule.md",
+    "go/tmp/air.log",
+    "python/app/__pycache__/ai_conversation_service_pb2_grpc.cpython-311.pyc",
+    "python/app/__pycache__/ai_conversation_pb2.cpython-311.pyc",
+    "go/tmp",
+    "python/__pycache__/ai_service.cpython-311.pyc",
+    "python/google/api/http_pb2_grpc.py",
+    "python/google/api/http_pb2.py",
+    "python/google/api/annotations_pb2_grpc.py",
+    "python/google/api/annotations_pb2.py",
+    "python/google/api",
+    "docs/sets/learning.md",
     "docs/application/app.md",
     "docs/sets/tasks.md",
-    "docs/rule.md",
     "docs/sets/books.md",
     "docs/sets/projects.md",
     "docs/sets/README.md",
     "docs/sets/issues.md",
-    "docs/sets/learning.md",
     "docs/sets/ideas.md",
     "docs/sets/dev-tasks.md",
     "docs/sets/code-reviews.md",
     "sets/README.md",
     "docs/rules/rule.md",
-    "sets/learning.set",
-    "sets/ideas.set",
-    "sets/code-reviews.set",
-    "sets/projects.set",
-    "sets/issues.set",
-    "sets/dev-tasks.set",
-    "sets/books.set",
-    "sets/tasks.set",
-    "sets",
-    "docs/sets",
     "todo/todo.md",
     "無題のファイル.md",
     "AGENTS.md",

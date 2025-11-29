@@ -5,12 +5,14 @@ export const metadata: Metadata = {
   description: "Practice languages with AI conversation",
 };
 
-export default function TalkLayout({
+const TalkLayout = ({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}) => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">{children}</div>
   );
-}
+};
+
+export default TalkLayout;
