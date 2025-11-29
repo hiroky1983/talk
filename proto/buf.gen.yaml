@@ -4,6 +4,12 @@ managed:
   override:
     - file_option: go_package
       value: github.com/hiroky1983/talk/go/gen/app;appv1
+inputs:
+  - directory: .
+  - module: buf.build/googleapis/googleapis
+    paths:
+      - google/api/annotations.proto
+      - google/api/http.proto
 plugins:
   - remote: buf.build/connectrpc/go
     out: ../go/gen
