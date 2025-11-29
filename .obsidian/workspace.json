@@ -172,6 +172,8 @@
   },
   "active": "f520d8d78ef53ae3",
   "lastOpenFiles": [
+    "next/src/types/types.ts",
+    "next/src/types",
     "docs/rule.md",
     "go/tmp/air.log",
     "python/app/__pycache__/ai_conversation_service_pb2_grpc.cpython-311.pyc",
@@ -182,7 +184,6 @@
     "python/google/api/http_pb2.py",
     "python/google/api/annotations_pb2_grpc.py",
     "python/google/api/annotations_pb2.py",
-    "python/google/api",
     "docs/sets/learning.md",
     "docs/application/app.md",
     "docs/sets/tasks.md",

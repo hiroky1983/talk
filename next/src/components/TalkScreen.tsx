@@ -8,10 +8,11 @@ import { AIConversationRequestSchema } from "../gen/app/ai_conversation_pb";
 import { AIConversationService } from "../gen/app/ai_conversation_service_pb";
 import { create } from "@bufbuild/protobuf";
 import TalkHeader from "./TalkHeader";
+import { Language } from "@/types/types";
 
 interface User {
   username: string;
-  language: string;
+  language: Language;
 }
 
 interface Character {
@@ -58,7 +59,7 @@ const languageNames = {
 const TalkScreen = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("vi");
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.VI);
   const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -195,7 +196,7 @@ const TalkScreen = () => {
     }
   };
 
-  const handleLanguageChange = async (newLanguage: string) => {
+  const handleLanguageChange = async (newLanguage: Language) => {
     if (newLanguage === selectedLanguage) return;
     if (isConnected && sessionId) {
       setSelectedLanguage(newLanguage);
@@ -310,7 +311,7 @@ const TalkScreen = () => {
       setIsGeneratingAudio(text);
       if ("speechSynthesis" in window) {
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = selectedLanguage === "ja" ? "ja-JP" : "vi-VN";
+        utterance.lang = selectedLanguage === Language.JA ? "ja-JP" : "vi-VN";
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
         utterance.volume = 1.0;

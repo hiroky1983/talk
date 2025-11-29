@@ -1,10 +1,11 @@
 "use client";
 
+import { Language } from "@/types/types";
 import React from "react";
 
 interface User {
   username: string;
-  language: string;
+  language: Language;
 }
 
 interface Character {
@@ -16,12 +17,12 @@ interface Character {
 
 interface TalkHeaderProps {
   user: User | null;
-  selectedLanguage: string;
+  selectedLanguage: Language;
   selectedCharacter: string;
   isConnected: boolean;
   languageNames: Record<string, string>;
   characters: Character[];
-  onLanguageChange: (language: string) => void;
+  onLanguageChange: (language: Language) => void;
   onCharacterChange: (character: string) => void;
   onStartConversation: () => void;
   onLogout: () => void;
@@ -59,7 +60,7 @@ const TalkHeader = ({
                 </label>
                 <select
                   value={selectedLanguage}
-                  onChange={(e) => onLanguageChange(e.target.value)}
+                  onChange={(e) => onLanguageChange(e.target.value as Language)}
                   title="Select practice language"
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
                 >

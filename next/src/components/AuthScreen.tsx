@@ -3,11 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-enum Language {
-  VI = "vi",
-  EN = "en",
-}
+import { Language } from "../types/types";
 
 const AuthScreen = () => {
   const [username, setUsername] = useState("");
