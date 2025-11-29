@@ -5,6 +5,7 @@ AI Conversation Service using Google Gemini
 
 import os
 import asyncio
+import importlib.util
 import logging
 from typing import AsyncIterator, Dict, Any
 from dotenv import load_dotenv
@@ -13,33 +14,45 @@ import io
 import tempfile
 
 # Optional imports for audio processing
-try:
+if importlib.util.find_spec("speech_recognition"):
     import speech_recognition as sr
+
     SPEECH_RECOGNITION_AVAILABLE = True
-except ImportError:
+else:
     SPEECH_RECOGNITION_AVAILABLE = False
     logging.warning("SpeechRecognition not available")
 
-try:
+if importlib.util.find_spec("pydub"):
     from pydub import AudioSegment
+
     AUDIO_PROCESSING_AVAILABLE = True
-except ImportError:
+else:
     AUDIO_PROCESSING_AVAILABLE = False
     logging.warning("pydub not available")
 
-try:
+if importlib.util.find_spec("google.cloud.texttospeech"):
     from google.cloud import texttospeech
+
     CLOUD_TTS_AVAILABLE = True
-except ImportError:
+else:
     CLOUD_TTS_AVAILABLE = False
     logging.warning("Google Cloud Text-to-Speech not available")
 
-try:
+if importlib.util.find_spec("gtts"):
     from gtts import gTTS
+
     GTTS_AVAILABLE = True
-except ImportError:
+else:
     GTTS_AVAILABLE = False
     logging.warning("gTTS not available")
+
+if importlib.util.find_spec("openai"):
+    from openai import OpenAI
+
+    OPENAI_AVAILABLE = True
+else:
+    OPENAI_AVAILABLE = False
+    logging.warning("OpenAI SDK not available; Whisper transcription disabled")
 
 # Load environment variables
 load_dotenv()
@@ -80,6 +93,17 @@ class AIConversationService:
             self.recognizer = sr.Recognizer()
         else:
             self.recognizer = None
+
+        # Initialize OpenAI Whisper client (optional)
+        self.whisper_model = os.getenv('OPENAI_WHISPER_MODEL', 'whisper-1')
+        self.openai_client = None
+        if OPENAI_AVAILABLE:
+            openai_api_key = os.getenv('OPENAI_API_KEY')
+            if openai_api_key:
+                self.openai_client = OpenAI(api_key=openai_api_key)
+                logger.info("OpenAI client initialized for Whisper transcription")
+            else:
+                logger.info("OPENAI_API_KEY not set; Whisper transcription disabled")
         
         # Character and language configurations
         self.character_configs = {
@@ -207,6 +231,31 @@ Chúng ta là anh chị em ruột.'''
         except Exception as e:
             logger.error(f"Speech to text error: {e}")
             return "Could not process audio input"
+
+    def whisper_transcribe(self, audio_data: bytes, language: str | None = None) -> str:
+        """Transcribe audio using OpenAI Whisper if configured."""
+        if not OPENAI_AVAILABLE or not self.openai_client:
+            logger.warning("Whisper transcription requested but OpenAI client is not configured")
+            return "OpenAI Whisper not configured"
+
+        if not audio_data:
+            logger.warning("Whisper transcription received empty audio payload")
+            return "No audio data provided"
+
+        try:
+            file_name = "audio.wav"
+            whisper_language = language if language else None
+            response = self.openai_client.audio.transcriptions.create(
+                model=self.whisper_model,
+                file=(file_name, audio_data),
+                language=whisper_language,
+            )
+            transcription = response.text.strip()
+            logger.info("Whisper transcription succeeded")
+            return transcription
+        except Exception as e:
+            logger.error(f"Whisper transcription error: {e}")
+            return "Could not transcribe audio with Whisper"
     
     def text_to_speech(self, text: str, language: str, character: str = 'friend') -> bytes:
         """Convert text to speech audio data using Google Cloud Text-to-Speech"""
