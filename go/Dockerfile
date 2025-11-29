@@ -9,7 +9,7 @@ COPY go/go.sum .
 RUN go mod download
 
 # air と delve のインストール
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@v1.61.7
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 # ソースコードのコピー
