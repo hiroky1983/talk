@@ -55,7 +55,7 @@ const languageNames = {
   ja: "Japanese (日本語)",
 } as const;
 
-export default function TalkScreen() {
+const TalkScreen = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("vi");
@@ -531,4 +531,6 @@ export default function TalkScreen() {
       </div>
     </>
   );
-}
+};
+
+export default TalkScreen;
