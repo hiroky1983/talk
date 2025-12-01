@@ -23,10 +23,9 @@ _sym_db = _symbol_database.Default()
 
 
 from app import ai_conversation_pb2 as app_dot_ai__conversation__pb2
-from google.api import annotations_pb2 as google_dot_api_dot_annotations__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!app/ai_conversation_service.proto\x12\x06\x61pp.v1\x1a\x19\x61pp/ai_conversation.proto\x1a\x1cgoogle/api/annotations.proto2\xa2\x02\n\x15\x41IConversationService\x12r\n\x0bSendMessage\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\"$\x82\xd3\xe4\x93\x02\x1e\"\x19/v1/conversations/message:\x01*\x12\x94\x01\n\x12StreamConversation\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\";\x82\xd3\xe4\x93\x02\x35\"0/app.v1.AIConversationService/StreamConversation:\x01*(\x01\x30\x01\x42\x8e\x01\n\ncom.app.v1B\x1a\x41iConversationServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03\x41XX\xaa\x02\x06\x41pp.V1\xca\x02\x06\x41pp\\V1\xe2\x02\x12\x41pp\\V1\\GPBMetadata\xea\x02\x07\x41pp::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n!app/ai_conversation_service.proto\x12\x06\x61pp.v1\x1a\x19\x61pp/ai_conversation.proto2\xbe\x01\n\x15\x41IConversationService\x12L\n\x0bSendMessage\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\x12W\n\x12StreamConversation\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse(\x01\x30\x01\x42\x8e\x01\n\ncom.app.v1B\x1a\x41iConversationServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03\x41XX\xaa\x02\x06\x41pp.V1\xca\x02\x06\x41pp\\V1\xe2\x02\x12\x41pp\\V1\\GPBMetadata\xea\x02\x07\x41pp::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,10 +33,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'app.ai_conversation_service
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\ncom.app.v1B\032AiConversationServiceProtoP\001Z+github.com/hiroky1983/talk/go/gen/app;appv1\242\002\003AXX\252\002\006App.V1\312\002\006App\\V1\342\002\022App\\V1\\GPBMetadata\352\002\007App::V1'
-  _globals['_AICONVERSATIONSERVICE'].methods_by_name['SendMessage']._loaded_options = None
-  _globals['_AICONVERSATIONSERVICE'].methods_by_name['SendMessage']._serialized_options = b'\202\323\344\223\002\036\"\031/v1/conversations/message:\001*'
-  _globals['_AICONVERSATIONSERVICE'].methods_by_name['StreamConversation']._loaded_options = None
-  _globals['_AICONVERSATIONSERVICE'].methods_by_name['StreamConversation']._serialized_options = b'\202\323\344\223\0025\"0/app.v1.AIConversationService/StreamConversation:\001*'
-  _globals['_AICONVERSATIONSERVICE']._serialized_start=103
-  _globals['_AICONVERSATIONSERVICE']._serialized_end=393
+  _globals['_AICONVERSATIONSERVICE']._serialized_start=73
+  _globals['_AICONVERSATIONSERVICE']._serialized_end=263
 # @@protoc_insertion_point(module_scope)

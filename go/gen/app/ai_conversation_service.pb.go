@@ -24,10 +24,10 @@ var File_app_ai_conversation_service_proto protoreflect.FileDescriptor
 
 const file_app_ai_conversation_service_proto_rawDesc = "" +
 	"\n" +
-	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto\x1a\x1cgoogle/api/annotations.proto2\xa2\x02\n" +
-	"\x15AIConversationService\x12r\n" +
-	"\vSendMessage\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/v1/conversations/message\x12\x94\x01\n" +
-	"\x12StreamConversation\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\";\x82\xd3\xe4\x93\x025:\x01*\"0/app.v1.AIConversationService/StreamConversation(\x010\x01B\x8e\x01\n" +
+	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto2\xbe\x01\n" +
+	"\x15AIConversationService\x12L\n" +
+	"\vSendMessage\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\x12W\n" +
+	"\x12StreamConversation\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse(\x010\x01B\x8e\x01\n" +
 	"\n" +
 	"com.app.v1B\x1aAiConversationServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
@@ -53,7 +53,6 @@ func file_app_ai_conversation_service_proto_init() {
 		return
 	}
 	file_app_ai_conversation_proto_init()
-	file_google_api_annotations_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

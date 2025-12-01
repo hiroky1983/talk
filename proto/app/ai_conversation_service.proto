@@ -3,23 +3,12 @@ syntax = "proto3";
 package app.v1;
 
 import "app/ai_conversation.proto";
-import "google/api/annotations.proto";
 
 // AI Conversation Service
 service AIConversationService {
   // Send a single message and get response (unary)
-  rpc SendMessage(AIConversationRequest) returns (AIConversationResponse) {
-    option (google.api.http) = {
-      post: "/v1/conversations/message"
-      body: "*"
-    };
-  }
+  rpc SendMessage(AIConversationRequest) returns (AIConversationResponse);
   
   // Bidirectional streaming conversation
-  rpc StreamConversation(stream AIConversationRequest) returns (stream AIConversationResponse) {
-    option (google.api.http) = {
-      post: "/app.v1.AIConversationService/StreamConversation"
-      body: "*"
-    };
-  }
+  rpc StreamConversation(stream AIConversationRequest) returns (stream AIConversationResponse);
 }

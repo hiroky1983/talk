@@ -6,10 +6,6 @@ managed:
       value: github.com/hiroky1983/talk/go/gen/app;appv1
 inputs:
   - directory: .
-  - module: buf.build/googleapis/googleapis
-    paths:
-      - google/api/annotations.proto
-      - google/api/http.proto
 plugins:
   - remote: buf.build/connectrpc/go
     out: ../go/gen
@@ -36,8 +32,3 @@ plugins:
     out: ../python
   - remote: buf.build/grpc/python
     out: ../python
-  # OpenAPI v2
-  - remote: buf.build/grpc-ecosystem/openapiv2
-    out: ../docs/openapi
-    opt:
-      - allow_merge
