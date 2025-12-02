@@ -16,6 +16,8 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from app import ai_conversation_pb2 as ai_pb2
 from app import ai_conversation_service_pb2_grpc as ai_grpc
 
+from ai_service import AIConversationService
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -28,6 +30,9 @@ def create_timestamp():
 class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
     """gRPC servicer for AI conversation"""
 
+    def __init__(self):
+        self.ai_service = AIConversationService()
+
     async def SendMessage(self, request, context):
         """Process a single message and return response"""
         try:
@@ -39,9 +44,17 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 context.set_details("Only audio_data is supported")
                 return ai_pb2.AIConversationResponse()
 
-            # TODO: Process audio message here
-            # For now, return empty response
             logger.info(f"Received audio data: {len(request.audio_data)} bytes")
+            
+            # Process audio using AI service
+            response_audio = await self.ai_service.process_audio_message(
+                request.audio_data,
+                request.language,
+                request.user_id,
+                request.character
+            )
+            
+            logger.info(f"Generated audio response: {len(response_audio)} bytes")
 
             # Create response with audio only
             response = ai_pb2.AIConversationResponse(
@@ -49,7 +62,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 language=request.language,
                 timestamp=create_timestamp(),
                 is_final=True,
-                audio_data=b""  # Empty for now
+                audio_data=response_audio
             )
             return response
 
