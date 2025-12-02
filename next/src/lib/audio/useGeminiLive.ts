@@ -29,6 +29,7 @@ export const useGeminiLive = ({
 
   const recorderRef = useRef<AudioRecorder | null>(null);
   const playerRef = useRef<AudioPlayer | null>(null);
+  const isProcessingRef = useRef(false);
 
   const transport = createConnectTransport({
     baseUrl: "http://localhost:8000",
@@ -48,6 +49,14 @@ export const useGeminiLive = ({
   }, []);
 
   const sendAudioToBackend = useCallback(async (audioData: Uint8Array) => {
+    // Prevent duplicate requests
+    if (isProcessingRef.current) {
+      console.log("Already processing audio, skipping...");
+      return;
+    }
+
+    isProcessingRef.current = true;
+
     try {
       console.log("Sending audio to backend:", audioData.length, "bytes");
 
@@ -65,15 +74,35 @@ export const useGeminiLive = ({
 
       const response = await client.sendMessage(request);
 
-      // Play audio response
-      if (response.content?.case === "audioData" && playerRef.current) {
+      // Only play audio response if audio data exists and has content
+      if (response.content?.case === "audioData" &&
+          response.content.value &&
+          response.content.value.length > 0 &&
+          playerRef.current) {
         await playerRef.current.play(response.content.value);
+        console.log("Received and playing audio response");
+      } else {
+        console.log("Received response but no audio data");
       }
-
-      console.log("Received response from backend");
     } catch (err) {
       console.error("Failed to send audio:", err);
-      setError(err instanceof Error ? err.message : "Failed to send audio");
+      // Extract meaningful error message from ConnectError
+      let errorMessage = "Failed to send audio";
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        // Check for quota errors
+        if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
+          errorMessage = "API quota exceeded. Please wait a moment and try again.";
+        }
+      }
+      setError(errorMessage);
+
+      // Stop streaming on error
+      recorderRef.current?.stop();
+      setIsStreaming(false);
+      setIsConnected(false);
+    } finally {
+      isProcessingRef.current = false;
     }
   }, [username, language, character, client]);
 
@@ -99,20 +128,29 @@ export const useGeminiLive = ({
         },
         async () => {
           // On silence detected - send audio to backend
-          console.log("Silence detected, sending audio...");
+          console.log("Silence detected, processing audio...");
+
           const audioData = recorder.getRecordedAudio();
-          
-          if (audioData.length > 0) {
-            await sendAudioToBackend(audioData);
-          }
-          
-          // Restart recording for next utterance
+
+          // Stop recording immediately
           recorder.stop();
-          setTimeout(async () => {
+
+          if (audioData.length > 0) {
+            console.log("Sending audio to backend:", audioData.length, "bytes");
+            await sendAudioToBackend(audioData);
+
+            // Only restart recording if still streaming and no errors
+            if (isStreaming) {
+              console.log("Restarting recording for next utterance...");
+              await startStreaming();
+            }
+          } else {
+            console.log("No audio data to send, restarting recording...");
+            // No data, just restart
             if (isStreaming) {
               await startStreaming();
             }
-          }, 100);
+          }
         }
       );
 
@@ -130,6 +168,7 @@ export const useGeminiLive = ({
   const stopStreaming = useCallback(() => {
     recorderRef.current?.stop();
     playerRef.current?.clear();
+    isProcessingRef.current = false;
     setIsStreaming(false);
     setIsConnected(false);
   }, []);

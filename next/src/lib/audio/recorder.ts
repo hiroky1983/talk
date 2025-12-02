@@ -107,6 +107,13 @@ export class AudioRecorder {
         const silenceDuration = Date.now() - this.lastSoundTime;
         if (silenceDuration >= this.silenceDuration && this.audioChunks.length > 0) {
           console.log(`Silence detected for ${silenceDuration}ms, stopping recording`);
+
+          // Stop the interval immediately to prevent multiple calls
+          if (this.silenceCheckInterval) {
+            clearInterval(this.silenceCheckInterval);
+            this.silenceCheckInterval = null;
+          }
+
           if (this.onSilenceCallback) {
             this.onSilenceCallback();
           }
@@ -124,6 +131,10 @@ export class AudioRecorder {
       combined.set(chunk, offset);
       offset += chunk.length;
     }
+
+    // Clear chunks after retrieving to prevent duplicate sends
+    this.audioChunks = [];
+
     return combined;
   }
 
