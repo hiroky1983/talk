@@ -1,20 +1,23 @@
 # Repository Guidelines
 
 ## Architecture Overview
-- Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`).
+
+- Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`) supporting both Gemini Live API (WebSocket) and standard REST fallback.
 - gRPC APIs defined in `proto/app/` with Buf-driven codegen to `go/gen/`, `next/src/gen/`, and Python stubs.
 - Local dev via Docker Compose with hot reload; Go debugger on port `2349`.
 - React Native mobile clients live under `mobile/` with shared business logic mirroring the web app's flows.
 
 ## Project Structure & Module Organization
+
 - `next/` — Next.js app (App Router, TypeScript, Tailwind). Tests near code or `next/__tests__/`.
 - `mobile/` — React Native app using Expo. Keep feature modules aligned with `next/` counterparts for parity.
 - `go/` — Gin + Connect RPC backend. Tests with `*_test.go`.
-- `python/` — AI service (Gemini integration). Tests in `python/tests/`.
+- `python/` — AI service with dual-mode controllers (`premium` for Live API, `light` for standard API). Tests in `python/tests/`.
 - `proto/` — Protobuf schemas. Use Buf for lint/format/generate.
 - `docs/`, `.github/`, `docker-compose.yaml` — docs, CI, and local stack.
 
 ## Build, Test, and Development Commands
+
 - Docker: `docker compose up -d` (start) · `docker compose logs -f` (tail).
 - Proto (from `proto/`): `make setup` · `make fmt` · `make lint` · `make generate`.
 - Go (from `go/`): `make run` (hot reload) · `make build` · `make tidy` · `make lint-fix` · `go test ./... -race -cover`.
@@ -23,12 +26,14 @@
 - Python (from `python/`): `pip install -r requirements.txt` · `pytest -q --maxfail=1 --disable-warnings`.
 
 ## Coding Style & Naming Conventions
+
 - Go: `go fmt ./...`; exported `CamelCase`; packages lower-case; one package per folder.
 - TypeScript: ESLint + Prettier (`npm run lint`); files `kebab-case.ts/tsx`; React components `PascalCase`.
 - Mobile: Follow React Native conventions; leverage shared UI primitives in `mobile/src/components/`; prefer TypeScript with `PascalCase` components and hooks in `camelCase`.
 - Python: `ruff .` and `black .`; modules `snake_case.py`; classes `CapWords`; functions `snake_case`.
 
 ## Testing Guidelines
+
 - Frontend: `*.test.ts(x)` next to code or `next/__tests__/`; run `npm test`.
 - Mobile: colocate Jest and Detox tests beside features under `mobile/src/`; favor React Native Testing Library for component coverage.
 - Go: table-driven tests; run `go test ./... -race -cover`.
@@ -36,15 +41,18 @@
 - Aim for high confidence on changed lines; include error paths.
 
 ## Commit & Pull Request Guidelines
+
 - Use Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:` (optional scope, e.g., `feat(next): ...`).
 - PRs: describe intent and approach, link issues (e.g., `Closes #123`), include screenshots/GIFs for UI, test notes, and doc updates when relevant.
 
 ## Security & Configuration Tips
+
 - Do not commit secrets. Keep env in `.env`/`.env.local` (ignored by Git).
 - Ports: Go `8000`, Next `3000`, Python `50051`. Update `docker-compose.yaml` minimally.
 - After changing `.proto` files, run `make generate` in `proto/` and commit generated code.
 
 ## Agent-Specific Instructions
+
 - Follow these conventions for any edits; keep changes minimal and focused.
 - Honor directory scopes and naming patterns; avoid unrelated refactors.
 - Update tests and docs alongside code; prefer root-cause fixes over workarounds.

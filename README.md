@@ -11,11 +11,11 @@ AI キャラクターとの音声会話を通じて外国語を学習できる�
 
 ### キャラクター一覧
 
-| キャラクター | 性別・年代 | 特徴 | ベトナム語音声 | 日本語音声 |
-| --- | --- | --- | --- | --- |
-| Friend | 男性 / 20 代 | カジュアルで親しみやすい友達キャラ | vi-VN-Standard-B | ja-JP-Standard-C |
-| Parent | 女性 / 40 代 | 温かく経験豊富な母親キャラ | vi-VN-Standard-A | ja-JP-Standard-A |
-| Sister | 女性 / 20 代前半 | 親しげで少しいたずらっぽい妹キャラ | vi-VN-Standard-A | ja-JP-Standard-A |
+| キャラクター | 性別・年代       | 特徴                               | ベトナム語音声   | 日本語音声       |
+| ------------ | ---------------- | ---------------------------------- | ---------------- | ---------------- |
+| Friend       | 男性 / 20 代     | カジュアルで親しみやすい友達キャラ | vi-VN-Standard-B | ja-JP-Standard-C |
+| Parent       | 女性 / 40 代     | 温かく経験豊富な母親キャラ         | vi-VN-Standard-A | ja-JP-Standard-A |
+| Sister       | 女性 / 20 代前半 | 親しげで少しいたずらっぽい妹キャラ | vi-VN-Standard-A | ja-JP-Standard-A |
 
 ### 対応言語
 
@@ -30,18 +30,22 @@ AI キャラクターとの音声会話を通じて外国語を学習できる�
 ## アーキテクチャ概要
 
 ```
-Next.js (Connect-Web, Web Speech API)
+Next.js (Connect-Web, Web Speech API / AudioRecorder)
           │
           ▼
        Go API (Gin, Connect-Go)
           │
           ▼
-    Python AI サービス (gRPC, Gemini, TTS)
+    Python AI サービス (gRPC)
+          │
+          ├── Premium Mode: Gemini Live API (WebSocket)
+          └── Light Mode: Gemini Flash (REST) + gTTS
 ```
 
 - フロントエンドは Connect-Web を経由して Go のバックエンドへストリーミング接続
 - Go の API が Python で実装した AI 会話サービスと通信し、音声応答を生成
-- 生成したテキスト・音声をフロントエンドへ返却し、ユーザーが選択した言語とキャラクター設定を反映
+- **Premium Mode**: Gemini Live API を使用し、低遅延で自然な双方向音声会話を実現
+- **Light Mode**: Gemini Flash と gTTS を組み合わせた軽量モード（フォールバック用）
 
 ## 技術スタック
 
@@ -50,7 +54,7 @@ Next.js (Connect-Web, Web Speech API)
 - Next.js 15.2.4（App Router）
 - TypeScript
 - Connect-Web（gRPC-Web クライアント）
-- Web Speech API（音声認識・音声合成制御）
+- Web Speech API / AudioWorklet（音声処理）
 
 ### バックエンド
 
@@ -61,8 +65,9 @@ Next.js (Connect-Web, Web Speech API)
 ### AI サービス
 
 - Python 3.11
-- Google Gemini API（会話生成）
-- Google Cloud Text-to-Speech（音声合成）
+- **Google Gemini Live API**（リアルタイム音声対話）
+- Google Gemini Flash（テキスト生成）
+- gTTS（音声合成・Light Mode 用）
 - gRPC（サービス間通信）
 
 ### インフラ / ツール
