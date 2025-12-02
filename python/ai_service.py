@@ -24,7 +24,7 @@ class AIConversationService:
         }
         
         # Default mode - can be changed via environment variable or runtime config
-        self.current_mode = os.getenv("AI_SERVICE_MODE", "light")
+        self.current_mode = os.getenv("AI_SERVICE_MODE", "premium")
         logger.info(f"AI Service initialized in {self.current_mode} mode")
 
     async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend') -> bytes:
