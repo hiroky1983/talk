@@ -41,28 +41,27 @@ const TalkHeader = ({
   onLogout,
 }: TalkHeaderProps) => {
   return (
-    <div className="bg-white shadow-sm border-b">
-      <div className="max-w-4xl mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              AI Language Practice
+    <div className="bg-white/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+      <div className="max-w-5xl mx-auto px-4 py-4">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+              Talk & Learn
             </h1>
-            <p className="text-gray-600">
-              Practice with: {languageNames[selectedLanguage]}
+            <p className="text-sm text-gray-600 font-medium">
+              {user ? `Welcome, ${user.username}` : "AI Language Practice"}
             </p>
           </div>
+          
           {user ? (
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Language:
-                </label>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* Language Selector */}
+              <div className="relative group">
                 <select
                   value={selectedLanguage}
                   onChange={(e) => onLanguageChange(e.target.value as Language)}
                   title="Select practice language"
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer shadow-sm transition-all"
                 >
                   {Object.entries(languageNames).map(([code, name]) => (
                     <option key={code} value={code}>
@@ -70,16 +69,18 @@ const TalkHeader = ({
                     </option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">
-                  Character:
-                </label>
+
+              {/* Character Selector */}
+              <div className="relative group">
                 <select
                   value={selectedCharacter}
                   onChange={(e) => onCharacterChange(e.target.value)}
                   title="Select AI character"
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm bg-white text-gray-900 hover:border-gray-400 focus:border-blue-500 focus:outline-none"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer shadow-sm transition-all"
                 >
                   {characters.map((character) => (
                     <option key={character.id} value={character.id}>
@@ -87,44 +88,43 @@ const TalkHeader = ({
                     </option>
                   ))}
                 </select>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <span
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    isConnected
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {isConnected
-                    ? `Connected to ${
-                        characters.find((c) => c.id === selectedCharacter)?.name
-                      }`
-                    : "Disconnected"}
-                </span>
+
+              {/* Status Indicator */}
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
+                  isConnected ? "bg-green-100/80 text-green-700 border border-green-200" : "bg-red-100/80 text-red-700 border border-red-200"
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></span>
+                {isConnected ? "Online" : "Offline"}
               </div>
+
+              {/* Action Buttons */}
               {!isConnected && (
                 <button
                   type="button"
                   onClick={onStartConversation}
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all"
                 >
-                  Connect to AI
+                  Connect
                 </button>
               )}
+              
               <button
                 type="button"
                 onClick={onLogout}
-                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg"
+                className="bg-white/50 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-white/30 hover:border-red-200 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
               >
                 Logout
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <div className="h-8 bg-gray-200 rounded animate-pulse w-32"></div>
-              <div className="h-8 bg-gray-200 rounded animate-pulse w-24"></div>
-              <div className="h-8 bg-gray-200 rounded animate-pulse w-20"></div>
+              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-32"></div>
+              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-24"></div>
+              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-20"></div>
             </div>
           )}
         </div>

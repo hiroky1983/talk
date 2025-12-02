@@ -54,6 +54,7 @@ const characters: Character[] = [
 const languageNames = {
   vi: "Vietnamese (Tiếng Việt)",
   ja: "Japanese (日本語)",
+  en: "English",
 } as const;
 
 const TalkScreen = () => {
@@ -342,7 +343,14 @@ const TalkScreen = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex flex-col relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+      </div>
+
       <TalkHeader
         user={user}
         selectedLanguage={selectedLanguage}
@@ -357,21 +365,31 @@ const TalkScreen = () => {
       />
 
       {error && (
-        <div className="max-w-4xl mx-auto w-full px-4 py-2">
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded">
+        <div className="max-w-4xl mx-auto w-full px-4 py-2 z-20">
+          <div className="bg-red-50/90 backdrop-blur-sm border border-red-200 text-red-700 p-4 rounded-xl shadow-lg flex items-center animate-fadeIn">
+            <svg className="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             {error}
           </div>
         </div>
       )}
 
-      <div className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        <div className="bg-white rounded-lg shadow-sm h-full flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 flex flex-col h-[calc(100vh-80px)]">
+        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl flex-1 flex flex-col overflow-hidden relative">
+          
+          {/* Chat Area */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             {!user ? (
-              <div className="text-center text-gray-500">Loading...</div>
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                <p>Loading your profile...</p>
+              </div>
             ) : conversation.length === 0 ? (
-              <div className="text-center text-gray-500">
-                Start a conversation by speaking!
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-70">
+                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+                    <span className="text-4xl">🎙️</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-700 mb-2">Start a Conversation</h3>
+                <p>Tap the microphone button below and say hello!</p>
               </div>
             ) : (
               conversation.map((message) => (
@@ -379,75 +397,73 @@ const TalkScreen = () => {
                   key={message.id}
                   className={`flex ${
                     message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  } animate-slideUp`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
+                    className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-5 shadow-sm relative group transition-all duration-200 hover:shadow-md ${
                       message.sender === "user"
-                        ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-900"
+                        ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-tr-none"
+                        : "bg-white text-gray-800 border border-gray-100 rounded-tl-none"
                     }`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                      {message.sender === "ai" && (
+                         <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 text-lg shadow-inner">
+                            {characters.find(c => c.id === selectedCharacter)?.emoji || "🤖"}
+                         </div>
+                      )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="text-base whitespace-pre-wrap leading-relaxed">
                           {message.content}
                         </div>
-                        <div
-                          className={`text-xs mt-1 ${
-                            message.sender === "user"
-                              ? "text-blue-100"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {message.timestamp.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        
+                        <div className="flex items-center justify-between mt-2">
+                            <div
+                            className={`text-xs ${
+                                message.sender === "user"
+                                ? "text-blue-100/80"
+                                : "text-gray-400"
+                            }`}
+                            >
+                            {message.timestamp.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                            </div>
+                            
+                            {message.sender === "ai" && (
+                                <button
+                                    type="button"
+                                    onClick={() => generateAndPlayTTS(message.content)}
+                                    disabled={isGeneratingAudio === message.content}
+                                    className={`ml-2 p-1.5 rounded-full transition-all ${
+                                    isGeneratingAudio === message.content
+                                        ? "bg-blue-100 text-blue-600"
+                                        : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+                                    }`}
+                                    title="Play audio"
+                                >
+                                    {isGeneratingAudio === message.content ? (
+                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </button>
+                            )}
                         </div>
                       </div>
-                      {message.sender === "ai" && (
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => generateAndPlayTTS(message.content)}
-                            disabled={isGeneratingAudio === message.content}
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              isGeneratingAudio === message.content
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                            }`}
-                          >
-                            {isGeneratingAudio === message.content ? (
-                              <>
-                                <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                Playing...
-                              </>
-                            ) : (
-                              <>
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="currentColor"
-                                  viewBox="0 0 20 20"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.82L6.966 15.5H2a1 1 0 01-1-1v-4a1 1 0 011-1h4.966l1.417-1.32a1 1 0 01.617-.084z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                                🔊 Play
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                      {message.audioUrl && message.sender === "user" && (
-                        <audio controls className="mt-2 w-full">
-                          <source src={message.audioUrl} type="audio/wav" />
-                        </audio>
-                      )}
                     </div>
+                    
+                    {message.audioUrl && message.sender === "user" && (
+                        <div className="mt-3 pt-3 border-t border-white/20">
+                            <audio controls className="w-full h-8 opacity-90 hover:opacity-100 transition-opacity" style={{ filter: "invert(1) hue-rotate(180deg)" }}>
+                                <source src={message.audioUrl} type="audio/wav" />
+                            </audio>
+                        </div>
+                    )}
                   </div>
                 </div>
               ))
@@ -455,9 +471,10 @@ const TalkScreen = () => {
             <div ref={conversationEndRef} />
           </div>
 
-          <div className="border-t p-6">
+          {/* Footer / Controls */}
+          <div className="p-6 bg-white/40 backdrop-blur-md border-t border-white/30">
             {user ? (
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex flex-col items-center justify-center gap-3">
                 <button
                   type="button"
                   onClick={isRecording ? stopRecording : startRecording}
@@ -465,72 +482,52 @@ const TalkScreen = () => {
                   aria-label={
                     isRecording ? "Stop recording" : "Start recording"
                   }
-                  className={`p-4 rounded-full transition-colors ${
+                  className={`relative group p-6 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${
                     isRecording
-                      ? "bg-red-500 hover:bg-red-600 animate-pulse"
-                      : "bg-blue-500 hover:bg-blue-600"
-                  } disabled:bg-gray-300 text-white`}
+                      ? "bg-gradient-to-r from-red-500 to-pink-600 ring-4 ring-red-200 animate-pulse"
+                      : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  }`}
                 >
+                  <div className={`absolute inset-0 rounded-full opacity-30 ${isRecording ? 'animate-ping bg-red-400' : ''}`}></div>
                   <svg
-                    className="w-6 h-6"
+                    className="w-8 h-8 text-white relative z-10"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
                     {isRecording ? (
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z" clipRule="evenodd" />
                     ) : (
-                      <path
-                        fillRule="evenodd"
-                        d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
-                        clipRule="evenodd"
-                      />
+                      <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
                     )}
                   </svg>
                 </button>
+                
                 <div className="text-center">
-                  <div className="font-medium">
-                    {isRecording ? "Recording..." : "Tap to speak"}
+                  <div className={`font-bold text-lg ${isRecording ? 'text-red-600' : 'text-gray-700'}`}>
+                    {isRecording ? "Listening..." : "Tap to Speak"}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {isRecording
-                      ? "Click again to stop"
-                      : "Hold conversation with AI"}
+                  <div className="text-xs text-gray-500 font-medium tracking-wide uppercase">
+                    {isRecording ? "Click to stop" : "Start conversation"}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-4 opacity-60">
                 <div className="p-4 rounded-full bg-gray-200">
-                  <svg
-                    className="w-6 h-6 text-gray-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z"
-                      clipRule="evenodd"
-                    />
+                  <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
                   </svg>
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-gray-400">
-                    Please wait...
-                  </div>
-                  <div className="text-sm text-gray-400">
-                    Loading audio controls
-                  </div>
+                  <div className="font-medium text-gray-400">Please wait...</div>
+                  <div className="text-sm text-gray-400">Loading audio controls</div>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
