@@ -140,6 +140,7 @@ const TalkScreen = () => {
         characters={characters}
         onLanguageChange={handleLanguageChange}
         onCharacterChange={handleCharacterChange}
+        onStartConversation={handleToggleStreaming}
         onLogout={logout}
       />
 
