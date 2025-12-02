@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"net"
+	"os"
 	"time"
 
 	"connectrpc.com/connect"
@@ -24,24 +25,32 @@ type AIConversationService struct {
 // NewAIConversationService creates a new AI conversation service instance
 func NewAIConversationService() *AIConversationService {
 	// Connect to Python gRPC service
-	host := "ai-service" // Docker service name
+	host := os.Getenv("AI_SERVICE_HOST")
+	if host == "" {
+		host = "localhost" // Default for local development
+	}
 	port := "50051"
 
 	// Try to connect to gRPC server with retry logic
 	var conn *grpc.ClientConn
 	var err error
 
+	grpcAddr := net.JoinHostPort(host, port)
+	log.Printf("Attempting to connect to Python AI service at %s", grpcAddr)
+
 	for i := 0; i < 5; i++ {
-		conn, err = grpc.Dial(net.JoinHostPort(host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.Dial(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err == nil {
+			log.Printf("Successfully connected to gRPC server at %s", grpcAddr)
 			break
 		}
-		log.Printf("Failed to connect to gRPC server (attempt %d/5): %v", i+1, err)
+		log.Printf("Failed to connect to gRPC server at %s (attempt %d/5): %v", grpcAddr, i+1, err)
 		time.Sleep(2 * time.Second)
 	}
 
 	if err != nil {
-		log.Printf("Warning: Could not connect to gRPC server: %v", err)
+		log.Printf("Warning: Could not connect to gRPC server at %s: %v", grpcAddr, err)
+		log.Printf("Continuing with fallback simulation responses")
 		// Continue without gRPC connection - will simulate responses
 	}
 

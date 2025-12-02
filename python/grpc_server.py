@@ -184,77 +184,80 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 )
                 
         except Exception as e:
-            logger.error(f"SendMessage error: {e}")
-            return ai_pb2.AIConversationResponse(
-                response_id=str(uuid.uuid4()),
-                text_message=f"Error processing message: {str(e)}",
-                language=request.language,
-                timestamp=Timestamp(),
-                is_final=True
-            )
+            error_msg = str(e)
+            logger.error(f"SendMessage error: {error_msg}")
+
+            # Return proper gRPC error instead of error in response
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f"AI service error: {error_msg}")
+            return ai_pb2.AIConversationResponse()
     
     async def StreamConversation(self, request_iterator, context):
-        """Handle bidirectional streaming conversation"""
+        """Handle bidirectional streaming conversation using Gemini Live API"""
         session_id = str(uuid.uuid4())
-        character = 'friend'  # Default character
+        live_session = None
         
         try:
-            self.ai_service.start_conversation(session_id)
-            logger.info(f"Started streaming conversation: {session_id}")
+            # Wait for the first request to get configuration
+            first_request = await request_iterator.__anext__()
+            language = first_request.language or "vi"
+            character = first_request.character or "friend"
             
-            async for request in request_iterator:
-                try:
-                    # Get character from request (use previous character if not specified)
-                    if request.character:
-                        character = request.character
+            logger.info(f"Starting Live API session: {session_id}, lang: {language}, char: {character}")
+            
+            # Initialize Gemini Live Session
+            from ai_service import GeminiLiveSession
+            live_session = GeminiLiveSession(self.ai_service, session_id, language, character)
+            
+            # Start the live session in background
+            session_task = asyncio.create_task(live_session.start())
+            
+            # Helper to send audio from Gemini to gRPC client
+            async def send_to_client():
+                while True:
+                    audio_chunk = await live_session.receive_audio()
+                    if audio_chunk is None:
+                        break
                     
-                    content_type = request.WhichOneof('content')
-                    
-                    if content_type == 'audio_data':
-                        response_text, response_audio = await self.ai_service.process_audio_message(
-                            request.audio_data, request.language, session_id, character
-                        )
-                        
-                        # Create proper protobuf response with audio only
-                        response = ai_pb2.AIConversationResponse(
-                            response_id=str(uuid.uuid4()),
-                            language=request.language,
-                            timestamp=create_timestamp(),
-                            is_final=True,
-                            audio_data=response_audio
-                        )
-                        yield response
-                        
-                    elif content_type == 'text_message':
-                        response_text, response_audio = await self.ai_service.process_text_message(
-                            request.text_message, request.language, session_id, character
-                        )
-                        
-                        # Create proper protobuf response with audio data only
-                        response = ai_pb2.AIConversationResponse(
-                            response_id=str(uuid.uuid4()),
-                            language=request.language,
-                            timestamp=create_timestamp(),
-                            is_final=True,
-                            audio_data=response_audio
-                        )
-                            
-                        yield response
-                        
-                except Exception as e:
-                    logger.error(f"Stream processing error: {e}")
-                    error_response = ai_pb2.AIConversationResponse(
+                    yield ai_pb2.AIConversationResponse(
                         response_id=str(uuid.uuid4()),
-                        text_message=f"Error: {str(e)}",
-                        language=request.language if request else "vi",
+                        language=language,
                         timestamp=create_timestamp(),
-                        is_final=True
+                        is_final=False,
+                        audio_data=audio_chunk
                     )
-                    yield error_response
+
+            # Helper to receive audio from gRPC client and send to Gemini
+            async def receive_from_client():
+                # Process first request
+                if first_request.HasField('audio_data'):
+                    await live_session.send_audio(first_request.audio_data)
+                
+                async for request in request_iterator:
+                    if request.HasField('audio_data'):
+                        await live_session.send_audio(request.audio_data)
+
+            # Run send and receive loops concurrently
+            send_task = asyncio.create_task(receive_from_client())
             
+            async for response in send_to_client():
+                yield response
+                
+            await send_task
+            await session_task
+            
+        except Exception as e:
+            logger.error(f"Stream error: {e}")
+            yield ai_pb2.AIConversationResponse(
+                response_id=str(uuid.uuid4()),
+                text_message=f"Error: {str(e)}",
+                timestamp=create_timestamp(),
+                is_final=True
+            )
         finally:
-            self.ai_service.end_conversation(session_id)
-            logger.info(f"Ended streaming conversation: {session_id}")
+            if live_session:
+                await live_session.close()
+            logger.info(f"Ended Live API session: {session_id}")
 
 async def serve():
     """Start the gRPC server"""

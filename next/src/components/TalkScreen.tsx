@@ -2,13 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import { AIConversationRequestSchema } from "../gen/app/ai_conversation_pb";
-import { AIConversationService } from "../gen/app/ai_conversation_service_pb";
-import { create } from "@bufbuild/protobuf";
 import TalkHeader from "./TalkHeader";
 import { Language } from "@/types/types";
+import { useGeminiLive } from "@/lib/audio/useGeminiLive";
 
 interface User {
   username: string;
@@ -61,91 +57,22 @@ const TalkScreen = () => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.VI);
-  const [isRecording, setIsRecording] = useState(false);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
-  );
-  const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState<string | null>(
-    null
-  );
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
-    null
-  );
 
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
-  const transport = createConnectTransport({
-    baseUrl: "http://localhost:8000/connect",
-  });
-  const client = createClient(AIConversationService, transport);
+  // Use Gemini Live API hook
+  const { isConnected, isStreaming, error, startStreaming, stopStreaming } =
+    useGeminiLive({
+      username: user?.username || "",
+      language: selectedLanguage,
+      character: selectedCharacter,
+    });
+
 
   const scrollToBottom = () => {
     conversationEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleStreamResponse = (response: any) => {
-    const responseText =
-      response.content?.case === "textMessage" ? response.content.value : "";
-    const responseAudio =
-      response.content?.case === "audioData"
-        ? response.content.value
-        : undefined;
-
-    // 新しいAI応答の開始
-    if (response.isNewMessage && !streamingMessageId) {
-      const aiMessageId = `ai_${Date.now()}`;
-      const aiMessage: ConversationMessage = {
-        id: aiMessageId,
-        sender: "ai",
-        content: responseText || "...",
-        timestamp: new Date(),
-      };
-      setConversation((prev) => [...prev, aiMessage]);
-      setStreamingMessageId(aiMessageId);
-    }
-    // 既存のメッセージを更新
-    else if (streamingMessageId) {
-      setConversation((prev) =>
-        prev.map((msg) =>
-          msg.id === streamingMessageId
-            ? {
-                ...msg,
-                content: responseText || msg.content,
-                audioUrl: responseAudio
-                  ? URL.createObjectURL(
-                      new Blob([responseAudio], { type: "audio/mp3" })
-                    )
-                  : msg.audioUrl,
-              }
-            : msg
-        )
-      );
-
-      // 音声があれば即座に再生
-      if (responseAudio) {
-        const audio = new Audio(
-          URL.createObjectURL(new Blob([responseAudio], { type: "audio/mp3" }))
-        );
-        audio.play().catch(console.error);
-      }
-    }
-
-    // 応答完了
-    if (response.isFinal) {
-      setStreamingMessageId(null);
-      // 最終的にTTSで読み上げ（音声がない場合）
-      if (responseText && !responseAudio) {
-        setTimeout(() => {
-          generateAndPlayTTS(responseText);
-        }, 100);
-      }
-    }
   };
 
   useEffect(() => {
@@ -159,185 +86,38 @@ const TalkScreen = () => {
       return;
     }
     setUser(JSON.parse(userData));
-    initializeAudioPermissions();
   }, [router]);
-
-  useEffect(() => {
-    if (user && audioStream && !isConnected && !sessionId) {
-      startAIConversation();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, audioStream, isConnected, sessionId]);
-
-  const initializeAudioPermissions = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      setAudioStream(stream);
-      setIsConnected(true);
-      setError(null);
-    } catch {
-      setError(
-        "Microphone access denied. Please enable microphone permissions to use voice chat."
-      );
-      setIsConnected(false);
-    }
-  };
 
   const handleCharacterChange = async (newCharacter: string) => {
     if (newCharacter === selectedCharacter) return;
-    if (isConnected && sessionId) {
-      setSelectedCharacter(newCharacter);
-      setConversation([]);
-      setTimeout(() => {
-        startAIConversation();
-      }, 500);
-    } else {
-      setSelectedCharacter(newCharacter);
-      setConversation([]);
+    if (isStreaming) {
+      stopStreaming();
     }
+    setSelectedCharacter(newCharacter);
+    setConversation([]);
   };
 
   const handleLanguageChange = async (newLanguage: Language) => {
     if (newLanguage === selectedLanguage) return;
-    if (isConnected && sessionId) {
-      setSelectedLanguage(newLanguage);
-      setConversation([]);
-      setTimeout(() => {
-        startAIConversation();
-      }, 500);
+    if (isStreaming) {
+      stopStreaming();
+    }
+    setSelectedLanguage(newLanguage);
+    setConversation([]);
+  };
+
+  const handleToggleStreaming = async () => {
+    if (isStreaming) {
+      stopStreaming();
     } else {
-      setSelectedLanguage(newLanguage);
-      setConversation([]);
-    }
-  };
-
-  const startRecording = async () => {
-    if (!audioStream) {
-      await initializeAudioPermissions();
-      return;
-    }
-    try {
-      const recorder = new MediaRecorder(audioStream, {
-        mimeType: "audio/webm;codecs=opus",
-      });
-
-      // リアルタイムで音声チャンクを送信
-      recorder.ondataavailable = async (event) => {
-        if (event.data.size > 0) {
-          console.log(event.data);
-
-          await sendAudioChunkToAI(event.data);
-        }
-      };
-
-      // 小さなチャンク（100ms）でリアルタイム送信
-      recorder.start(100);
-
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setError(null);
-    } catch {
-      setError("Failed to start recording. Please check your microphone.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      setIsRecording(false);
-    }
-  };
-
-  const startAIConversation = async () => {
-    if (!user) return;
-    try {
-      const systemMessage: ConversationMessage = {
-        id: `sys_${Date.now()}`,
-        sender: "ai",
-        content: "Connected to AI. Ready for real-time conversation!",
-        timestamp: new Date(),
-      };
-      setConversation([systemMessage]);
-      setError(null);
-    } catch (err) {
-      console.error("Failed to start conversation:", err);
-      setError(
-        `Failed to connect to AI service: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-      setIsConnected(false);
-    }
-  };
-
-  const sendAudioChunkToAI = async (audioChunk: Blob) => {
-    if (!user) return;
-
-    try {
-      const arrayBuffer = await audioChunk.arrayBuffer();
-      const audioData = new Uint8Array(arrayBuffer);
-
-      const request = create(AIConversationRequestSchema, {
-        userId: `user_${user.username}`,
-        username: user.username,
-        language: selectedLanguage,
-        character: selectedCharacter,
-        content: { case: "audioData" as const, value: audioData },
-        timestamp: { seconds: BigInt(Math.floor(Date.now() / 1000)), nanos: 0 },
-      });
-
-      console.log(
-        "Sending audio chunk to AI...",
-        audioData.length,
-        "bytes",
-        "format:",
-        audioChunk.type
-      );
-
-      const response = await client.sendMessage(request);
-      handleStreamResponse(response);
-    } catch (err) {
-      console.error("Failed to send audio chunk:", err);
-      setError(
-        `Failed to send audio chunk: ${
-          err instanceof Error ? err.message : "Unknown error"
-        }`
-      );
-    }
-  };
-
-  const generateAndPlayTTS = async (text: string) => {
-    if (!text.trim()) return;
-    try {
-      setIsGeneratingAudio(text);
-      if ("speechSynthesis" in window) {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = selectedLanguage === Language.JA ? "ja-JP" : "vi-VN";
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
-        utterance.onend = () => setIsGeneratingAudio(null);
-        utterance.onerror = () => {
-          setIsGeneratingAudio(null);
-          setError("Failed to generate speech");
-        };
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utterance);
-      } else {
-        setError("Text-to-speech is not supported in this browser");
-        setIsGeneratingAudio(null);
-      }
-    } catch (err) {
-      console.error("TTS error:", err);
-      setError("Failed to generate speech");
-      setIsGeneratingAudio(null);
+      await startStreaming();
     }
   };
 
   const logout = async () => {
     localStorage.removeItem("user");
-    if (audioStream) {
-      audioStream.getTracks().forEach((track) => track.stop());
+    if (isStreaming) {
+      stopStreaming();
     }
     router.push("/");
   };
@@ -360,7 +140,6 @@ const TalkScreen = () => {
         characters={characters}
         onLanguageChange={handleLanguageChange}
         onCharacterChange={handleCharacterChange}
-        onStartConversation={startAIConversation}
         onLogout={logout}
       />
 
@@ -432,27 +211,6 @@ const TalkScreen = () => {
                             })}
                             </div>
                             
-                            {message.sender === "ai" && (
-                                <button
-                                    type="button"
-                                    onClick={() => generateAndPlayTTS(message.content)}
-                                    disabled={isGeneratingAudio === message.content}
-                                    className={`ml-2 p-1.5 rounded-full transition-all ${
-                                    isGeneratingAudio === message.content
-                                        ? "bg-blue-100 text-blue-600"
-                                        : "text-gray-400 hover:text-blue-600 hover:bg-blue-50"
-                                    }`}
-                                    title="Play audio"
-                                >
-                                    {isGeneratingAudio === message.content ? (
-                                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                                        </svg>
-                                    )}
-                                </button>
-                            )}
                         </div>
                       </div>
                     </div>
@@ -477,24 +235,24 @@ const TalkScreen = () => {
               <div className="flex flex-col items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={isRecording ? stopRecording : startRecording}
-                  disabled={!isConnected}
+                  onClick={handleToggleStreaming}
+                  disabled={!user}
                   aria-label={
-                    isRecording ? "Stop recording" : "Start recording"
+                    isStreaming ? "Stop conversation" : "Start conversation"
                   }
                   className={`relative group p-6 rounded-full transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isRecording
+                    isStreaming
                       ? "bg-gradient-to-r from-red-500 to-pink-600 ring-4 ring-red-200 animate-pulse"
                       : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   }`}
                 >
-                  <div className={`absolute inset-0 rounded-full opacity-30 ${isRecording ? 'animate-ping bg-red-400' : ''}`}></div>
+                  <div className={`absolute inset-0 rounded-full opacity-30 ${isStreaming ? 'animate-ping bg-red-400' : ''}`}></div>
                   <svg
                     className="w-8 h-8 text-white relative z-10"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
-                    {isRecording ? (
+                    {isStreaming ? (
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a2 2 0 114 0v4a2 2 0 11-4 0V7z" clipRule="evenodd" />
                     ) : (
                       <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
@@ -503,11 +261,11 @@ const TalkScreen = () => {
                 </button>
                 
                 <div className="text-center">
-                  <div className={`font-bold text-lg ${isRecording ? 'text-red-600' : 'text-gray-700'}`}>
-                    {isRecording ? "Listening..." : "Tap to Speak"}
+                  <div className={`font-bold text-lg ${isStreaming ? 'text-red-600' : 'text-gray-700'}`}>
+                    {isStreaming ? "Live Conversation..." : "Tap to Start"}
                   </div>
                   <div className="text-xs text-gray-500 font-medium tracking-wide uppercase">
-                    {isRecording ? "Click to stop" : "Start conversation"}
+                    {isStreaming ? "Click to stop" : "Real-time AI chat"}
                   </div>
                 </div>
               </div>

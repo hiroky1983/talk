@@ -339,26 +339,89 @@ Chúng ta là anh chị em ruột.'''
             logger.error(f"Process text message error: {e}")
             raise e
     
-    def start_conversation(self, session_id: str) -> bool:
-        """Start a new conversation session"""
+    async def start_live_session(self, session_id: str, language: str, character: str = 'friend'):
+        """Start a Gemini Live API session"""
         try:
-            self.conversations[session_id] = []
-            logger.info(f"Started conversation session: {session_id}")
-            return True
+            # Get character configuration
+            char_config = self.character_configs.get(character, {}).get(language)
+            if not char_config:
+                char_config = (self.character_configs.get('friend', {}).get(language) or 
+                              self.character_configs['friend']['vi'])
+            
+            model_id = "gemini-2.0-flash-exp"
+            config = {
+                "response_modalities": ["AUDIO"],
+                "system_instruction": {"parts": [{"text": char_config['system_prompt']}]},
+            }
+            
+            # Connect to Gemini Live API
+            async with self.client.aio.live.connect(model=model_id, config=config) as session:
+                logger.info(f"Connected to Gemini Live API for session {session_id}")
+                yield session
+
         except Exception as e:
-            logger.error(f"Start conversation error: {e}")
-            return False
+            logger.error(f"Error in live session: {e}")
+            raise e
+
+class GeminiLiveSession:
+    def __init__(self, service: AIConversationService, session_id: str, language: str, character: str):
+        self.service = service
+        self.session_id = session_id
+        self.language = language
+        self.character = character
+        self.session = None
+        self._send_queue = asyncio.Queue()
+        self._receive_queue = asyncio.Queue()
     
-    def end_conversation(self, session_id: str) -> bool:
-        """End a conversation session"""
-        try:
-            if session_id in self.conversations:
-                del self.conversations[session_id]
-                logger.info(f"Ended conversation session: {session_id}")
-            return True
-        except Exception as e:
-            logger.error(f"End conversation error: {e}")
-            return False
+    async def start(self):
+        """Start the bidirectional stream loop"""
+        async for session in self.service.start_live_session(self.session_id, self.language, self.character):
+            self.session = session
+            
+            # Create tasks for sending and receiving
+            send_task = asyncio.create_task(self._send_loop())
+            receive_task = asyncio.create_task(self._receive_loop())
+            
+            try:
+                await asyncio.gather(send_task, receive_task)
+            except asyncio.CancelledError:
+                pass
+            finally:
+                send_task.cancel()
+                receive_task.cancel()
+    
+    async def _send_loop(self):
+        """Loop to send audio data to Gemini"""
+        while True:
+            chunk = await self._send_queue.get()
+            if chunk is None:
+                break
+            
+            # Send audio chunk to Gemini
+            # Assuming chunk is raw PCM 16kHz
+            await self.session.send(input={"realtime_input": {"media_chunks": [{"mime_type": "audio/pcm", "data": chunk}]}}, end_of_turn=True)
+    
+    async def _receive_loop(self):
+        """Loop to receive audio data from Gemini"""
+        async for response in self.session.receive():
+            if response.server_content and response.server_content.model_turn:
+                for part in response.server_content.model_turn.parts:
+                    if part.inline_data and part.inline_data.mime_type.startswith("audio/"):
+                        # Put audio data into receive queue
+                        await self._receive_queue.put(part.inline_data.data)
+    
+    async def send_audio(self, audio_data: bytes):
+        """Enqueue audio data to be sent"""
+        await self._send_queue.put(audio_data)
+    
+    async def receive_audio(self) -> bytes:
+        """Dequeue received audio data"""
+        return await self._receive_queue.get()
+    
+    async def close(self):
+        """Close the session"""
+        await self._send_queue.put(None)
+
 
 if __name__ == "__main__":
     # Test the service

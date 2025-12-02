@@ -64,8 +64,8 @@ func main() {
 		})
 	})
 
-	// Mount Connect RPC handler directly
-	router.Any(aiPath, gin.WrapH(aiHandler))
+	// Mount Connect RPC handler with wildcard to match all methods
+	router.Any(aiPath+"*filepath", gin.WrapH(aiHandler))
 
 	log.Println("Starting AI Language Learning server on :8000")
 	log.Println("Connect RPC service available at:", aiPath)

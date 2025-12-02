@@ -2,7 +2,7 @@
 grpcio>=1.59.0
 grpcio-tools>=1.59.0
 protobuf>=6.32.0
-google-genai
+google-genai>=0.3.0
 python-dotenv>=1.0.0
 
 # Optional audio dependencies - can be installed if needed
