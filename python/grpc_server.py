@@ -44,7 +44,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 context.set_details("Only audio_data is supported")
                 return ai_pb2.AIConversationResponse()
 
-            logger.info(f"Received audio data: {len(request.audio_data)} bytes, plan_type: {request.plan_type}")
+            logger.info(f"Received audio data: {len(request.audio_data)} bytes")
             
             # Process audio using AI service
             response_audio = await self.ai_service.process_audio_message(

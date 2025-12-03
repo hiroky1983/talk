@@ -32,7 +32,7 @@ Speak with a lively and youthful tone."""
 class LightController(AIController):
     def __init__(self, api_key: str):
         self.client = genai.Client(api_key=api_key)
-        self.model_id = "gemini-1.5-flash"
+        self.model_id = "gemini-2.0-flash"
 
     async def process_audio(self, audio_data: bytes, language: str, user_id: str, character: str) -> bytes:
         """Process audio using Standard API (STT -> LLM) + TTS"""

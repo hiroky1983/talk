@@ -10,7 +10,9 @@ message AIConversationRequest {
   string username = 2;
   string language = 3; // Language code (vi, en, ja)
   string character = 7; // Character type (friend, parent, sister)
-  PlanType plan_type = 8;
+  oneof plan {
+    PlanType plan_type = 8;
+  }
   oneof content {
     bytes audio_data = 4; // Audio data for speech input
     string text_message = 5; // Text message input
