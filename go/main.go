@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
+	"github.com/hiroky1983/talk/go/middleware"
 )
 
 // ロギングミドルウェア
@@ -31,6 +33,25 @@ func Logger() gin.HandlerFunc {
 	}
 }
 
+// wrapConnectHandler wraps a Connect RPC handler to pass user_id from gin.Context to context.Context
+func wrapConnectHandler(handler http.Handler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get user_id from gin.Context (set by AuthMiddleware)
+		userID, exists := middleware.GetUserID(c)
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found in context"})
+			return
+		}
+
+		// Create new context with user_id
+		ctx := context.WithValue(c.Request.Context(), middleware.UserIDKey, userID)
+		r := c.Request.WithContext(ctx)
+
+		// Call Connect RPC handler with updated request
+		handler.ServeHTTP(c.Writer, r)
+	}
+}
+
 func main() {
 	// Create AI service
 	aiService := NewAIConversationService()
@@ -46,11 +67,22 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3003"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms", "X-User-ID"},
 		ExposeHeaders:    []string{"Content-Length", "Connect-Protocol-Version"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// Apply authentication middleware to all routes except health checks
+	router.Use(func(c *gin.Context) {
+		// Skip authentication for health check endpoints
+		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" {
+			c.Next()
+			return
+		}
+		// Apply authentication middleware for all other routes
+		middleware.AuthMiddleware()(c)
+	})
 
 	// Regular HTTP endpoints
 	router.GET("/", func(c *gin.Context) {
@@ -65,7 +97,7 @@ func main() {
 	})
 
 	// Mount Connect RPC handler with wildcard to match all methods
-	router.Any(aiPath+"*filepath", gin.WrapH(aiHandler))
+	router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))
 
 	log.Println("Starting AI Language Learning server on :8000")
 	log.Println("Connect RPC service available at:", aiPath)
