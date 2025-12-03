@@ -3,14 +3,10 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createClient } from "@connectrpc/connect";
-import { createConnectTransport } from "@connectrpc/connect-web";
-import { AIConversationService } from "@/gen/app/ai_conversation_service_pb";
-import { create } from "@bufbuild/protobuf";
-import { AIConversationRequestSchema } from "@/gen/app/ai_conversation_pb";
 import { AudioRecorder } from "../audio/recorder";
 import { AudioPlayer } from "../audio/player";
 import { Language } from "@/types/types";
+import { useConversationMutation } from "../hooks/useConversationMutation";
 
 interface UseGeminiLiveProps {
   username: string;
@@ -31,10 +27,7 @@ export const useGeminiLive = ({
   const playerRef = useRef<AudioPlayer | null>(null);
   const isProcessingRef = useRef(false);
 
-  const transport = createConnectTransport({
-    baseUrl: "http://localhost:8000",
-  });
-  const client = createClient(AIConversationService, transport);
+  const conversationMutation = useConversationMutation();
 
   // Initialize audio components
   useEffect(() => {
@@ -60,19 +53,12 @@ export const useGeminiLive = ({
     try {
       console.log("Sending audio to backend:", audioData.length, "bytes");
 
-      const request = create(AIConversationRequestSchema, {
-        userId: `user_${username}`,
+      const response = await conversationMutation.mutateAsync({
         username,
         language,
         character,
-        content: { case: "audioData", value: audioData },
-        timestamp: {
-          seconds: BigInt(Math.floor(Date.now() / 1000)),
-          nanos: 0,
-        },
+        audioData,
       });
-
-      const response = await client.sendMessage(request);
 
       // Only play audio response if audio data exists and has content
       if (response.content?.case === "audioData" &&
@@ -86,14 +72,10 @@ export const useGeminiLive = ({
       }
     } catch (err) {
       console.error("Failed to send audio:", err);
-      // Extract meaningful error message from ConnectError
+      // Extract meaningful error message
       let errorMessage = "Failed to send audio";
       if (err instanceof Error) {
         errorMessage = err.message;
-        // Check for quota errors
-        if (errorMessage.includes("429") || errorMessage.includes("RESOURCE_EXHAUSTED")) {
-          errorMessage = "API quota exceeded. Please wait a moment and try again.";
-        }
       }
       setError(errorMessage);
 
@@ -104,7 +86,7 @@ export const useGeminiLive = ({
     } finally {
       isProcessingRef.current = false;
     }
-  }, [username, language, character, client]);
+  }, [username, language, character, conversationMutation]);
 
   const startStreaming = useCallback(async () => {
     if (isStreaming) return;
