@@ -14,6 +14,7 @@ import (
 
 	ai "github.com/hiroky1983/talk/go/gen/ai"
 	app "github.com/hiroky1983/talk/go/gen/app"
+	"github.com/hiroky1983/talk/go/middleware"
 )
 
 // AIConversationService implements the AI conversation service
@@ -68,7 +69,13 @@ func (s *AIConversationService) SendMessage(
 	ctx context.Context,
 	req *connect.Request[app.SendMessageRequest],
 ) (*connect.Response[app.SendMessageResponse], error) {
-	log.Printf("Processing message from user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
+	// Extract user_id from context (set by AuthMiddleware)
+	userID, ok := ctx.Value(middleware.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user_id not found in context"))
+	}
+
+	log.Printf("Processing message from user %s (ID: %s) in language %s with character %s", req.Msg.Username, userID, req.Msg.Language, req.Msg.Character)
 
 	if s.grpcClient == nil {
 		return nil, connect.NewError(connect.CodeUnavailable, fmt.Errorf("AI service is not available"))
@@ -76,7 +83,7 @@ func (s *AIConversationService) SendMessage(
 
 	// Map app request to ai request
 	aiReq := &ai.SendMessageRequest{
-		UserId:    req.Msg.UserId,
+		UserId:    userID, // Use user_id from context instead of request body
 		Username:  req.Msg.Username,
 		Language:  req.Msg.Language,
 		Character: req.Msg.Character,
