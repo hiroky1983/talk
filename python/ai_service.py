@@ -16,24 +16,24 @@ class AIConversationService:
         self.api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
         if not self.api_key:
             logger.error("GOOGLE_GEMINI_API_KEY not found in environment variables")
-            
-        # Initialize controllers
-        self.controllers = {
-            'premium': PremiumController(self.api_key),
-            'light': LightController(self.api_key)
-        }
-        
-        # Default mode - can be changed via environment variable or runtime config
-        self.current_mode = os.getenv("AI_SERVICE_MODE", "premium")
-        logger.info(f"AI Service initialized in {self.current_mode} mode")
 
-    async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend') -> bytes:
-        """Process audio message using the selected controller"""
+    async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend', plan_type: int = 2) -> bytes:
+        """Process audio message using the selected controller
+        
+        Args:
+            plan_type: PlanType enum value (0=FREE, 1=LITE, 2=PREMIUM)
+        """
         try:
-            controller = self.controllers.get(self.current_mode)
-            if not controller:
-                logger.error(f"Invalid mode: {self.current_mode}")
-                return b""
+            # Import here to avoid circular dependency
+            from ai import ai_conversation_pb2 as ai_pb2
+            
+            # Select controller based on plan_type
+            if plan_type == ai_pb2.PLAN_TYPE_PREMIUM:
+                controller = PremiumController(self.api_key)
+            else:  # LITE or FREE
+                controller = LightController(self.api_key)
+            
+            logger.info(f"Using {controller.__class__.__name__} for plan_type={plan_type}")
                 
             return await controller.process_audio(audio_data, language, user_id, character)
             

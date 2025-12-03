@@ -9,8 +9,15 @@ docs:
 	@mkdir -p ../docs
 
 .PHONY: gen
-gen:
-	@$(BUF) generate
+gen: gen-frontend gen-ai
+
+.PHONY: gen-frontend
+gen-frontend:
+	@$(BUF) generate --template buf.gen.frontend.yaml
+
+.PHONY: gen-ai
+gen-ai:
+	@$(BUF) generate --template buf.gen.ai.yaml
 
 .PHONY: lint
 lint:

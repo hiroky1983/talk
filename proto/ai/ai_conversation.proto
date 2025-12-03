@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package ai.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// AI Conversation message types
+message AIConversationRequest {
+  string user_id = 1;
+  string username = 2;
+  string language = 3; // Language code (vi, en, ja)
+  string character = 7; // Character type (friend, parent, sister)
+  PlanType plan_type = 8;
+  oneof content {
+    bytes audio_data = 4; // Audio data for speech input
+    string text_message = 5; // Text message input
+  }
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message AIConversationResponse {
+  string response_id = 1;
+  oneof content {
+    bytes audio_data = 2; // AI audio response
+    string text_message = 3; // AI text response
+  }
+  string language = 4; // Language of the response
+  google.protobuf.Timestamp timestamp = 5;
+  bool is_final = 6; // Whether this is the final response for the request
+}
+
+// Streaming conversation events
+message ConversationEvent {
+  enum EventType {
+    CONVERSATION_STARTED = 0;
+    USER_MESSAGE = 1;
+    AI_RESPONSE = 2;
+    CONVERSATION_ENDED = 3;
+    ERROR = 4;
+  }
+  
+  EventType type = 1;
+  string user_id = 2;
+  string session_id = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  
+  oneof event_data {
+    AIConversationRequest user_message = 5;
+    AIConversationResponse ai_response = 6;
+    string error_message = 7;
+  }
+}
+
+// Session management
+message StartConversationRequest {
+  string user_id = 1;
+  string username = 2;
+  string language = 3;
+  string character = 4; // Character type (friend, parent, sister)
+}
+
+message StartConversationResponse {
+  string session_id = 1;
+  bool success = 2;
+  string error_message = 3;
+}
+
+enum PlanType {
+  PLAN_TYPE_FREE = 0;
+  PLAN_TYPE_LITE = 1;
+  PLAN_TYPE_PREMIUM = 2;
+}

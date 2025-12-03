@@ -13,8 +13,8 @@ import grpc
 from google.protobuf.timestamp_pb2 import Timestamp
 
 # Import generated gRPC code
-from app import ai_conversation_pb2 as ai_pb2
-from app import ai_conversation_service_pb2_grpc as ai_grpc
+from ai import ai_conversation_pb2 as ai_pb2
+from ai import ai_conversation_service_pb2_grpc as ai_grpc
 
 from ai_service import AIConversationService
 
@@ -44,14 +44,15 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 context.set_details("Only audio_data is supported")
                 return ai_pb2.AIConversationResponse()
 
-            logger.info(f"Received audio data: {len(request.audio_data)} bytes")
+            logger.info(f"Received audio data: {len(request.audio_data)} bytes, plan_type: {request.plan_type}")
             
             # Process audio using AI service
             response_audio = await self.ai_service.process_audio_message(
                 request.audio_data,
                 request.language,
                 request.user_id,
-                request.character
+                request.character,
+                request.plan_type
             )
             
             logger.info(f"Generated audio response: {len(response_audio)} bytes")

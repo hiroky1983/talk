@@ -1,0 +1,28 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: github.com/hiroky1983/talk/go/gen/app;appv1
+inputs:
+  - directory: .
+    paths:
+      - app
+plugins:
+  # Base Go Types
+  - remote: buf.build/protocolbuffers/go
+    out: ../go/gen
+    opt:
+      - paths=source_relative
+  # Connect-Go (for Next.js -> Go)
+  - remote: buf.build/connectrpc/go
+    out: ../go/gen
+    opt:
+      - paths=source_relative
+  # TypeScript (for Next.js)
+  - remote: buf.build/bufbuild/es
+    out: ../next/src/gen
+    opt: target=ts
+  - remote: buf.build/connectrpc/es
+    out: ../next/src/gen
+    opt: target=ts

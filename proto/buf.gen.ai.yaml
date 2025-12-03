@@ -1,0 +1,26 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package
+      value: github.com/hiroky1983/talk/go/gen/ai;aiv1
+inputs:
+  - directory: .
+    paths:
+      - ai
+plugins:
+  # Base Go Types
+  - remote: buf.build/protocolbuffers/go
+    out: ../go/gen
+    opt:
+      - paths=source_relative
+  # gRPC-Go (for Go -> Python)
+  - remote: buf.build/grpc/go
+    out: ../go/gen
+    opt:
+      - paths=source_relative
+  # Python
+  - remote: buf.build/protocolbuffers/python:v29.3
+    out: ../python
+  - remote: buf.build/grpc/python:v1.69.0
+    out: ../python
