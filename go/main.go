@@ -73,10 +73,10 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Apply authentication middleware to all routes except health checks
+	// Apply authentication middleware to all routes except health checks and preflight requests
 	router.Use(func(c *gin.Context) {
-		// Skip authentication for health check endpoints
-		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" {
+		// Skip authentication for health check endpoints and CORS preflight requests
+		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" || c.Request.Method == "OPTIONS" {
 			c.Next()
 			return
 		}

@@ -14,6 +14,7 @@ import (
 
 	ai "github.com/hiroky1983/talk/go/gen/ai"
 	app "github.com/hiroky1983/talk/go/gen/app"
+	"github.com/hiroky1983/talk/go/middleware"
 )
 
 // AIConversationService implements the AI conversation service
@@ -69,7 +70,7 @@ func (s *AIConversationService) SendMessage(
 	req *connect.Request[app.SendMessageRequest],
 ) (*connect.Response[app.SendMessageResponse], error) {
 	// Extract user_id from context (set by AuthMiddleware)
-	userID, ok := ctx.Value("user_id").(string)
+	userID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user_id not found in context"))
 	}
