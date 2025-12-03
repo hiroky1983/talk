@@ -47,12 +47,20 @@ Next.js (Connect-Web, Web Speech API / AudioRecorder)
 - **Premium Mode**: Gemini Live API を使用し、低遅延で自然な双方向音声会話を実現
 - **Light Mode**: Gemini Flash と gTTS を組み合わせた軽量モード（フォールバック用）
 
+### 状態管理
+
+- **TanStack Query**: サーバー状態の管理、キャッシング、エラーハンドリングを担当
+  - AI 会話の API 通信を mutation で管理
+  - 自動的なエラーハンドリングとリトライ機能
+  - ローディング状態の一元管理
+
 ## 技術スタック
 
 ### フロントエンド
 
 - Next.js 15.2.4（App Router）
 - TypeScript
+- TanStack Query（サーバー状態管理）
 - Connect-Web（gRPC-Web クライアント）
 - Web Speech API / AudioWorklet（音声処理）
 
