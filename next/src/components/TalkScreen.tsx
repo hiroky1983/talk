@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import TalkHeader from "./TalkHeader";
 import { Language } from "@/types/types";
 import { useGeminiLive } from "@/lib/audio/useGeminiLive";
@@ -54,9 +55,16 @@ const languageNames = {
 } as const;
 
 const TalkScreen = () => {
+  const locale = useLocale();
+  const normalizedLocale = (
+    Object.values(Language) as readonly string[]
+  ).includes(locale)
+    ? (locale as Language)
+    : Language.EN;
+
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.VI);
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(normalizedLocale);
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
 
   const router = useRouter();
@@ -82,11 +90,15 @@ const TalkScreen = () => {
   useEffect(() => {
     const userData = localStorage.getItem("user");
     if (!userData) {
-      router.push("/");
+      router.push(`/${locale}`);
       return;
     }
-    setUser(JSON.parse(userData));
-  }, [router]);
+    const parsedUser = JSON.parse(userData) as User;
+    setUser(parsedUser);
+    if (parsedUser.language) {
+      setSelectedLanguage(parsedUser.language);
+    }
+  }, [router, locale]);
 
   const handleCharacterChange = async (newCharacter: string) => {
     if (newCharacter === selectedCharacter) return;
@@ -104,6 +116,12 @@ const TalkScreen = () => {
     }
     setSelectedLanguage(newLanguage);
     setConversation([]);
+    setUser((previousUser) => {
+      if (!previousUser) return previousUser;
+      const updatedUser = { ...previousUser, language: newLanguage };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return updatedUser;
+    });
   };
 
   const handleToggleStreaming = async () => {
@@ -119,7 +137,7 @@ const TalkScreen = () => {
     if (isStreaming) {
       stopStreaming();
     }
-    router.push("/");
+    router.push(`/${locale}`);
   };
 
   return (

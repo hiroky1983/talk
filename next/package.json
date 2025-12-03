@@ -13,6 +13,7 @@
     "@connectrpc/connect": "^2.0.2",
     "@connectrpc/connect-web": "^2.0.2",
     "next": "15.2.4",
+    "next-intl": "^3.25.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

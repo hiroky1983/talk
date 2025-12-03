@@ -1,4 +1,5 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "AI Language Practice - Talk",
@@ -8,11 +9,9 @@ export const metadata: Metadata = {
 const TalkLayout = ({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) => {
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">{children}</div>
-  );
+  return <div className="min-h-screen bg-gray-50 flex flex-col">{children}</div>;
 };
 
 export default TalkLayout;
