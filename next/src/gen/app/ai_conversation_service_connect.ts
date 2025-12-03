@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { AIConversationRequest, AIConversationResponse } from "./ai_conversation_pb.js";
+import { SendMessageRequest, SendMessageResponse } from "./ai_conversation_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -21,20 +21,9 @@ export const AIConversationService = {
      */
     sendMessage: {
       name: "SendMessage",
-      I: AIConversationRequest,
-      O: AIConversationResponse,
+      I: SendMessageRequest,
+      O: SendMessageResponse,
       kind: MethodKind.Unary,
-    },
-    /**
-     * Bidirectional streaming conversation
-     *
-     * @generated from rpc app.v1.AIConversationService.StreamConversation
-     */
-    streamConversation: {
-      name: "StreamConversation",
-      I: AIConversationRequest,
-      O: AIConversationResponse,
-      kind: MethodKind.BiDiStreaming,
     },
   }
 } as const;

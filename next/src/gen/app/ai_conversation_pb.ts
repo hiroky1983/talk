@@ -2,8 +2,8 @@
 // @generated from file app/ai_conversation.proto (package app.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { Message } from "@bufbuild/protobuf";
@@ -12,14 +12,14 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file app/ai_conversation.proto.
  */
 export const file_app_ai_conversation: GenFile = /*@__PURE__*/
-  fileDesc("ChlhcHAvYWlfY29udmVyc2F0aW9uLnByb3RvEgZhcHAudjEixwEKFUFJQ29udmVyc2F0aW9uUmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEhAKCGxhbmd1YWdlGAMgASgJEhEKCWNoYXJhY3RlchgHIAEoCRIUCgphdWRpb19kYXRhGAQgASgMSAASFgoMdGV4dF9tZXNzYWdlGAUgASgJSAASLQoJdGltZXN0YW1wGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJCgdjb250ZW50IrkBChZBSUNvbnZlcnNhdGlvblJlc3BvbnNlEhMKC3Jlc3BvbnNlX2lkGAEgASgJEhQKCmF1ZGlvX2RhdGEYAiABKAxIABIWCgx0ZXh0X21lc3NhZ2UYAyABKAlIABIQCghsYW5ndWFnZRgEIAEoCRItCgl0aW1lc3RhbXAYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhAKCGlzX2ZpbmFsGAYgASgIQgkKB2NvbnRlbnQinAMKEUNvbnZlcnNhdGlvbkV2ZW50EjEKBHR5cGUYASABKA4yIy5hcHAudjEuQ29udmVyc2F0aW9uRXZlbnQuRXZlbnRUeXBlEg8KB3VzZXJfaWQYAiABKAkSEgoKc2Vzc2lvbl9pZBgDIAEoCRItCgl0aW1lc3RhbXAYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEjUKDHVzZXJfbWVzc2FnZRgFIAEoCzIdLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlcXVlc3RIABI1CgthaV9yZXNwb25zZRgGIAEoCzIeLmFwcC52MS5BSUNvbnZlcnNhdGlvblJlc3BvbnNlSAASFwoNZXJyb3JfbWVzc2FnZRgHIAEoCUgAImsKCUV2ZW50VHlwZRIYChRDT05WRVJTQVRJT05fU1RBUlRFRBAAEhAKDFVTRVJfTUVTU0FHRRABEg8KC0FJX1JFU1BPTlNFEAISFgoSQ09OVkVSU0FUSU9OX0VOREVEEAMSCQoFRVJST1IQBEIMCgpldmVudF9kYXRhImIKGFN0YXJ0Q29udmVyc2F0aW9uUmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEhAKCGxhbmd1YWdlGAMgASgJEhEKCWNoYXJhY3RlchgEIAEoCSJXChlTdGFydENvbnZlcnNhdGlvblJlc3BvbnNlEhIKCnNlc3Npb25faWQYASABKAkSDwoHc3VjY2VzcxgCIAEoCBIVCg1lcnJvcl9tZXNzYWdlGAMgASgJQocBCgpjb20uYXBwLnYxQhNBaUNvbnZlcnNhdGlvblByb3RvUAFaK2dpdGh1Yi5jb20vaGlyb2t5MTk4My90YWxrL2dvL2dlbi9hcHA7YXBwdjGiAgNBWFiqAgZBcHAuVjHKAgZBcHBcVjHiAhJBcHBcVjFcR1BCTWV0YWRhdGHqAgdBcHA6OlYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
+  fileDesc("ChlhcHAvYWlfY29udmVyc2F0aW9uLnByb3RvEgZhcHAudjEixAEKElNlbmRNZXNzYWdlUmVxdWVzdBIPCgd1c2VyX2lkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEhAKCGxhbmd1YWdlGAMgASgJEhEKCWNoYXJhY3RlchgHIAEoCRIUCgphdWRpb19kYXRhGAQgASgMSAASFgoMdGV4dF9tZXNzYWdlGAUgASgJSAASLQoJdGltZXN0YW1wGAYgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEIJCgdjb250ZW50IrYBChNTZW5kTWVzc2FnZVJlc3BvbnNlEhMKC3Jlc3BvbnNlX2lkGAEgASgJEhQKCmF1ZGlvX2RhdGEYAiABKAxIABIWCgx0ZXh0X21lc3NhZ2UYAyABKAlIABIQCghsYW5ndWFnZRgEIAEoCRItCgl0aW1lc3RhbXAYBSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhAKCGlzX2ZpbmFsGAYgASgIQgkKB2NvbnRlbnRChwEKCmNvbS5hcHAudjFCE0FpQ29udmVyc2F0aW9uUHJvdG9QAVorZ2l0aHViLmNvbS9oaXJva3kxOTgzL3RhbGsvZ28vZ2VuL2FwcDthcHB2MaICA0FYWKoCBkFwcC5WMcoCBkFwcFxWMeICEkFwcFxWMVxHUEJNZXRhZGF0YeoCB0FwcDo6VjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * AI Conversation message types
  *
- * @generated from message app.v1.AIConversationRequest
+ * @generated from message app.v1.SendMessageRequest
  */
-export type AIConversationRequest = Message<"app.v1.AIConversationRequest"> & {
+export type SendMessageRequest = Message<"app.v1.SendMessageRequest"> & {
   /**
    * @generated from field: string user_id = 1;
    */
@@ -45,7 +45,7 @@ export type AIConversationRequest = Message<"app.v1.AIConversationRequest"> & {
   character: string;
 
   /**
-   * @generated from oneof app.v1.AIConversationRequest.content
+   * @generated from oneof app.v1.SendMessageRequest.content
    */
   content: {
     /**
@@ -72,23 +72,23 @@ export type AIConversationRequest = Message<"app.v1.AIConversationRequest"> & {
 };
 
 /**
- * Describes the message app.v1.AIConversationRequest.
- * Use `create(AIConversationRequestSchema)` to create a new message.
+ * Describes the message app.v1.SendMessageRequest.
+ * Use `create(SendMessageRequestSchema)` to create a new message.
  */
-export const AIConversationRequestSchema: GenMessage<AIConversationRequest> = /*@__PURE__*/
+export const SendMessageRequestSchema: GenMessage<SendMessageRequest> = /*@__PURE__*/
   messageDesc(file_app_ai_conversation, 0);
 
 /**
- * @generated from message app.v1.AIConversationResponse
+ * @generated from message app.v1.SendMessageResponse
  */
-export type AIConversationResponse = Message<"app.v1.AIConversationResponse"> & {
+export type SendMessageResponse = Message<"app.v1.SendMessageResponse"> & {
   /**
    * @generated from field: string response_id = 1;
    */
   responseId: string;
 
   /**
-   * @generated from oneof app.v1.AIConversationResponse.content
+   * @generated from oneof app.v1.SendMessageResponse.content
    */
   content: {
     /**
@@ -129,165 +129,9 @@ export type AIConversationResponse = Message<"app.v1.AIConversationResponse"> & 
 };
 
 /**
- * Describes the message app.v1.AIConversationResponse.
- * Use `create(AIConversationResponseSchema)` to create a new message.
+ * Describes the message app.v1.SendMessageResponse.
+ * Use `create(SendMessageResponseSchema)` to create a new message.
  */
-export const AIConversationResponseSchema: GenMessage<AIConversationResponse> = /*@__PURE__*/
+export const SendMessageResponseSchema: GenMessage<SendMessageResponse> = /*@__PURE__*/
   messageDesc(file_app_ai_conversation, 1);
-
-/**
- * Streaming conversation events
- *
- * @generated from message app.v1.ConversationEvent
- */
-export type ConversationEvent = Message<"app.v1.ConversationEvent"> & {
-  /**
-   * @generated from field: app.v1.ConversationEvent.EventType type = 1;
-   */
-  type: ConversationEvent_EventType;
-
-  /**
-   * @generated from field: string user_id = 2;
-   */
-  userId: string;
-
-  /**
-   * @generated from field: string session_id = 3;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: google.protobuf.Timestamp timestamp = 4;
-   */
-  timestamp?: Timestamp;
-
-  /**
-   * @generated from oneof app.v1.ConversationEvent.event_data
-   */
-  eventData: {
-    /**
-     * @generated from field: app.v1.AIConversationRequest user_message = 5;
-     */
-    value: AIConversationRequest;
-    case: "userMessage";
-  } | {
-    /**
-     * @generated from field: app.v1.AIConversationResponse ai_response = 6;
-     */
-    value: AIConversationResponse;
-    case: "aiResponse";
-  } | {
-    /**
-     * @generated from field: string error_message = 7;
-     */
-    value: string;
-    case: "errorMessage";
-  } | { case: undefined; value?: undefined };
-};
-
-/**
- * Describes the message app.v1.ConversationEvent.
- * Use `create(ConversationEventSchema)` to create a new message.
- */
-export const ConversationEventSchema: GenMessage<ConversationEvent> = /*@__PURE__*/
-  messageDesc(file_app_ai_conversation, 2);
-
-/**
- * @generated from enum app.v1.ConversationEvent.EventType
- */
-export enum ConversationEvent_EventType {
-  /**
-   * @generated from enum value: CONVERSATION_STARTED = 0;
-   */
-  CONVERSATION_STARTED = 0,
-
-  /**
-   * @generated from enum value: USER_MESSAGE = 1;
-   */
-  USER_MESSAGE = 1,
-
-  /**
-   * @generated from enum value: AI_RESPONSE = 2;
-   */
-  AI_RESPONSE = 2,
-
-  /**
-   * @generated from enum value: CONVERSATION_ENDED = 3;
-   */
-  CONVERSATION_ENDED = 3,
-
-  /**
-   * @generated from enum value: ERROR = 4;
-   */
-  ERROR = 4,
-}
-
-/**
- * Describes the enum app.v1.ConversationEvent.EventType.
- */
-export const ConversationEvent_EventTypeSchema: GenEnum<ConversationEvent_EventType> = /*@__PURE__*/
-  enumDesc(file_app_ai_conversation, 2, 0);
-
-/**
- * Session management
- *
- * @generated from message app.v1.StartConversationRequest
- */
-export type StartConversationRequest = Message<"app.v1.StartConversationRequest"> & {
-  /**
-   * @generated from field: string user_id = 1;
-   */
-  userId: string;
-
-  /**
-   * @generated from field: string username = 2;
-   */
-  username: string;
-
-  /**
-   * @generated from field: string language = 3;
-   */
-  language: string;
-
-  /**
-   * Character type (friend, parent, sister)
-   *
-   * @generated from field: string character = 4;
-   */
-  character: string;
-};
-
-/**
- * Describes the message app.v1.StartConversationRequest.
- * Use `create(StartConversationRequestSchema)` to create a new message.
- */
-export const StartConversationRequestSchema: GenMessage<StartConversationRequest> = /*@__PURE__*/
-  messageDesc(file_app_ai_conversation, 3);
-
-/**
- * @generated from message app.v1.StartConversationResponse
- */
-export type StartConversationResponse = Message<"app.v1.StartConversationResponse"> & {
-  /**
-   * @generated from field: string session_id = 1;
-   */
-  sessionId: string;
-
-  /**
-   * @generated from field: bool success = 2;
-   */
-  success: boolean;
-
-  /**
-   * @generated from field: string error_message = 3;
-   */
-  errorMessage: string;
-};
-
-/**
- * Describes the message app.v1.StartConversationResponse.
- * Use `create(StartConversationResponseSchema)` to create a new message.
- */
-export const StartConversationResponseSchema: GenMessage<StartConversationResponse> = /*@__PURE__*/
-  messageDesc(file_app_ai_conversation, 4);
 

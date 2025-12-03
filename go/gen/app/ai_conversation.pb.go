@@ -22,63 +22,8 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ConversationEvent_EventType int32
-
-const (
-	ConversationEvent_CONVERSATION_STARTED ConversationEvent_EventType = 0
-	ConversationEvent_USER_MESSAGE         ConversationEvent_EventType = 1
-	ConversationEvent_AI_RESPONSE          ConversationEvent_EventType = 2
-	ConversationEvent_CONVERSATION_ENDED   ConversationEvent_EventType = 3
-	ConversationEvent_ERROR                ConversationEvent_EventType = 4
-)
-
-// Enum value maps for ConversationEvent_EventType.
-var (
-	ConversationEvent_EventType_name = map[int32]string{
-		0: "CONVERSATION_STARTED",
-		1: "USER_MESSAGE",
-		2: "AI_RESPONSE",
-		3: "CONVERSATION_ENDED",
-		4: "ERROR",
-	}
-	ConversationEvent_EventType_value = map[string]int32{
-		"CONVERSATION_STARTED": 0,
-		"USER_MESSAGE":         1,
-		"AI_RESPONSE":          2,
-		"CONVERSATION_ENDED":   3,
-		"ERROR":                4,
-	}
-)
-
-func (x ConversationEvent_EventType) Enum() *ConversationEvent_EventType {
-	p := new(ConversationEvent_EventType)
-	*p = x
-	return p
-}
-
-func (x ConversationEvent_EventType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ConversationEvent_EventType) Descriptor() protoreflect.EnumDescriptor {
-	return file_app_ai_conversation_proto_enumTypes[0].Descriptor()
-}
-
-func (ConversationEvent_EventType) Type() protoreflect.EnumType {
-	return &file_app_ai_conversation_proto_enumTypes[0]
-}
-
-func (x ConversationEvent_EventType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ConversationEvent_EventType.Descriptor instead.
-func (ConversationEvent_EventType) EnumDescriptor() ([]byte, []int) {
-	return file_app_ai_conversation_proto_rawDescGZIP(), []int{2, 0}
-}
-
 // AI Conversation message types
-type AIConversationRequest struct {
+type SendMessageRequest struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	UserId    string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Username  string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
@@ -86,28 +31,28 @@ type AIConversationRequest struct {
 	Character string                 `protobuf:"bytes,7,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
 	// Types that are valid to be assigned to Content:
 	//
-	//	*AIConversationRequest_AudioData
-	//	*AIConversationRequest_TextMessage
-	Content       isAIConversationRequest_Content `protobuf_oneof:"content"`
-	Timestamp     *timestamppb.Timestamp          `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	//	*SendMessageRequest_AudioData
+	//	*SendMessageRequest_TextMessage
+	Content       isSendMessageRequest_Content `protobuf_oneof:"content"`
+	Timestamp     *timestamppb.Timestamp       `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AIConversationRequest) Reset() {
-	*x = AIConversationRequest{}
+func (x *SendMessageRequest) Reset() {
+	*x = SendMessageRequest{}
 	mi := &file_app_ai_conversation_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AIConversationRequest) String() string {
+func (x *SendMessageRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AIConversationRequest) ProtoMessage() {}
+func (*SendMessageRequest) ProtoMessage() {}
 
-func (x *AIConversationRequest) ProtoReflect() protoreflect.Message {
+func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_app_ai_conversation_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -119,116 +64,116 @@ func (x *AIConversationRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AIConversationRequest.ProtoReflect.Descriptor instead.
-func (*AIConversationRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
+func (*SendMessageRequest) Descriptor() ([]byte, []int) {
 	return file_app_ai_conversation_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *AIConversationRequest) GetUserId() string {
+func (x *SendMessageRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *AIConversationRequest) GetUsername() string {
+func (x *SendMessageRequest) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *AIConversationRequest) GetLanguage() string {
+func (x *SendMessageRequest) GetLanguage() string {
 	if x != nil {
 		return x.Language
 	}
 	return ""
 }
 
-func (x *AIConversationRequest) GetCharacter() string {
+func (x *SendMessageRequest) GetCharacter() string {
 	if x != nil {
 		return x.Character
 	}
 	return ""
 }
 
-func (x *AIConversationRequest) GetContent() isAIConversationRequest_Content {
+func (x *SendMessageRequest) GetContent() isSendMessageRequest_Content {
 	if x != nil {
 		return x.Content
 	}
 	return nil
 }
 
-func (x *AIConversationRequest) GetAudioData() []byte {
+func (x *SendMessageRequest) GetAudioData() []byte {
 	if x != nil {
-		if x, ok := x.Content.(*AIConversationRequest_AudioData); ok {
+		if x, ok := x.Content.(*SendMessageRequest_AudioData); ok {
 			return x.AudioData
 		}
 	}
 	return nil
 }
 
-func (x *AIConversationRequest) GetTextMessage() string {
+func (x *SendMessageRequest) GetTextMessage() string {
 	if x != nil {
-		if x, ok := x.Content.(*AIConversationRequest_TextMessage); ok {
+		if x, ok := x.Content.(*SendMessageRequest_TextMessage); ok {
 			return x.TextMessage
 		}
 	}
 	return ""
 }
 
-func (x *AIConversationRequest) GetTimestamp() *timestamppb.Timestamp {
+func (x *SendMessageRequest) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
 	}
 	return nil
 }
 
-type isAIConversationRequest_Content interface {
-	isAIConversationRequest_Content()
+type isSendMessageRequest_Content interface {
+	isSendMessageRequest_Content()
 }
 
-type AIConversationRequest_AudioData struct {
+type SendMessageRequest_AudioData struct {
 	AudioData []byte `protobuf:"bytes,4,opt,name=audio_data,json=audioData,proto3,oneof"` // Audio data for speech input
 }
 
-type AIConversationRequest_TextMessage struct {
+type SendMessageRequest_TextMessage struct {
 	TextMessage string `protobuf:"bytes,5,opt,name=text_message,json=textMessage,proto3,oneof"` // Text message input
 }
 
-func (*AIConversationRequest_AudioData) isAIConversationRequest_Content() {}
+func (*SendMessageRequest_AudioData) isSendMessageRequest_Content() {}
 
-func (*AIConversationRequest_TextMessage) isAIConversationRequest_Content() {}
+func (*SendMessageRequest_TextMessage) isSendMessageRequest_Content() {}
 
-type AIConversationResponse struct {
+type SendMessageResponse struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ResponseId string                 `protobuf:"bytes,1,opt,name=response_id,json=responseId,proto3" json:"response_id,omitempty"`
 	// Types that are valid to be assigned to Content:
 	//
-	//	*AIConversationResponse_AudioData
-	//	*AIConversationResponse_TextMessage
-	Content       isAIConversationResponse_Content `protobuf_oneof:"content"`
-	Language      string                           `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"` // Language of the response
-	Timestamp     *timestamppb.Timestamp           `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	IsFinal       bool                             `protobuf:"varint,6,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"` // Whether this is the final response for the request
+	//	*SendMessageResponse_AudioData
+	//	*SendMessageResponse_TextMessage
+	Content       isSendMessageResponse_Content `protobuf_oneof:"content"`
+	Language      string                        `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"` // Language of the response
+	Timestamp     *timestamppb.Timestamp        `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	IsFinal       bool                          `protobuf:"varint,6,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"` // Whether this is the final response for the request
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AIConversationResponse) Reset() {
-	*x = AIConversationResponse{}
+func (x *SendMessageResponse) Reset() {
+	*x = SendMessageResponse{}
 	mi := &file_app_ai_conversation_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AIConversationResponse) String() string {
+func (x *SendMessageResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AIConversationResponse) ProtoMessage() {}
+func (*SendMessageResponse) ProtoMessage() {}
 
-func (x *AIConversationResponse) ProtoReflect() protoreflect.Message {
+func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_app_ai_conversation_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -240,346 +185,86 @@ func (x *AIConversationResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AIConversationResponse.ProtoReflect.Descriptor instead.
-func (*AIConversationResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
+func (*SendMessageResponse) Descriptor() ([]byte, []int) {
 	return file_app_ai_conversation_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *AIConversationResponse) GetResponseId() string {
+func (x *SendMessageResponse) GetResponseId() string {
 	if x != nil {
 		return x.ResponseId
 	}
 	return ""
 }
 
-func (x *AIConversationResponse) GetContent() isAIConversationResponse_Content {
+func (x *SendMessageResponse) GetContent() isSendMessageResponse_Content {
 	if x != nil {
 		return x.Content
 	}
 	return nil
 }
 
-func (x *AIConversationResponse) GetAudioData() []byte {
+func (x *SendMessageResponse) GetAudioData() []byte {
 	if x != nil {
-		if x, ok := x.Content.(*AIConversationResponse_AudioData); ok {
+		if x, ok := x.Content.(*SendMessageResponse_AudioData); ok {
 			return x.AudioData
 		}
 	}
 	return nil
 }
 
-func (x *AIConversationResponse) GetTextMessage() string {
+func (x *SendMessageResponse) GetTextMessage() string {
 	if x != nil {
-		if x, ok := x.Content.(*AIConversationResponse_TextMessage); ok {
+		if x, ok := x.Content.(*SendMessageResponse_TextMessage); ok {
 			return x.TextMessage
 		}
 	}
 	return ""
 }
 
-func (x *AIConversationResponse) GetLanguage() string {
+func (x *SendMessageResponse) GetLanguage() string {
 	if x != nil {
 		return x.Language
 	}
 	return ""
 }
 
-func (x *AIConversationResponse) GetTimestamp() *timestamppb.Timestamp {
+func (x *SendMessageResponse) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
 	}
 	return nil
 }
 
-func (x *AIConversationResponse) GetIsFinal() bool {
+func (x *SendMessageResponse) GetIsFinal() bool {
 	if x != nil {
 		return x.IsFinal
 	}
 	return false
 }
 
-type isAIConversationResponse_Content interface {
-	isAIConversationResponse_Content()
+type isSendMessageResponse_Content interface {
+	isSendMessageResponse_Content()
 }
 
-type AIConversationResponse_AudioData struct {
+type SendMessageResponse_AudioData struct {
 	AudioData []byte `protobuf:"bytes,2,opt,name=audio_data,json=audioData,proto3,oneof"` // AI audio response
 }
 
-type AIConversationResponse_TextMessage struct {
+type SendMessageResponse_TextMessage struct {
 	TextMessage string `protobuf:"bytes,3,opt,name=text_message,json=textMessage,proto3,oneof"` // AI text response
 }
 
-func (*AIConversationResponse_AudioData) isAIConversationResponse_Content() {}
+func (*SendMessageResponse_AudioData) isSendMessageResponse_Content() {}
 
-func (*AIConversationResponse_TextMessage) isAIConversationResponse_Content() {}
-
-// Streaming conversation events
-type ConversationEvent struct {
-	state     protoimpl.MessageState      `protogen:"open.v1"`
-	Type      ConversationEvent_EventType `protobuf:"varint,1,opt,name=type,proto3,enum=app.v1.ConversationEvent_EventType" json:"type,omitempty"`
-	UserId    string                      `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	SessionId string                      `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Timestamp *timestamppb.Timestamp      `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	// Types that are valid to be assigned to EventData:
-	//
-	//	*ConversationEvent_UserMessage
-	//	*ConversationEvent_AiResponse
-	//	*ConversationEvent_ErrorMessage
-	EventData     isConversationEvent_EventData `protobuf_oneof:"event_data"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ConversationEvent) Reset() {
-	*x = ConversationEvent{}
-	mi := &file_app_ai_conversation_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ConversationEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ConversationEvent) ProtoMessage() {}
-
-func (x *ConversationEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_app_ai_conversation_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ConversationEvent.ProtoReflect.Descriptor instead.
-func (*ConversationEvent) Descriptor() ([]byte, []int) {
-	return file_app_ai_conversation_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ConversationEvent) GetType() ConversationEvent_EventType {
-	if x != nil {
-		return x.Type
-	}
-	return ConversationEvent_CONVERSATION_STARTED
-}
-
-func (x *ConversationEvent) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *ConversationEvent) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *ConversationEvent) GetTimestamp() *timestamppb.Timestamp {
-	if x != nil {
-		return x.Timestamp
-	}
-	return nil
-}
-
-func (x *ConversationEvent) GetEventData() isConversationEvent_EventData {
-	if x != nil {
-		return x.EventData
-	}
-	return nil
-}
-
-func (x *ConversationEvent) GetUserMessage() *AIConversationRequest {
-	if x != nil {
-		if x, ok := x.EventData.(*ConversationEvent_UserMessage); ok {
-			return x.UserMessage
-		}
-	}
-	return nil
-}
-
-func (x *ConversationEvent) GetAiResponse() *AIConversationResponse {
-	if x != nil {
-		if x, ok := x.EventData.(*ConversationEvent_AiResponse); ok {
-			return x.AiResponse
-		}
-	}
-	return nil
-}
-
-func (x *ConversationEvent) GetErrorMessage() string {
-	if x != nil {
-		if x, ok := x.EventData.(*ConversationEvent_ErrorMessage); ok {
-			return x.ErrorMessage
-		}
-	}
-	return ""
-}
-
-type isConversationEvent_EventData interface {
-	isConversationEvent_EventData()
-}
-
-type ConversationEvent_UserMessage struct {
-	UserMessage *AIConversationRequest `protobuf:"bytes,5,opt,name=user_message,json=userMessage,proto3,oneof"`
-}
-
-type ConversationEvent_AiResponse struct {
-	AiResponse *AIConversationResponse `protobuf:"bytes,6,opt,name=ai_response,json=aiResponse,proto3,oneof"`
-}
-
-type ConversationEvent_ErrorMessage struct {
-	ErrorMessage string `protobuf:"bytes,7,opt,name=error_message,json=errorMessage,proto3,oneof"`
-}
-
-func (*ConversationEvent_UserMessage) isConversationEvent_EventData() {}
-
-func (*ConversationEvent_AiResponse) isConversationEvent_EventData() {}
-
-func (*ConversationEvent_ErrorMessage) isConversationEvent_EventData() {}
-
-// Session management
-type StartConversationRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`
-	Character     string                 `protobuf:"bytes,4,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StartConversationRequest) Reset() {
-	*x = StartConversationRequest{}
-	mi := &file_app_ai_conversation_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StartConversationRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StartConversationRequest) ProtoMessage() {}
-
-func (x *StartConversationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_app_ai_conversation_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StartConversationRequest.ProtoReflect.Descriptor instead.
-func (*StartConversationRequest) Descriptor() ([]byte, []int) {
-	return file_app_ai_conversation_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *StartConversationRequest) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *StartConversationRequest) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *StartConversationRequest) GetLanguage() string {
-	if x != nil {
-		return x.Language
-	}
-	return ""
-}
-
-func (x *StartConversationRequest) GetCharacter() string {
-	if x != nil {
-		return x.Character
-	}
-	return ""
-}
-
-type StartConversationResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	ErrorMessage  string                 `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StartConversationResponse) Reset() {
-	*x = StartConversationResponse{}
-	mi := &file_app_ai_conversation_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StartConversationResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StartConversationResponse) ProtoMessage() {}
-
-func (x *StartConversationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_app_ai_conversation_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StartConversationResponse.ProtoReflect.Descriptor instead.
-func (*StartConversationResponse) Descriptor() ([]byte, []int) {
-	return file_app_ai_conversation_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *StartConversationResponse) GetSessionId() string {
-	if x != nil {
-		return x.SessionId
-	}
-	return ""
-}
-
-func (x *StartConversationResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
-func (x *StartConversationResponse) GetErrorMessage() string {
-	if x != nil {
-		return x.ErrorMessage
-	}
-	return ""
-}
+func (*SendMessageResponse_TextMessage) isSendMessageResponse_Content() {}
 
 var File_app_ai_conversation_proto protoreflect.FileDescriptor
 
 const file_app_ai_conversation_proto_rawDesc = "" +
 	"\n" +
-	"\x19app/ai_conversation.proto\x12\x06app.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x91\x02\n" +
-	"\x15AIConversationRequest\x12\x17\n" +
+	"\x19app/ai_conversation.proto\x12\x06app.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8e\x02\n" +
+	"\x12SendMessageRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
@@ -588,8 +273,8 @@ const file_app_ai_conversation_proto_rawDesc = "" +
 	"audio_data\x18\x04 \x01(\fH\x00R\taudioData\x12#\n" +
 	"\ftext_message\x18\x05 \x01(\tH\x00R\vtextMessage\x128\n" +
 	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestampB\t\n" +
-	"\acontent\"\xfb\x01\n" +
-	"\x16AIConversationResponse\x12\x1f\n" +
+	"\acontent\"\xf8\x01\n" +
+	"\x13SendMessageResponse\x12\x1f\n" +
 	"\vresponse_id\x18\x01 \x01(\tR\n" +
 	"responseId\x12\x1f\n" +
 	"\n" +
@@ -598,35 +283,7 @@ const file_app_ai_conversation_proto_rawDesc = "" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\x128\n" +
 	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x19\n" +
 	"\bis_final\x18\x06 \x01(\bR\aisFinalB\t\n" +
-	"\acontent\"\xe7\x03\n" +
-	"\x11ConversationEvent\x127\n" +
-	"\x04type\x18\x01 \x01(\x0e2#.app.v1.ConversationEvent.EventTypeR\x04type\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\x128\n" +
-	"\ttimestamp\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12B\n" +
-	"\fuser_message\x18\x05 \x01(\v2\x1d.app.v1.AIConversationRequestH\x00R\vuserMessage\x12A\n" +
-	"\vai_response\x18\x06 \x01(\v2\x1e.app.v1.AIConversationResponseH\x00R\n" +
-	"aiResponse\x12%\n" +
-	"\rerror_message\x18\a \x01(\tH\x00R\ferrorMessage\"k\n" +
-	"\tEventType\x12\x18\n" +
-	"\x14CONVERSATION_STARTED\x10\x00\x12\x10\n" +
-	"\fUSER_MESSAGE\x10\x01\x12\x0f\n" +
-	"\vAI_RESPONSE\x10\x02\x12\x16\n" +
-	"\x12CONVERSATION_ENDED\x10\x03\x12\t\n" +
-	"\x05ERROR\x10\x04B\f\n" +
-	"\n" +
-	"event_data\"\x89\x01\n" +
-	"\x18StartConversationRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
-	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
-	"\tcharacter\x18\x04 \x01(\tR\tcharacter\"y\n" +
-	"\x19StartConversationResponse\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\x12#\n" +
-	"\rerror_message\x18\x03 \x01(\tR\ferrorMessageB\x87\x01\n" +
+	"\acontentB\x87\x01\n" +
 	"\n" +
 	"com.app.v1B\x13AiConversationProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
@@ -642,29 +299,20 @@ func file_app_ai_conversation_proto_rawDescGZIP() []byte {
 	return file_app_ai_conversation_proto_rawDescData
 }
 
-var file_app_ai_conversation_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_app_ai_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_app_ai_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_app_ai_conversation_proto_goTypes = []any{
-	(ConversationEvent_EventType)(0),  // 0: app.v1.ConversationEvent.EventType
-	(*AIConversationRequest)(nil),     // 1: app.v1.AIConversationRequest
-	(*AIConversationResponse)(nil),    // 2: app.v1.AIConversationResponse
-	(*ConversationEvent)(nil),         // 3: app.v1.ConversationEvent
-	(*StartConversationRequest)(nil),  // 4: app.v1.StartConversationRequest
-	(*StartConversationResponse)(nil), // 5: app.v1.StartConversationResponse
-	(*timestamppb.Timestamp)(nil),     // 6: google.protobuf.Timestamp
+	(*SendMessageRequest)(nil),    // 0: app.v1.SendMessageRequest
+	(*SendMessageResponse)(nil),   // 1: app.v1.SendMessageResponse
+	(*timestamppb.Timestamp)(nil), // 2: google.protobuf.Timestamp
 }
 var file_app_ai_conversation_proto_depIdxs = []int32{
-	6, // 0: app.v1.AIConversationRequest.timestamp:type_name -> google.protobuf.Timestamp
-	6, // 1: app.v1.AIConversationResponse.timestamp:type_name -> google.protobuf.Timestamp
-	0, // 2: app.v1.ConversationEvent.type:type_name -> app.v1.ConversationEvent.EventType
-	6, // 3: app.v1.ConversationEvent.timestamp:type_name -> google.protobuf.Timestamp
-	1, // 4: app.v1.ConversationEvent.user_message:type_name -> app.v1.AIConversationRequest
-	2, // 5: app.v1.ConversationEvent.ai_response:type_name -> app.v1.AIConversationResponse
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	2, // 0: app.v1.SendMessageRequest.timestamp:type_name -> google.protobuf.Timestamp
+	2, // 1: app.v1.SendMessageResponse.timestamp:type_name -> google.protobuf.Timestamp
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_app_ai_conversation_proto_init() }
@@ -673,31 +321,25 @@ func file_app_ai_conversation_proto_init() {
 		return
 	}
 	file_app_ai_conversation_proto_msgTypes[0].OneofWrappers = []any{
-		(*AIConversationRequest_AudioData)(nil),
-		(*AIConversationRequest_TextMessage)(nil),
+		(*SendMessageRequest_AudioData)(nil),
+		(*SendMessageRequest_TextMessage)(nil),
 	}
 	file_app_ai_conversation_proto_msgTypes[1].OneofWrappers = []any{
-		(*AIConversationResponse_AudioData)(nil),
-		(*AIConversationResponse_TextMessage)(nil),
-	}
-	file_app_ai_conversation_proto_msgTypes[2].OneofWrappers = []any{
-		(*ConversationEvent_UserMessage)(nil),
-		(*ConversationEvent_AiResponse)(nil),
-		(*ConversationEvent_ErrorMessage)(nil),
+		(*SendMessageResponse_AudioData)(nil),
+		(*SendMessageResponse_TextMessage)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_app_ai_conversation_proto_rawDesc), len(file_app_ai_conversation_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   5,
+			NumEnums:      0,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_app_ai_conversation_proto_goTypes,
 		DependencyIndexes: file_app_ai_conversation_proto_depIdxs,
-		EnumInfos:         file_app_ai_conversation_proto_enumTypes,
 		MessageInfos:      file_app_ai_conversation_proto_msgTypes,
 	}.Build()
 	File_app_ai_conversation_proto = out.File

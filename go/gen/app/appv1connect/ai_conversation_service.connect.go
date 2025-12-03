@@ -36,17 +36,12 @@ const (
 	// AIConversationServiceSendMessageProcedure is the fully-qualified name of the
 	// AIConversationService's SendMessage RPC.
 	AIConversationServiceSendMessageProcedure = "/app.v1.AIConversationService/SendMessage"
-	// AIConversationServiceStreamConversationProcedure is the fully-qualified name of the
-	// AIConversationService's StreamConversation RPC.
-	AIConversationServiceStreamConversationProcedure = "/app.v1.AIConversationService/StreamConversation"
 )
 
 // AIConversationServiceClient is a client for the app.v1.AIConversationService service.
 type AIConversationServiceClient interface {
 	// Send a single message and get response (unary)
-	SendMessage(context.Context, *connect.Request[app.AIConversationRequest]) (*connect.Response[app.AIConversationResponse], error)
-	// Bidirectional streaming conversation
-	StreamConversation(context.Context) *connect.BidiStreamForClient[app.AIConversationRequest, app.AIConversationResponse]
+	SendMessage(context.Context, *connect.Request[app.SendMessageRequest]) (*connect.Response[app.SendMessageResponse], error)
 }
 
 // NewAIConversationServiceClient constructs a client for the app.v1.AIConversationService service.
@@ -60,16 +55,10 @@ func NewAIConversationServiceClient(httpClient connect.HTTPClient, baseURL strin
 	baseURL = strings.TrimRight(baseURL, "/")
 	aIConversationServiceMethods := app.File_app_ai_conversation_service_proto.Services().ByName("AIConversationService").Methods()
 	return &aIConversationServiceClient{
-		sendMessage: connect.NewClient[app.AIConversationRequest, app.AIConversationResponse](
+		sendMessage: connect.NewClient[app.SendMessageRequest, app.SendMessageResponse](
 			httpClient,
 			baseURL+AIConversationServiceSendMessageProcedure,
 			connect.WithSchema(aIConversationServiceMethods.ByName("SendMessage")),
-			connect.WithClientOptions(opts...),
-		),
-		streamConversation: connect.NewClient[app.AIConversationRequest, app.AIConversationResponse](
-			httpClient,
-			baseURL+AIConversationServiceStreamConversationProcedure,
-			connect.WithSchema(aIConversationServiceMethods.ByName("StreamConversation")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -77,26 +66,18 @@ func NewAIConversationServiceClient(httpClient connect.HTTPClient, baseURL strin
 
 // aIConversationServiceClient implements AIConversationServiceClient.
 type aIConversationServiceClient struct {
-	sendMessage        *connect.Client[app.AIConversationRequest, app.AIConversationResponse]
-	streamConversation *connect.Client[app.AIConversationRequest, app.AIConversationResponse]
+	sendMessage *connect.Client[app.SendMessageRequest, app.SendMessageResponse]
 }
 
 // SendMessage calls app.v1.AIConversationService.SendMessage.
-func (c *aIConversationServiceClient) SendMessage(ctx context.Context, req *connect.Request[app.AIConversationRequest]) (*connect.Response[app.AIConversationResponse], error) {
+func (c *aIConversationServiceClient) SendMessage(ctx context.Context, req *connect.Request[app.SendMessageRequest]) (*connect.Response[app.SendMessageResponse], error) {
 	return c.sendMessage.CallUnary(ctx, req)
-}
-
-// StreamConversation calls app.v1.AIConversationService.StreamConversation.
-func (c *aIConversationServiceClient) StreamConversation(ctx context.Context) *connect.BidiStreamForClient[app.AIConversationRequest, app.AIConversationResponse] {
-	return c.streamConversation.CallBidiStream(ctx)
 }
 
 // AIConversationServiceHandler is an implementation of the app.v1.AIConversationService service.
 type AIConversationServiceHandler interface {
 	// Send a single message and get response (unary)
-	SendMessage(context.Context, *connect.Request[app.AIConversationRequest]) (*connect.Response[app.AIConversationResponse], error)
-	// Bidirectional streaming conversation
-	StreamConversation(context.Context, *connect.BidiStream[app.AIConversationRequest, app.AIConversationResponse]) error
+	SendMessage(context.Context, *connect.Request[app.SendMessageRequest]) (*connect.Response[app.SendMessageResponse], error)
 }
 
 // NewAIConversationServiceHandler builds an HTTP handler from the service implementation. It
@@ -112,18 +93,10 @@ func NewAIConversationServiceHandler(svc AIConversationServiceHandler, opts ...c
 		connect.WithSchema(aIConversationServiceMethods.ByName("SendMessage")),
 		connect.WithHandlerOptions(opts...),
 	)
-	aIConversationServiceStreamConversationHandler := connect.NewBidiStreamHandler(
-		AIConversationServiceStreamConversationProcedure,
-		svc.StreamConversation,
-		connect.WithSchema(aIConversationServiceMethods.ByName("StreamConversation")),
-		connect.WithHandlerOptions(opts...),
-	)
 	return "/app.v1.AIConversationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AIConversationServiceSendMessageProcedure:
 			aIConversationServiceSendMessageHandler.ServeHTTP(w, r)
-		case AIConversationServiceStreamConversationProcedure:
-			aIConversationServiceStreamConversationHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -133,10 +106,6 @@ func NewAIConversationServiceHandler(svc AIConversationServiceHandler, opts ...c
 // UnimplementedAIConversationServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAIConversationServiceHandler struct{}
 
-func (UnimplementedAIConversationServiceHandler) SendMessage(context.Context, *connect.Request[app.AIConversationRequest]) (*connect.Response[app.AIConversationResponse], error) {
+func (UnimplementedAIConversationServiceHandler) SendMessage(context.Context, *connect.Request[app.SendMessageRequest]) (*connect.Response[app.SendMessageResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("app.v1.AIConversationService.SendMessage is not implemented"))
-}
-
-func (UnimplementedAIConversationServiceHandler) StreamConversation(context.Context, *connect.BidiStream[app.AIConversationRequest, app.AIConversationResponse]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("app.v1.AIConversationService.StreamConversation is not implemented"))
 }

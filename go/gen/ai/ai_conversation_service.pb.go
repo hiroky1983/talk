@@ -24,23 +24,20 @@ var File_ai_ai_conversation_service_proto protoreflect.FileDescriptor
 
 const file_ai_ai_conversation_service_proto_rawDesc = "" +
 	"\n" +
-	" ai/ai_conversation_service.proto\x12\x05ai.v1\x1a\x18ai/ai_conversation.proto2\xba\x01\n" +
-	"\x15AIConversationService\x12J\n" +
-	"\vSendMessage\x12\x1c.ai.v1.AIConversationRequest\x1a\x1d.ai.v1.AIConversationResponse\x12U\n" +
-	"\x12StreamConversation\x12\x1c.ai.v1.AIConversationRequest\x1a\x1d.ai.v1.AIConversationResponse(\x010\x01B\x87\x01\n" +
+	" ai/ai_conversation_service.proto\x12\x05ai.v1\x1a\x18ai/ai_conversation.proto2]\n" +
+	"\x15AIConversationService\x12D\n" +
+	"\vSendMessage\x12\x19.ai.v1.SendMessageRequest\x1a\x1a.ai.v1.SendMessageResponseB\x87\x01\n" +
 	"\tcom.ai.v1B\x1aAiConversationServiceProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03AXX\xaa\x02\x05Ai.V1\xca\x02\x05Ai\\V1\xe2\x02\x11Ai\\V1\\GPBMetadata\xea\x02\x06Ai::V1b\x06proto3"
 
 var file_ai_ai_conversation_service_proto_goTypes = []any{
-	(*AIConversationRequest)(nil),  // 0: ai.v1.AIConversationRequest
-	(*AIConversationResponse)(nil), // 1: ai.v1.AIConversationResponse
+	(*SendMessageRequest)(nil),  // 0: ai.v1.SendMessageRequest
+	(*SendMessageResponse)(nil), // 1: ai.v1.SendMessageResponse
 }
 var file_ai_ai_conversation_service_proto_depIdxs = []int32{
-	0, // 0: ai.v1.AIConversationService.SendMessage:input_type -> ai.v1.AIConversationRequest
-	0, // 1: ai.v1.AIConversationService.StreamConversation:input_type -> ai.v1.AIConversationRequest
-	1, // 2: ai.v1.AIConversationService.SendMessage:output_type -> ai.v1.AIConversationResponse
-	1, // 3: ai.v1.AIConversationService.StreamConversation:output_type -> ai.v1.AIConversationResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	0, // 0: ai.v1.AIConversationService.SendMessage:input_type -> ai.v1.SendMessageRequest
+	1, // 1: ai.v1.AIConversationService.SendMessage:output_type -> ai.v1.SendMessageResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

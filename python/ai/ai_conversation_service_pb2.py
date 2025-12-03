@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from ai import ai_conversation_pb2 as ai_dot_ai__conversation__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n ai/ai_conversation_service.proto\x12\x05\x61i.v1\x1a\x18\x61i/ai_conversation.proto2\xba\x01\n\x15\x41IConversationService\x12J\n\x0bSendMessage\x12\x1c.ai.v1.AIConversationRequest\x1a\x1d.ai.v1.AIConversationResponse\x12U\n\x12StreamConversation\x12\x1c.ai.v1.AIConversationRequest\x1a\x1d.ai.v1.AIConversationResponse(\x01\x30\x01\x42\x87\x01\n\tcom.ai.v1B\x1a\x41iConversationServiceProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n ai/ai_conversation_service.proto\x12\x05\x61i.v1\x1a\x18\x61i/ai_conversation.proto2]\n\x15\x41IConversationService\x12\x44\n\x0bSendMessage\x12\x19.ai.v1.SendMessageRequest\x1a\x1a.ai.v1.SendMessageResponseB\x87\x01\n\tcom.ai.v1B\x1a\x41iConversationServiceProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,6 +33,6 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ai.ai_conversation_service_
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\tcom.ai.v1B\032AiConversationServiceProtoP\001Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\242\002\003AXX\252\002\005Ai.V1\312\002\005Ai\\V1\342\002\021Ai\\V1\\GPBMetadata\352\002\006Ai::V1'
-  _globals['_AICONVERSATIONSERVICE']._serialized_start=70
-  _globals['_AICONVERSATIONSERVICE']._serialized_end=256
+  _globals['_AICONVERSATIONSERVICE']._serialized_start=69
+  _globals['_AICONVERSATIONSERVICE']._serialized_end=162
 # @@protoc_insertion_point(module_scope)

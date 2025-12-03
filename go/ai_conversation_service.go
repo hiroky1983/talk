@@ -66,8 +66,8 @@ func NewAIConversationService() *AIConversationService {
 // SendMessage processes a single message and returns a response
 func (s *AIConversationService) SendMessage(
 	ctx context.Context,
-	req *connect.Request[app.AIConversationRequest],
-) (*connect.Response[app.AIConversationResponse], error) {
+	req *connect.Request[app.SendMessageRequest],
+) (*connect.Response[app.SendMessageResponse], error) {
 	log.Printf("Processing message from user %s in language %s with character %s", req.Msg.Username, req.Msg.Language, req.Msg.Character)
 
 	if s.grpcClient == nil {
@@ -75,21 +75,21 @@ func (s *AIConversationService) SendMessage(
 	}
 
 	// Map app request to ai request
-	aiReq := &ai.AIConversationRequest{
+	aiReq := &ai.SendMessageRequest{
 		UserId:    req.Msg.UserId,
 		Username:  req.Msg.Username,
 		Language:  req.Msg.Language,
 		Character: req.Msg.Character,
 		Timestamp: req.Msg.Timestamp,
-		PlanType:  ai.PlanType_PLAN_TYPE_LITE,
+		Plan:      &ai.SendMessageRequest_PlanType{PlanType: ai.PlanType_PLAN_TYPE_LITE},
 	}
 
-	if audioData, ok := req.Msg.Content.(*app.AIConversationRequest_AudioData); ok {
-		aiReq.Content = &ai.AIConversationRequest_AudioData{
+	if audioData, ok := req.Msg.Content.(*app.SendMessageRequest_AudioData); ok {
+		aiReq.Content = &ai.SendMessageRequest_AudioData{
 			AudioData: audioData.AudioData,
 		}
-	} else if textMsg, ok := req.Msg.Content.(*app.AIConversationRequest_TextMessage); ok {
-		aiReq.Content = &ai.AIConversationRequest_TextMessage{
+	} else if textMsg, ok := req.Msg.Content.(*app.SendMessageRequest_TextMessage); ok {
+		aiReq.Content = &ai.SendMessageRequest_TextMessage{
 			TextMessage: textMsg.TextMessage,
 		}
 	}
@@ -106,7 +106,7 @@ func (s *AIConversationService) SendMessage(
 	hasValidContent := false
 
 	// Map ai response back to app response
-	appResp := &app.AIConversationResponse{
+	appResp := &app.SendMessageResponse{
 		ResponseId: grpcResp.ResponseId,
 		Language:   grpcResp.Language,
 		Timestamp:  grpcResp.Timestamp,
@@ -114,19 +114,19 @@ func (s *AIConversationService) SendMessage(
 	}
 
 	if grpcResp.Content != nil {
-		if audioContent, ok := grpcResp.Content.(*ai.AIConversationResponse_AudioData); ok {
+		if audioContent, ok := grpcResp.Content.(*ai.SendMessageResponse_AudioData); ok {
 			// Check if audio data is not empty and has reasonable size
 			if len(audioContent.AudioData) > 100 {
 				hasValidContent = true
-				appResp.Content = &app.AIConversationResponse_AudioData{
+				appResp.Content = &app.SendMessageResponse_AudioData{
 					AudioData: audioContent.AudioData,
 				}
 			} else {
 				log.Printf("Warning: Audio data is too small (%d bytes), likely invalid", len(audioContent.AudioData))
 			}
-		} else if textContent, ok := grpcResp.Content.(*ai.AIConversationResponse_TextMessage); ok {
+		} else if textContent, ok := grpcResp.Content.(*ai.SendMessageResponse_TextMessage); ok {
 			hasValidContent = true
-			appResp.Content = &app.AIConversationResponse_TextMessage{
+			appResp.Content = &app.SendMessageResponse_TextMessage{
 				TextMessage: textContent.TextMessage,
 			}
 		}
@@ -138,14 +138,6 @@ func (s *AIConversationService) SendMessage(
 	}
 
 	return connect.NewResponse(appResp), nil
-}
-
-// StreamConversation is not implemented but required by the interface
-func (s *AIConversationService) StreamConversation(
-	ctx context.Context,
-	stream *connect.BidiStream[app.AIConversationRequest, app.AIConversationResponse],
-) error {
-	return connect.NewError(connect.CodeUnimplemented, fmt.Errorf("streaming is not supported"))
 }
 
 // Cleanup connection on shutdown

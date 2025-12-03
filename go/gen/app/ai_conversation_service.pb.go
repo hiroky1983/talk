@@ -24,24 +24,21 @@ var File_app_ai_conversation_service_proto protoreflect.FileDescriptor
 
 const file_app_ai_conversation_service_proto_rawDesc = "" +
 	"\n" +
-	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto2\xbe\x01\n" +
-	"\x15AIConversationService\x12L\n" +
-	"\vSendMessage\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse\x12W\n" +
-	"\x12StreamConversation\x12\x1d.app.v1.AIConversationRequest\x1a\x1e.app.v1.AIConversationResponse(\x010\x01B\x8e\x01\n" +
+	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto2_\n" +
+	"\x15AIConversationService\x12F\n" +
+	"\vSendMessage\x12\x1a.app.v1.SendMessageRequest\x1a\x1b.app.v1.SendMessageResponseB\x8e\x01\n" +
 	"\n" +
 	"com.app.v1B\x1aAiConversationServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
 var file_app_ai_conversation_service_proto_goTypes = []any{
-	(*AIConversationRequest)(nil),  // 0: app.v1.AIConversationRequest
-	(*AIConversationResponse)(nil), // 1: app.v1.AIConversationResponse
+	(*SendMessageRequest)(nil),  // 0: app.v1.SendMessageRequest
+	(*SendMessageResponse)(nil), // 1: app.v1.SendMessageResponse
 }
 var file_app_ai_conversation_service_proto_depIdxs = []int32{
-	0, // 0: app.v1.AIConversationService.SendMessage:input_type -> app.v1.AIConversationRequest
-	0, // 1: app.v1.AIConversationService.StreamConversation:input_type -> app.v1.AIConversationRequest
-	1, // 2: app.v1.AIConversationService.SendMessage:output_type -> app.v1.AIConversationResponse
-	1, // 3: app.v1.AIConversationService.StreamConversation:output_type -> app.v1.AIConversationResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	0, // 0: app.v1.AIConversationService.SendMessage:input_type -> app.v1.SendMessageRequest
+	1, // 1: app.v1.AIConversationService.SendMessage:output_type -> app.v1.SendMessageResponse
+	1, // [1:2] is the sub-list for method output_type
+	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

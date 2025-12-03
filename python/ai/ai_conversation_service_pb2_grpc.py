@@ -17,13 +17,8 @@ class AIConversationServiceStub(object):
         """
         self.SendMessage = channel.unary_unary(
                 '/ai.v1.AIConversationService/SendMessage',
-                request_serializer=ai_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
-                response_deserializer=ai_dot_ai__conversation__pb2.AIConversationResponse.FromString,
-                _registered_method=True)
-        self.StreamConversation = channel.stream_stream(
-                '/ai.v1.AIConversationService/StreamConversation',
-                request_serializer=ai_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
-                response_deserializer=ai_dot_ai__conversation__pb2.AIConversationResponse.FromString,
+                request_serializer=ai_dot_ai__conversation__pb2.SendMessageRequest.SerializeToString,
+                response_deserializer=ai_dot_ai__conversation__pb2.SendMessageResponse.FromString,
                 _registered_method=True)
 
 
@@ -38,25 +33,13 @@ class AIConversationServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamConversation(self, request_iterator, context):
-        """Bidirectional streaming conversation
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_AIConversationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'SendMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.SendMessage,
-                    request_deserializer=ai_dot_ai__conversation__pb2.AIConversationRequest.FromString,
-                    response_serializer=ai_dot_ai__conversation__pb2.AIConversationResponse.SerializeToString,
-            ),
-            'StreamConversation': grpc.stream_stream_rpc_method_handler(
-                    servicer.StreamConversation,
-                    request_deserializer=ai_dot_ai__conversation__pb2.AIConversationRequest.FromString,
-                    response_serializer=ai_dot_ai__conversation__pb2.AIConversationResponse.SerializeToString,
+                    request_deserializer=ai_dot_ai__conversation__pb2.SendMessageRequest.FromString,
+                    response_serializer=ai_dot_ai__conversation__pb2.SendMessageResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -85,35 +68,8 @@ class AIConversationService(object):
             request,
             target,
             '/ai.v1.AIConversationService/SendMessage',
-            ai_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
-            ai_dot_ai__conversation__pb2.AIConversationResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def StreamConversation(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_stream(
-            request_iterator,
-            target,
-            '/ai.v1.AIConversationService/StreamConversation',
-            ai_dot_ai__conversation__pb2.AIConversationRequest.SerializeToString,
-            ai_dot_ai__conversation__pb2.AIConversationResponse.FromString,
+            ai_dot_ai__conversation__pb2.SendMessageRequest.SerializeToString,
+            ai_dot_ai__conversation__pb2.SendMessageResponse.FromString,
             options,
             channel_credentials,
             insecure,
