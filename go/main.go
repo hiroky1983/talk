@@ -70,11 +70,7 @@ func main() {
 	log.Println("Starting AI Language Learning server on :8000")
 	log.Println("Connect RPC service available at:", aiPath)
 	log.Println("AI Conversation service endpoints:")
-	log.Printf("  - %s/StartConversation", aiPath)
-	log.Printf("  - %s/EndConversation", aiPath)
-	log.Printf("  - %s/SendMessage", aiPath)
-	log.Printf("  - %s/StreamConversation", aiPath)
-	log.Printf("  - %s/StreamConversationEvents", aiPath)
+	log.Printf("  - %sSendMessage", aiPath)
 
 	// Use h2c for HTTP/2 without TLS (required for streaming)
 	server := &http.Server{
