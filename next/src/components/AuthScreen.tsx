@@ -3,11 +3,19 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useLocale } from "next-intl";
 import { Language } from "../types/types";
 
 const AuthScreen = () => {
+  const locale = useLocale();
+  const normalizedLocale = (
+    Object.values(Language) as readonly string[]
+  ).includes(locale)
+    ? (locale as Language)
+    : Language.EN;
+
   const [username, setUsername] = useState("");
-  const [language, setLanguage] = useState(Language.VI);
+  const [language, setLanguage] = useState<Language>(normalizedLocale);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -26,7 +34,7 @@ const AuthScreen = () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       localStorage.setItem("user", JSON.stringify({ username, language }));
-      router.push("/talk");
+      router.push(`/${language}/talk`);
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setIsLoading(false);
