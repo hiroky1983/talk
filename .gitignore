@@ -2,3 +2,22 @@
 certificates
 
 __pycache__
+
+# Go build artifacts
+go/server
+go/tmp/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Air (Go hot reload)
+.air.log
+.air.toml.log
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
