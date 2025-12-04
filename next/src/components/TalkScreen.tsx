@@ -123,6 +123,7 @@ const TalkScreen = () => {
       localStorage.setItem("user", JSON.stringify(updatedUser));
       return updatedUser;
     });
+    router.push(`/${newLanguage}/talk`);
   };
 
   const handleToggleStreaming = async () => {
