@@ -31,10 +31,11 @@ const LocaleLayout = async ({
   params,
 }: {
   children: ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) => {
-  const locale = locales.includes(params.locale as Locale)
-    ? (params.locale as Locale)
+  const { locale: resolvedLocale } = await params;
+  const locale = locales.includes(resolvedLocale as Locale)
+    ? (resolvedLocale as Locale)
     : defaultLocale;
   const messages = await getMessages(locale);
 
