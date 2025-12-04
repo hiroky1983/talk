@@ -10,10 +10,10 @@ const getLocaleFilePath = (locale: Locale, namespace: (typeof namespaces)[number
 const loadNamespace = async (
   locale: Locale,
   namespace: (typeof namespaces)[number],
-): Promise<Record<string, unknown>> => {
+): Promise<AbstractIntlMessages> => {
   const filePath = getLocaleFilePath(locale, namespace);
   const rawContent = await fs.readFile(filePath, "utf-8");
-  return JSON.parse(rawContent) as Record<string, unknown>;
+  return JSON.parse(rawContent) as AbstractIntlMessages;
 };
 
 export const getMessages = async (
