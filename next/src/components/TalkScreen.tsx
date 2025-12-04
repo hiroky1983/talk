@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import TalkHeader from "./TalkHeader";
 import { Language } from "@/types/types";
 import { useGeminiLive } from "@/lib/audio/useGeminiLive";
@@ -27,27 +27,6 @@ interface ConversationMessage {
   audioUrl?: string;
 }
 
-const characters: Character[] = [
-  {
-    id: "friend",
-    name: "ホアン",
-    description: "A friendly companion for casual conversation",
-    emoji: "👨",
-  },
-  {
-    id: "parent",
-    name: "お母さん",
-    description: "A caring parent figure who gives advice and support",
-    emoji: "👩",
-  },
-  {
-    id: "sister",
-    name: "妹",
-    description: "A playful sister who shares daily life stories",
-    emoji: "👧",
-  },
-];
-
 const languageNames = {
   vi: "Vietnamese (Tiếng Việt)",
   ja: "Japanese (日本語)",
@@ -55,12 +34,34 @@ const languageNames = {
 } as const;
 
 const TalkScreen = () => {
+  const t = useTranslations('common');
   const locale = useLocale();
   const normalizedLocale = (
     Object.values(Language) as readonly string[]
   ).includes(locale)
     ? (locale as Language)
     : Language.EN;
+
+  const characters: Character[] = [
+    {
+      id: "friend",
+      name: t('characters.friend.name'),
+      description: t('characters.friend.description'),
+      emoji: "👨",
+    },
+    {
+      id: "parent",
+      name: t('characters.parent.name'),
+      description: t('characters.parent.description'),
+      emoji: "👩",
+    },
+    {
+      id: "sister",
+      name: t('characters.sister.name'),
+      description: t('characters.sister.description'),
+      emoji: "👧",
+    },
+  ];
 
   const [user, setUser] = useState<User | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string>("friend");
@@ -179,15 +180,15 @@ const TalkScreen = () => {
             {!user ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                <p>Loading your profile...</p>
+                <p>{t('loadingProfile')}</p>
               </div>
             ) : conversation.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-70">
                 <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
                     <span className="text-4xl">🎙️</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-700 mb-2">Start a Conversation</h3>
-                <p>Tap the microphone button below and say hello!</p>
+                <h3 className="text-xl font-bold text-gray-700 mb-2">{t('startConversation')}</h3>
+                <p>{t('startPrompt')}</p>
               </div>
             ) : (
               conversation.map((message) => (
@@ -281,10 +282,10 @@ const TalkScreen = () => {
                 
                 <div className="text-center">
                   <div className={`font-bold text-lg ${isStreaming ? 'text-red-600' : 'text-gray-700'}`}>
-                    {isStreaming ? "Live Conversation..." : "Tap to Start"}
+                    {isStreaming ? t('liveConversation') : t('tapToStart')}
                   </div>
                   <div className="text-xs text-gray-500 font-medium tracking-wide uppercase">
-                    {isStreaming ? "Click to stop" : "Real-time AI chat"}
+                    {isStreaming ? t('clickToStop') : t('realTimeChat')}
                   </div>
                 </div>
               </div>
@@ -296,8 +297,8 @@ const TalkScreen = () => {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-gray-400">Please wait...</div>
-                  <div className="text-sm text-gray-400">Loading audio controls</div>
+                  <div className="font-medium text-gray-400">{t('pleaseWait')}</div>
+                  <div className="text-sm text-gray-400">{t('loadingAudio')}</div>
                 </div>
               </div>
             )}

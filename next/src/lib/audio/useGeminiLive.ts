@@ -2,6 +2,7 @@
  * Hook for managing Gemini Live API conversation with VAD
  */
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AudioRecorder } from "../audio/recorder";
 import { AudioPlayer } from "../audio/player";
@@ -19,6 +20,7 @@ export const useGeminiLive = ({
   language,
   character,
 }: UseGeminiLiveProps) => {
+  const t = useTranslations('common');
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export const useGeminiLive = ({
     } catch (err) {
       console.error("Failed to send audio:", err);
       // Extract meaningful error message
-      let errorMessage = "Failed to send audio";
+      let errorMessage = t('errors.failedToSendAudio');
       if (err instanceof Error) {
         errorMessage = err.message;
       }
@@ -86,7 +88,7 @@ export const useGeminiLive = ({
     } finally {
       isProcessingRef.current = false;
     }
-  }, [username, language, character, conversationMutation]);
+  }, [username, language, character, conversationMutation, t]);
 
   const startStreaming = useCallback(async () => {
     if (isStreaming) return;
@@ -99,7 +101,7 @@ export const useGeminiLive = ({
       const recorder = recorderRef.current;
 
       if (!recorder) {
-        throw new Error("Audio recorder not initialized");
+        throw new Error(t('errors.recorderNotInitialized'));
       }
 
       // Start recording with VAD
@@ -140,12 +142,12 @@ export const useGeminiLive = ({
     } catch (err) {
       console.error("Streaming error:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to start streaming"
+        err instanceof Error ? err.message : t('errors.failedToStartStreaming')
       );
       setIsStreaming(false);
       setIsConnected(false);
     }
-  }, [isStreaming, sendAudioToBackend]);
+  }, [isStreaming, sendAudioToBackend, t]);
 
   const stopStreaming = useCallback(() => {
     recorderRef.current?.stop();

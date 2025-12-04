@@ -1,6 +1,41 @@
 {
   "appName": "Talk & Learn",
-  "welcome": "Chào mừng đến với Talk",
-  "tagline": "Luyện ngôn ngữ cùng trò chuyện AI",
-  "start": "Bắt đầu học"
+  "welcome": "Chào mừng, {username}",
+  "welcomeDefault": "Luyện tập ngôn ngữ AI",
+  "tagline": "Làm chủ ngôn ngữ qua các cuộc trò chuyện với AI",
+  "start": "Bắt đầu học",
+  "online": "Trực tuyến",
+  "offline": "Ngoại tuyến",
+  "connect": "Kết nối",
+  "logout": "Đăng xuất",
+  "selectLanguage": "Chọn ngôn ngữ luyện tập",
+  "selectCharacter": "Chọn nhân vật AI",
+  "loadingProfile": "Đang tải hồ sơ...",
+  "startConversation": "Bắt đầu cuộc trò chuyện",
+  "startPrompt": "Nhấn vào nút micro bên dưới và nói xin chào!",
+  "liveConversation": "Đang trò chuyện trực tiếp...",
+  "tapToStart": "Nhấn để bắt đầu",
+  "clickToStop": "Nhấn để dừng",
+  "realTimeChat": "Trò chuyện AI thời gian thực",
+  "pleaseWait": "Vui lòng đợi...",
+  "loadingAudio": "Đang tải điều khiển âm thanh",
+  "characters": {
+    "friend": {
+      "name": "Bạn bè",
+      "description": "Người bạn thân thiện để trò chuyện bình thường"
+    },
+    "parent": {
+      "name": "Cha mẹ",
+      "description": "Người cha/mẹ quan tâm, đưa ra lời khuyên và hỗ trợ"
+    },
+    "sister": {
+      "name": "Em gái",
+      "description": "Em gái vui vẻ chia sẻ những câu chuyện hàng ngày"
+    }
+  },
+  "errors": {
+    "failedToSendAudio": "Gửi âm thanh thất bại",
+    "recorderNotInitialized": "Trình ghi âm chưa được khởi tạo",
+    "failedToStartStreaming": "Không thể bắt đầu phát trực tuyến"
+  }
 }

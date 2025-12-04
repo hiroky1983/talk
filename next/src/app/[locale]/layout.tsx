@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -19,10 +20,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Talk & Learn - AI Language Practice",
-  description: "Master languages with AI conversations",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "common" });
+
+  return {
+    title: `${t("appName")} - ${t("welcomeDefault")}`,
+    description: t("tagline"),
+  };
+}
 
 export const generateStaticParams = () => locales.map((locale) => ({ locale }));
 

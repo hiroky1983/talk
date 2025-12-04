@@ -1,6 +1,41 @@
 {
   "appName": "Talk & Learn",
-  "welcome": "Welcome to Talk",
+  "welcome": "Welcome, {username}",
+  "welcomeDefault": "AI Language Practice",
   "tagline": "Master languages with AI conversations",
-  "start": "Start Learning"
+  "start": "Start Learning",
+  "online": "Online",
+  "offline": "Offline",
+  "connect": "Connect",
+  "logout": "Logout",
+  "selectLanguage": "Select practice language",
+  "selectCharacter": "Select AI character",
+  "loadingProfile": "Loading your profile...",
+  "startConversation": "Start a Conversation",
+  "startPrompt": "Tap the microphone button below and say hello!",
+  "liveConversation": "Live Conversation...",
+  "tapToStart": "Tap to Start",
+  "clickToStop": "Click to stop",
+  "realTimeChat": "Real-time AI chat",
+  "pleaseWait": "Please wait...",
+  "loadingAudio": "Loading audio controls",
+  "characters": {
+    "friend": {
+      "name": "Friend",
+      "description": "A friendly companion for casual conversation"
+    },
+    "parent": {
+      "name": "Parent",
+      "description": "A caring parent figure who gives advice and support"
+    },
+    "sister": {
+      "name": "Sister",
+      "description": "A playful sister who shares daily life stories"
+    }
+  },
+  "errors": {
+    "failedToSendAudio": "Failed to send audio",
+    "recorderNotInitialized": "Audio recorder not initialized",
+    "failedToStartStreaming": "Failed to start streaming"
+  }
 }

@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Language } from "../types/types";
 
 const AuthScreen = () => {
+  const tAuth = useTranslations('auth');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const normalizedLocale = (
     Object.values(Language) as readonly string[]
@@ -22,7 +24,7 @@ const AuthScreen = () => {
 
   const handleLogin = async () => {
     if (!username.trim()) {
-      setError("Please enter a username to continue.");
+      setError(tAuth('usernameRequired'));
       return;
     }
 
@@ -36,7 +38,7 @@ const AuthScreen = () => {
       localStorage.setItem("user", JSON.stringify({ username, language }));
       router.push(`/${language}/talk`);
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(tAuth('errorGeneric'));
       setIsLoading(false);
     }
   };
@@ -63,17 +65,17 @@ const AuthScreen = () => {
           </div>
 
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
-            Talk & Learn
+            {tCommon('appName')}
           </h1>
           <p className="text-gray-600 font-medium">
-            Master languages with AI conversations
+            {tCommon('tagline')}
           </p>
         </div>
 
         <div className="space-y-6">
           <div className="group">
             <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
-              Username <span className="text-red-400">*</span>
+              {tAuth('usernameLabel')} <span className="text-red-400">*</span>
             </label>
             <div className="relative">
               <input
@@ -84,7 +86,7 @@ const AuthScreen = () => {
                   if (error) setError(null);
                 }}
                 className="w-full p-4 pl-5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-gray-800 placeholder-gray-400 shadow-sm group-hover:border-blue-300"
-                placeholder="Enter your username"
+                placeholder={tAuth('usernameHint')}
                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
               />
             </div>
@@ -92,7 +94,7 @@ const AuthScreen = () => {
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2 ml-1">
-              Target Language
+              {tAuth('targetLanguage')}
             </label>
             <div className="relative">
               <select
@@ -121,7 +123,7 @@ const AuthScreen = () => {
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2 ml-1">
-              Select the language you want to practice.
+              {tAuth('targetLanguageHint')}
             </p>
           </div>
 
@@ -159,17 +161,17 @@ const AuthScreen = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Starting...
+                  {tAuth('ctaLoading')}
                 </span>
               ) : (
-                "Start Learning"
+                tAuth('ctaStart')
               )}
             </button>
 
             {/* Tooltip/Help text for disabled button */}
             {!username.trim() && (
               <p className="text-center text-sm text-amber-600 mt-3 animate-pulse">
-                Please enter a username to start.
+                {tAuth('usernameRequiredShort')}
               </p>
             )}
 
@@ -197,24 +199,24 @@ const AuthScreen = () => {
 
         <div className="mt-8 pt-6 border-t border-gray-100">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-            Features
+            {tAuth('featuresTitle')}
           </h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex items-center text-sm text-gray-600">
               <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-              Voice AI
+              {tAuth('featureVoice')}
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
-              Real-time
+              {tAuth('featureRealtime')}
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
-              Multi-lang
+              {tAuth('featureMultilang')}
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <span className="w-2 h-2 bg-pink-400 rounded-full mr-2"></span>
-              Instant Feedback
+              {tAuth('featureFeedback')}
             </div>
           </div>
         </div>

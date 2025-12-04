@@ -1,6 +1,41 @@
 {
   "appName": "Talk & Learn",
-  "welcome": "Talkへようこそ",
+  "welcome": "ようこそ、{username}さん",
+  "welcomeDefault": "AI言語練習",
   "tagline": "AIとの会話で語学力を高めましょう",
-  "start": "学習を始める"
+  "start": "学習を始める",
+  "online": "オンライン",
+  "offline": "オフライン",
+  "connect": "接続",
+  "logout": "ログアウト",
+  "selectLanguage": "練習する言語を選択",
+  "selectCharacter": "AIキャラクターを選択",
+  "loadingProfile": "プロフィールを読み込み中...",
+  "startConversation": "会話を始める",
+  "startPrompt": "下のマイクボタンをタップして、挨拶してみましょう！",
+  "liveConversation": "会話中...",
+  "tapToStart": "タップして開始",
+  "clickToStop": "クリックして停止",
+  "realTimeChat": "リアルタイムAIチャット",
+  "pleaseWait": "お待ちください...",
+  "loadingAudio": "オーディオコントロールを読み込み中",
+  "characters": {
+    "friend": {
+      "name": "友達",
+      "description": "カジュアルな会話を楽しむフレンドリーな相手"
+    },
+    "parent": {
+      "name": "親",
+      "description": "アドバイスやサポートをしてくれる優しい親のような存在"
+    },
+    "sister": {
+      "name": "妹",
+      "description": "日常の話を共有する遊び心のある妹"
+    }
+  },
+  "errors": {
+    "failedToSendAudio": "音声の送信に失敗しました",
+    "recorderNotInitialized": "オーディオレコーダーが初期化されていません",
+    "failedToStartStreaming": "ストリーミングの開始に失敗しました"
+  }
 }
