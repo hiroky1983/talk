@@ -52,7 +52,7 @@ class LightController(AIController):
             # Generate content with audio
             char_config = CHARACTERS.get(character, CHARACTERS['friend'])
             
-            prompt = "Listen to the audio and respond naturally."
+            # prompt = "Listen to the audio and respond naturally."
             
             response = self.client.models.generate_content(
                 model=self.model_id,
@@ -60,7 +60,7 @@ class LightController(AIController):
                     types.Content(
                         parts=[
                             types.Part(text=char_config['system_instruction']),
-                            types.Part(text=prompt),
+                            types.Part(text=f"Listen to the audio and respond naturally in {language} language."),
                             types.Part(
                                 inline_data=types.Blob(
                                     mime_type="audio/wav",
@@ -80,6 +80,7 @@ class LightController(AIController):
 
             # 2. Text to Speech (using gTTS)
             # Note: gTTS is simple but robotic. Google Cloud TTS would be better if credentials allowed.
+            logger.info(f"Generating TTS for language: {language}")
             tts = gTTS(text=text_response, lang=language)
             mp3_io = io.BytesIO()
             tts.write_to_fp(mp3_io)
