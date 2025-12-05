@@ -13,7 +13,7 @@ export class AudioRecorder {
   private onSilenceCallback: (() => void) | null = null;
   
   private silenceThreshold = 0.01; // Volume threshold for silence detection
-  private silenceDuration = 2000; // 2 seconds of silence
+  private silenceDuration = 1000; // 1 second of silence
   private lastSoundTime = 0;
   private silenceCheckInterval: NodeJS.Timeout | null = null;
   private audioChunks: Uint8Array[] = [];
