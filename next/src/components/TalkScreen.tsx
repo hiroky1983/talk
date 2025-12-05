@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import TalkHeader from "./TalkHeader";
 import { Language } from "@/types/types";
-import { useGeminiLive } from "@/lib/audio/useGeminiLive";
+import { useWebSocketChat } from "@/lib/audio/useWebSocketChat";
 
 interface User {
   username: string;
@@ -71,13 +71,23 @@ const TalkScreen = () => {
   const router = useRouter();
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
-  // Use Gemini Live API hook
-  const { isConnected, isStreaming, error, startStreaming, stopStreaming } =
-    useGeminiLive({
+  // Use WebSocket Chat hook
+  const { isConnected, isStreaming, error, connect, disconnect, startStreaming, stopStreaming } =
+    useWebSocketChat({
       username: user?.username || "",
       language: selectedLanguage,
       character: selectedCharacter,
     });
+
+  // Auto-connect when user is present
+  useEffect(() => {
+    if (user) {
+      connect();
+    }
+    return () => {
+      disconnect();
+    };
+  }, [user, connect, disconnect]);
 
 
   const scrollToBottom = () => {

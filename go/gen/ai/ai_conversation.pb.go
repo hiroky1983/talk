@@ -72,40 +72,34 @@ func (PlanType) EnumDescriptor() ([]byte, []int) {
 }
 
 // AI Conversation message types
-type SendMessageRequest struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	UserId    string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Username  string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Language  string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`   // Language code (vi, en, ja)
-	Character string                 `protobuf:"bytes,7,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
-	// Types that are valid to be assigned to Plan:
-	//
-	//	*SendMessageRequest_PlanType
-	Plan isSendMessageRequest_Plan `protobuf_oneof:"plan"`
+// Request for the StreamChat bidirectional streaming RPC
+type ChatRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Content:
 	//
-	//	*SendMessageRequest_AudioData
-	//	*SendMessageRequest_TextMessage
-	Content       isSendMessageRequest_Content `protobuf_oneof:"content"`
-	Timestamp     *timestamppb.Timestamp       `protobuf:"bytes,6,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	//	*ChatRequest_Setup
+	//	*ChatRequest_AudioChunk
+	//	*ChatRequest_TextMessage
+	//	*ChatRequest_EndOfInput
+	Content       isChatRequest_Content `protobuf_oneof:"content"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SendMessageRequest) Reset() {
-	*x = SendMessageRequest{}
+func (x *ChatRequest) Reset() {
+	*x = ChatRequest{}
 	mi := &file_ai_ai_conversation_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SendMessageRequest) String() string {
+func (x *ChatRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SendMessageRequest) ProtoMessage() {}
+func (*ChatRequest) ProtoMessage() {}
 
-func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
+func (x *ChatRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_ai_ai_conversation_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -117,143 +111,188 @@ func (x *SendMessageRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SendMessageRequest.ProtoReflect.Descriptor instead.
-func (*SendMessageRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use ChatRequest.ProtoReflect.Descriptor instead.
+func (*ChatRequest) Descriptor() ([]byte, []int) {
 	return file_ai_ai_conversation_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SendMessageRequest) GetUserId() string {
+func (x *ChatRequest) GetContent() isChatRequest_Content {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+func (x *ChatRequest) GetSetup() *ChatConfiguration {
+	if x != nil {
+		if x, ok := x.Content.(*ChatRequest_Setup); ok {
+			return x.Setup
+		}
+	}
+	return nil
+}
+
+func (x *ChatRequest) GetAudioChunk() []byte {
+	if x != nil {
+		if x, ok := x.Content.(*ChatRequest_AudioChunk); ok {
+			return x.AudioChunk
+		}
+	}
+	return nil
+}
+
+func (x *ChatRequest) GetTextMessage() string {
+	if x != nil {
+		if x, ok := x.Content.(*ChatRequest_TextMessage); ok {
+			return x.TextMessage
+		}
+	}
+	return ""
+}
+
+func (x *ChatRequest) GetEndOfInput() bool {
+	if x != nil {
+		if x, ok := x.Content.(*ChatRequest_EndOfInput); ok {
+			return x.EndOfInput
+		}
+	}
+	return false
+}
+
+type isChatRequest_Content interface {
+	isChatRequest_Content()
+}
+
+type ChatRequest_Setup struct {
+	Setup *ChatConfiguration `protobuf:"bytes,1,opt,name=setup,proto3,oneof"` // First message must be setup
+}
+
+type ChatRequest_AudioChunk struct {
+	AudioChunk []byte `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3,oneof"` // Subsequent messages are audio chunks
+}
+
+type ChatRequest_TextMessage struct {
+	TextMessage string `protobuf:"bytes,3,opt,name=text_message,json=textMessage,proto3,oneof"` // Or text messages
+}
+
+type ChatRequest_EndOfInput struct {
+	EndOfInput bool `protobuf:"varint,4,opt,name=end_of_input,json=endOfInput,proto3,oneof"` // Signal that user finished speaking the current turn
+}
+
+func (*ChatRequest_Setup) isChatRequest_Content() {}
+
+func (*ChatRequest_AudioChunk) isChatRequest_Content() {}
+
+func (*ChatRequest_TextMessage) isChatRequest_Content() {}
+
+func (*ChatRequest_EndOfInput) isChatRequest_Content() {}
+
+type ChatConfiguration struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`   // Language code (vi, en, ja)
+	Character     string                 `protobuf:"bytes,4,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
+	PlanType      PlanType               `protobuf:"varint,5,opt,name=plan_type,json=planType,proto3,enum=ai.v1.PlanType" json:"plan_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ChatConfiguration) Reset() {
+	*x = ChatConfiguration{}
+	mi := &file_ai_ai_conversation_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChatConfiguration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChatConfiguration) ProtoMessage() {}
+
+func (x *ChatConfiguration) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_conversation_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChatConfiguration.ProtoReflect.Descriptor instead.
+func (*ChatConfiguration) Descriptor() ([]byte, []int) {
+	return file_ai_ai_conversation_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ChatConfiguration) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *SendMessageRequest) GetUsername() string {
+func (x *ChatConfiguration) GetUsername() string {
 	if x != nil {
 		return x.Username
 	}
 	return ""
 }
 
-func (x *SendMessageRequest) GetLanguage() string {
+func (x *ChatConfiguration) GetLanguage() string {
 	if x != nil {
 		return x.Language
 	}
 	return ""
 }
 
-func (x *SendMessageRequest) GetCharacter() string {
+func (x *ChatConfiguration) GetCharacter() string {
 	if x != nil {
 		return x.Character
 	}
 	return ""
 }
 
-func (x *SendMessageRequest) GetPlan() isSendMessageRequest_Plan {
+func (x *ChatConfiguration) GetPlanType() PlanType {
 	if x != nil {
-		return x.Plan
-	}
-	return nil
-}
-
-func (x *SendMessageRequest) GetPlanType() PlanType {
-	if x != nil {
-		if x, ok := x.Plan.(*SendMessageRequest_PlanType); ok {
-			return x.PlanType
-		}
+		return x.PlanType
 	}
 	return PlanType_PLAN_TYPE_FREE
 }
 
-func (x *SendMessageRequest) GetContent() isSendMessageRequest_Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
-func (x *SendMessageRequest) GetAudioData() []byte {
-	if x != nil {
-		if x, ok := x.Content.(*SendMessageRequest_AudioData); ok {
-			return x.AudioData
-		}
-	}
-	return nil
-}
-
-func (x *SendMessageRequest) GetTextMessage() string {
-	if x != nil {
-		if x, ok := x.Content.(*SendMessageRequest_TextMessage); ok {
-			return x.TextMessage
-		}
-	}
-	return ""
-}
-
-func (x *SendMessageRequest) GetTimestamp() *timestamppb.Timestamp {
-	if x != nil {
-		return x.Timestamp
-	}
-	return nil
-}
-
-type isSendMessageRequest_Plan interface {
-	isSendMessageRequest_Plan()
-}
-
-type SendMessageRequest_PlanType struct {
-	PlanType PlanType `protobuf:"varint,8,opt,name=plan_type,json=planType,proto3,enum=ai.v1.PlanType,oneof"`
-}
-
-func (*SendMessageRequest_PlanType) isSendMessageRequest_Plan() {}
-
-type isSendMessageRequest_Content interface {
-	isSendMessageRequest_Content()
-}
-
-type SendMessageRequest_AudioData struct {
-	AudioData []byte `protobuf:"bytes,4,opt,name=audio_data,json=audioData,proto3,oneof"` // Audio data for speech input
-}
-
-type SendMessageRequest_TextMessage struct {
-	TextMessage string `protobuf:"bytes,5,opt,name=text_message,json=textMessage,proto3,oneof"` // Text message input
-}
-
-func (*SendMessageRequest_AudioData) isSendMessageRequest_Content() {}
-
-func (*SendMessageRequest_TextMessage) isSendMessageRequest_Content() {}
-
-type SendMessageResponse struct {
+// Response for the StreamChat bidirectional streaming RPC
+type ChatResponse struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ResponseId string                 `protobuf:"bytes,1,opt,name=response_id,json=responseId,proto3" json:"response_id,omitempty"`
 	// Types that are valid to be assigned to Content:
 	//
-	//	*SendMessageResponse_AudioData
-	//	*SendMessageResponse_TextMessage
-	Content       isSendMessageResponse_Content `protobuf_oneof:"content"`
-	Language      string                        `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"` // Language of the response
-	Timestamp     *timestamppb.Timestamp        `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	IsFinal       bool                          `protobuf:"varint,6,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"` // Whether this is the final response for the request
+	//	*ChatResponse_AudioChunk
+	//	*ChatResponse_TextMessage
+	Content       isChatResponse_Content `protobuf_oneof:"content"`
+	Language      string                 `protobuf:"bytes,4,opt,name=language,proto3" json:"language,omitempty"`
+	Timestamp     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *SendMessageResponse) Reset() {
-	*x = SendMessageResponse{}
-	mi := &file_ai_ai_conversation_proto_msgTypes[1]
+func (x *ChatResponse) Reset() {
+	*x = ChatResponse{}
+	mi := &file_ai_ai_conversation_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *SendMessageResponse) String() string {
+func (x *ChatResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*SendMessageResponse) ProtoMessage() {}
+func (*ChatResponse) ProtoMessage() {}
 
-func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_ai_conversation_proto_msgTypes[1]
+func (x *ChatResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_ai_ai_conversation_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -264,106 +303,100 @@ func (x *SendMessageResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use SendMessageResponse.ProtoReflect.Descriptor instead.
-func (*SendMessageResponse) Descriptor() ([]byte, []int) {
-	return file_ai_ai_conversation_proto_rawDescGZIP(), []int{1}
+// Deprecated: Use ChatResponse.ProtoReflect.Descriptor instead.
+func (*ChatResponse) Descriptor() ([]byte, []int) {
+	return file_ai_ai_conversation_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *SendMessageResponse) GetResponseId() string {
+func (x *ChatResponse) GetResponseId() string {
 	if x != nil {
 		return x.ResponseId
 	}
 	return ""
 }
 
-func (x *SendMessageResponse) GetContent() isSendMessageResponse_Content {
+func (x *ChatResponse) GetContent() isChatResponse_Content {
 	if x != nil {
 		return x.Content
 	}
 	return nil
 }
 
-func (x *SendMessageResponse) GetAudioData() []byte {
+func (x *ChatResponse) GetAudioChunk() []byte {
 	if x != nil {
-		if x, ok := x.Content.(*SendMessageResponse_AudioData); ok {
-			return x.AudioData
+		if x, ok := x.Content.(*ChatResponse_AudioChunk); ok {
+			return x.AudioChunk
 		}
 	}
 	return nil
 }
 
-func (x *SendMessageResponse) GetTextMessage() string {
+func (x *ChatResponse) GetTextMessage() string {
 	if x != nil {
-		if x, ok := x.Content.(*SendMessageResponse_TextMessage); ok {
+		if x, ok := x.Content.(*ChatResponse_TextMessage); ok {
 			return x.TextMessage
 		}
 	}
 	return ""
 }
 
-func (x *SendMessageResponse) GetLanguage() string {
+func (x *ChatResponse) GetLanguage() string {
 	if x != nil {
 		return x.Language
 	}
 	return ""
 }
 
-func (x *SendMessageResponse) GetTimestamp() *timestamppb.Timestamp {
+func (x *ChatResponse) GetTimestamp() *timestamppb.Timestamp {
 	if x != nil {
 		return x.Timestamp
 	}
 	return nil
 }
 
-func (x *SendMessageResponse) GetIsFinal() bool {
-	if x != nil {
-		return x.IsFinal
-	}
-	return false
+type isChatResponse_Content interface {
+	isChatResponse_Content()
 }
 
-type isSendMessageResponse_Content interface {
-	isSendMessageResponse_Content()
+type ChatResponse_AudioChunk struct {
+	AudioChunk []byte `protobuf:"bytes,2,opt,name=audio_chunk,json=audioChunk,proto3,oneof"` // Streaming audio response
 }
 
-type SendMessageResponse_AudioData struct {
-	AudioData []byte `protobuf:"bytes,2,opt,name=audio_data,json=audioData,proto3,oneof"` // AI audio response
+type ChatResponse_TextMessage struct {
+	TextMessage string `protobuf:"bytes,3,opt,name=text_message,json=textMessage,proto3,oneof"` // Streaming text/transcript response
 }
 
-type SendMessageResponse_TextMessage struct {
-	TextMessage string `protobuf:"bytes,3,opt,name=text_message,json=textMessage,proto3,oneof"` // AI text response
-}
+func (*ChatResponse_AudioChunk) isChatResponse_Content() {}
 
-func (*SendMessageResponse_AudioData) isSendMessageResponse_Content() {}
-
-func (*SendMessageResponse_TextMessage) isSendMessageResponse_Content() {}
+func (*ChatResponse_TextMessage) isChatResponse_Content() {}
 
 var File_ai_ai_conversation_proto protoreflect.FileDescriptor
 
 const file_ai_ai_conversation_proto_rawDesc = "" +
 	"\n" +
-	"\x18ai/ai_conversation.proto\x12\x05ai.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc6\x02\n" +
-	"\x12SendMessageRequest\x12\x17\n" +
+	"\x18ai/ai_conversation.proto\x12\x05ai.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb6\x01\n" +
+	"\vChatRequest\x120\n" +
+	"\x05setup\x18\x01 \x01(\v2\x18.ai.v1.ChatConfigurationH\x00R\x05setup\x12!\n" +
+	"\vaudio_chunk\x18\x02 \x01(\fH\x00R\n" +
+	"audioChunk\x12#\n" +
+	"\ftext_message\x18\x03 \x01(\tH\x00R\vtextMessage\x12\"\n" +
+	"\fend_of_input\x18\x04 \x01(\bH\x00R\n" +
+	"endOfInputB\t\n" +
+	"\acontent\"\xb0\x01\n" +
+	"\x11ChatConfiguration\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
-	"\tcharacter\x18\a \x01(\tR\tcharacter\x12.\n" +
-	"\tplan_type\x18\b \x01(\x0e2\x0f.ai.v1.PlanTypeH\x00R\bplanType\x12\x1f\n" +
-	"\n" +
-	"audio_data\x18\x04 \x01(\fH\x01R\taudioData\x12#\n" +
-	"\ftext_message\x18\x05 \x01(\tH\x01R\vtextMessage\x128\n" +
-	"\ttimestamp\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestampB\x06\n" +
-	"\x04planB\t\n" +
-	"\acontent\"\xf8\x01\n" +
-	"\x13SendMessageResponse\x12\x1f\n" +
+	"\tcharacter\x18\x04 \x01(\tR\tcharacter\x12,\n" +
+	"\tplan_type\x18\x05 \x01(\x0e2\x0f.ai.v1.PlanTypeR\bplanType\"\xd8\x01\n" +
+	"\fChatResponse\x12\x1f\n" +
 	"\vresponse_id\x18\x01 \x01(\tR\n" +
-	"responseId\x12\x1f\n" +
-	"\n" +
-	"audio_data\x18\x02 \x01(\fH\x00R\taudioData\x12#\n" +
+	"responseId\x12!\n" +
+	"\vaudio_chunk\x18\x02 \x01(\fH\x00R\n" +
+	"audioChunk\x12#\n" +
 	"\ftext_message\x18\x03 \x01(\tH\x00R\vtextMessage\x12\x1a\n" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\x128\n" +
-	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x12\x19\n" +
-	"\bis_final\x18\x06 \x01(\bR\aisFinalB\t\n" +
+	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestampB\t\n" +
 	"\acontent*I\n" +
 	"\bPlanType\x12\x12\n" +
 	"\x0ePLAN_TYPE_FREE\x10\x00\x12\x12\n" +
@@ -384,17 +417,18 @@ func file_ai_ai_conversation_proto_rawDescGZIP() []byte {
 }
 
 var file_ai_ai_conversation_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_ai_ai_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_ai_ai_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_ai_ai_conversation_proto_goTypes = []any{
 	(PlanType)(0),                 // 0: ai.v1.PlanType
-	(*SendMessageRequest)(nil),    // 1: ai.v1.SendMessageRequest
-	(*SendMessageResponse)(nil),   // 2: ai.v1.SendMessageResponse
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*ChatRequest)(nil),           // 1: ai.v1.ChatRequest
+	(*ChatConfiguration)(nil),     // 2: ai.v1.ChatConfiguration
+	(*ChatResponse)(nil),          // 3: ai.v1.ChatResponse
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_ai_ai_conversation_proto_depIdxs = []int32{
-	0, // 0: ai.v1.SendMessageRequest.plan_type:type_name -> ai.v1.PlanType
-	3, // 1: ai.v1.SendMessageRequest.timestamp:type_name -> google.protobuf.Timestamp
-	3, // 2: ai.v1.SendMessageResponse.timestamp:type_name -> google.protobuf.Timestamp
+	2, // 0: ai.v1.ChatRequest.setup:type_name -> ai.v1.ChatConfiguration
+	0, // 1: ai.v1.ChatConfiguration.plan_type:type_name -> ai.v1.PlanType
+	4, // 2: ai.v1.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
 	3, // [3:3] is the sub-list for extension type_name
@@ -408,13 +442,14 @@ func file_ai_ai_conversation_proto_init() {
 		return
 	}
 	file_ai_ai_conversation_proto_msgTypes[0].OneofWrappers = []any{
-		(*SendMessageRequest_PlanType)(nil),
-		(*SendMessageRequest_AudioData)(nil),
-		(*SendMessageRequest_TextMessage)(nil),
+		(*ChatRequest_Setup)(nil),
+		(*ChatRequest_AudioChunk)(nil),
+		(*ChatRequest_TextMessage)(nil),
+		(*ChatRequest_EndOfInput)(nil),
 	}
-	file_ai_ai_conversation_proto_msgTypes[1].OneofWrappers = []any{
-		(*SendMessageResponse_AudioData)(nil),
-		(*SendMessageResponse_TextMessage)(nil),
+	file_ai_ai_conversation_proto_msgTypes[2].OneofWrappers = []any{
+		(*ChatResponse_AudioChunk)(nil),
+		(*ChatResponse_TextMessage)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -422,7 +457,7 @@ func file_ai_ai_conversation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_ai_conversation_proto_rawDesc), len(file_ai_ai_conversation_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

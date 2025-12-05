@@ -5,30 +5,33 @@ package ai.v1;
 import "google/protobuf/timestamp.proto";
 
 // AI Conversation message types
-message SendMessageRequest {
+// Request for the StreamChat bidirectional streaming RPC
+message ChatRequest {
+  oneof content {
+    ChatConfiguration setup = 1; // First message must be setup
+    bytes audio_chunk = 2;      // Subsequent messages are audio chunks
+    string text_message = 3;    // Or text messages
+    bool end_of_input = 4;      // Signal that user finished speaking the current turn
+  }
+}
+
+message ChatConfiguration {
   string user_id = 1;
   string username = 2;
   string language = 3; // Language code (vi, en, ja)
-  string character = 7; // Character type (friend, parent, sister)
-  oneof plan {
-    PlanType plan_type = 8;
-  }
-  oneof content {
-    bytes audio_data = 4; // Audio data for speech input
-    string text_message = 5; // Text message input
-  }
-  google.protobuf.Timestamp timestamp = 6;
+  string character = 4; // Character type (friend, parent, sister)
+  PlanType plan_type = 5;
 }
 
-message SendMessageResponse {
+// Response for the StreamChat bidirectional streaming RPC
+message ChatResponse {
   string response_id = 1;
   oneof content {
-    bytes audio_data = 2; // AI audio response
-    string text_message = 3; // AI text response
+    bytes audio_chunk = 2;      // Streaming audio response
+    string text_message = 3;    // Streaming text/transcript response
   }
-  string language = 4; // Language of the response
+  string language = 4;
   google.protobuf.Timestamp timestamp = 5;
-  bool is_final = 6; // Whether this is the final response for the request
 }
 
 

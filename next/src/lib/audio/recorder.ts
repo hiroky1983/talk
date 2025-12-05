@@ -51,7 +51,16 @@ export class AudioRecorder {
     this.sourceNode.connect(this.analyserNode);
 
     // Load and create AudioWorklet for processing
-    await this.audioContext.audioWorklet.addModule("/audio-processor.js");
+    try {
+        const workletUrl = new URL("/audio-processor.js", window.location.origin).toString();
+        // Check if module is already added by trying to create node first? 
+        // No, just addModule. It resolves if already added.
+        await this.audioContext.audioWorklet.addModule(workletUrl);
+    } catch (e) {
+        console.error("Failed to load audio-processor.js from", window.location.origin, e);
+        throw new Error(`Failed to load audio processor: ${e instanceof Error ? e.message : String(e)}`);
+    }
+
     this.workletNode = new AudioWorkletNode(
       this.audioContext,
       "audio-processor"

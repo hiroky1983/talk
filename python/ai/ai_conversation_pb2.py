@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x61i/ai_conversation.proto\x12\x05\x61i.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc6\x02\n\x12SendMessageRequest\x12\x17\n\x07user_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n\x08username\x18\x02 \x01(\tR\x08username\x12\x1a\n\x08language\x18\x03 \x01(\tR\x08language\x12\x1c\n\tcharacter\x18\x07 \x01(\tR\tcharacter\x12.\n\tplan_type\x18\x08 \x01(\x0e\x32\x0f.ai.v1.PlanTypeH\x00R\x08planType\x12\x1f\n\naudio_data\x18\x04 \x01(\x0cH\x01R\taudioData\x12#\n\x0ctext_message\x18\x05 \x01(\tH\x01R\x0btextMessage\x12\x38\n\ttimestamp\x18\x06 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestampB\x06\n\x04planB\t\n\x07\x63ontent\"\xf8\x01\n\x13SendMessageResponse\x12\x1f\n\x0bresponse_id\x18\x01 \x01(\tR\nresponseId\x12\x1f\n\naudio_data\x18\x02 \x01(\x0cH\x00R\taudioData\x12#\n\x0ctext_message\x18\x03 \x01(\tH\x00R\x0btextMessage\x12\x1a\n\x08language\x18\x04 \x01(\tR\x08language\x12\x38\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestamp\x12\x19\n\x08is_final\x18\x06 \x01(\x08R\x07isFinalB\t\n\x07\x63ontent*I\n\x08PlanType\x12\x12\n\x0ePLAN_TYPE_FREE\x10\x00\x12\x12\n\x0ePLAN_TYPE_LITE\x10\x01\x12\x15\n\x11PLAN_TYPE_PREMIUM\x10\x02\x42\x80\x01\n\tcom.ai.v1B\x13\x41iConversationProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18\x61i/ai_conversation.proto\x12\x05\x61i.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb6\x01\n\x0b\x43hatRequest\x12\x30\n\x05setup\x18\x01 \x01(\x0b\x32\x18.ai.v1.ChatConfigurationH\x00R\x05setup\x12!\n\x0b\x61udio_chunk\x18\x02 \x01(\x0cH\x00R\naudioChunk\x12#\n\x0ctext_message\x18\x03 \x01(\tH\x00R\x0btextMessage\x12\"\n\x0c\x65nd_of_input\x18\x04 \x01(\x08H\x00R\nendOfInputB\t\n\x07\x63ontent\"\xb0\x01\n\x11\x43hatConfiguration\x12\x17\n\x07user_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n\x08username\x18\x02 \x01(\tR\x08username\x12\x1a\n\x08language\x18\x03 \x01(\tR\x08language\x12\x1c\n\tcharacter\x18\x04 \x01(\tR\tcharacter\x12,\n\tplan_type\x18\x05 \x01(\x0e\x32\x0f.ai.v1.PlanTypeR\x08planType\"\xd8\x01\n\x0c\x43hatResponse\x12\x1f\n\x0bresponse_id\x18\x01 \x01(\tR\nresponseId\x12!\n\x0b\x61udio_chunk\x18\x02 \x01(\x0cH\x00R\naudioChunk\x12#\n\x0ctext_message\x18\x03 \x01(\tH\x00R\x0btextMessage\x12\x1a\n\x08language\x18\x04 \x01(\tR\x08language\x12\x38\n\ttimestamp\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.TimestampR\ttimestampB\t\n\x07\x63ontent*I\n\x08PlanType\x12\x12\n\x0ePLAN_TYPE_FREE\x10\x00\x12\x12\n\x0ePLAN_TYPE_LITE\x10\x01\x12\x15\n\x11PLAN_TYPE_PREMIUM\x10\x02\x42\x80\x01\n\tcom.ai.v1B\x13\x41iConversationProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,10 +33,12 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ai.ai_conversation_pb2', _g
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\tcom.ai.v1B\023AiConversationProtoP\001Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\242\002\003AXX\252\002\005Ai.V1\312\002\005Ai\\V1\342\002\021Ai\\V1\\GPBMetadata\352\002\006Ai::V1'
-  _globals['_PLANTYPE']._serialized_start=648
-  _globals['_PLANTYPE']._serialized_end=721
-  _globals['_SENDMESSAGEREQUEST']._serialized_start=69
-  _globals['_SENDMESSAGEREQUEST']._serialized_end=395
-  _globals['_SENDMESSAGERESPONSE']._serialized_start=398
-  _globals['_SENDMESSAGERESPONSE']._serialized_end=646
+  _globals['_PLANTYPE']._serialized_start=651
+  _globals['_PLANTYPE']._serialized_end=724
+  _globals['_CHATREQUEST']._serialized_start=69
+  _globals['_CHATREQUEST']._serialized_end=251
+  _globals['_CHATCONFIGURATION']._serialized_start=254
+  _globals['_CHATCONFIGURATION']._serialized_end=430
+  _globals['_CHATRESPONSE']._serialized_start=433
+  _globals['_CHATRESPONSE']._serialized_end=649
 # @@protoc_insertion_point(module_scope)

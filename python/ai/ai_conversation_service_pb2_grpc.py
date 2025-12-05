@@ -15,10 +15,10 @@ class AIConversationServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.SendMessage = channel.unary_stream(
-                '/ai.v1.AIConversationService/SendMessage',
-                request_serializer=ai_dot_ai__conversation__pb2.SendMessageRequest.SerializeToString,
-                response_deserializer=ai_dot_ai__conversation__pb2.SendMessageResponse.FromString,
+        self.StreamChat = channel.stream_stream(
+                '/ai.v1.AIConversationService/StreamChat',
+                request_serializer=ai_dot_ai__conversation__pb2.ChatRequest.SerializeToString,
+                response_deserializer=ai_dot_ai__conversation__pb2.ChatResponse.FromString,
                 _registered_method=True)
 
 
@@ -26,8 +26,9 @@ class AIConversationServiceServicer(object):
     """AI Conversation Service
     """
 
-    def SendMessage(self, request, context):
+    def StreamChat(self, request_iterator, context):
         """Sends a message to the AI and receives a streaming response
+        Establishes a bidirectional stream for conversation (audio/text)
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -36,10 +37,10 @@ class AIConversationServiceServicer(object):
 
 def add_AIConversationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'SendMessage': grpc.unary_stream_rpc_method_handler(
-                    servicer.SendMessage,
-                    request_deserializer=ai_dot_ai__conversation__pb2.SendMessageRequest.FromString,
-                    response_serializer=ai_dot_ai__conversation__pb2.SendMessageResponse.SerializeToString,
+            'StreamChat': grpc.stream_stream_rpc_method_handler(
+                    servicer.StreamChat,
+                    request_deserializer=ai_dot_ai__conversation__pb2.ChatRequest.FromString,
+                    response_serializer=ai_dot_ai__conversation__pb2.ChatResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -54,7 +55,7 @@ class AIConversationService(object):
     """
 
     @staticmethod
-    def SendMessage(request,
+    def StreamChat(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -64,12 +65,12 @@ class AIConversationService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(
-            request,
+        return grpc.experimental.stream_stream(
+            request_iterator,
             target,
-            '/ai.v1.AIConversationService/SendMessage',
-            ai_dot_ai__conversation__pb2.SendMessageRequest.SerializeToString,
-            ai_dot_ai__conversation__pb2.SendMessageResponse.FromString,
+            '/ai.v1.AIConversationService/StreamChat',
+            ai_dot_ai__conversation__pb2.ChatRequest.SerializeToString,
+            ai_dot_ai__conversation__pb2.ChatResponse.FromString,
             options,
             channel_credentials,
             insecure,

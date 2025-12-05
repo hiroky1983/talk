@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
+	"github.com/hiroky1983/talk/go/internal/websocket"
 	"github.com/hiroky1983/talk/go/middleware"
 )
 
@@ -56,8 +56,8 @@ func main() {
 	// Create AI service
 	aiService := NewAIConversationService()
 
-	// Create Connect RPC handlers
-	aiPath, aiHandler := appv1connect.NewAIConversationServiceHandler(aiService)
+	// Create WebSocket handler
+	wsHandler := websocket.NewHandler(aiService)
 
 	// Create Gin router
 	router := gin.Default()
@@ -76,7 +76,7 @@ func main() {
 	// Apply authentication middleware to all routes except health checks and preflight requests
 	router.Use(func(c *gin.Context) {
 		// Skip authentication for health check endpoints and CORS preflight requests
-		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" || c.Request.Method == "OPTIONS" {
+		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" || c.Request.URL.Path == "/ws/chat" || c.Request.Method == "OPTIONS" {
 			c.Next()
 			return
 		}
@@ -106,6 +106,9 @@ func main() {
 			"message": "AI Language Learning API Server - gRPC streaming enabled!",
 		})
 	})
+
+	// WebSocket endpoint
+	router.GET("/ws/chat", wsHandler.HandleConnection)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "healthy - AI conversation service running",
@@ -113,12 +116,10 @@ func main() {
 	})
 
 	// Mount Connect RPC handler with wildcard to match all methods
-	router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))
+	// router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))
 
 	log.Println("Starting AI Language Learning server on :8000")
-	log.Println("Connect RPC service available at:", aiPath)
-	log.Println("AI Conversation service endpoints:")
-	log.Printf("  - %sSendMessage", aiPath)
+	log.Println("WebSocket service available at: /ws/chat")
 
 	// Use h2c for HTTP/2 without TLS (required for streaming)
 	server := &http.Server{

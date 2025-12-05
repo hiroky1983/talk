@@ -17,6 +17,56 @@ class AIConversationService:
         if not self.api_key:
             logger.error("GOOGLE_GEMINI_API_KEY not found in environment variables")
 
+    async def stream_chat(self, request_iterator, config):
+        """
+        Handle bidirectional streaming chat.
+        For now, we act as a bridge:
+        1. Accumulate audio chunks from request_iterator (simulating VAD end or stream end)
+        2. Pass to process_audio_message
+        3. Yield results
+        
+        In the future, this should pass the iterator down to a True bidirectional controller.
+        """
+        from ai import ai_conversation_pb2 as ai_pb2
+        from google.protobuf.timestamp_pb2 import Timestamp
+        import uuid
+
+        audio_buffer = bytearray()
+        
+        try:
+            async for request in request_iterator:
+                content_type = request.WhichOneof('content')
+                
+                if content_type == 'audio_chunk':
+                    audio_buffer.extend(request.audio_chunk)
+                    
+                elif content_type == 'end_of_input':
+                    logger.info("End of input received, processing audio...")
+                    if len(audio_buffer) > 0:
+                        async for chunk in self.process_audio_message(
+                            bytes(audio_buffer), 
+                            config.language, 
+                            config.user_id, 
+                            config.character, 
+                            config.plan_type
+                        ):
+                            timestamp = Timestamp()
+                            timestamp.GetCurrentTime()
+                            
+                            yield ai_pb2.ChatResponse(
+                                response_id=str(uuid.uuid4()),
+                                language=config.language,
+                                timestamp=timestamp,
+                                audio_chunk=chunk
+                            )
+                        # Clear buffer for next turn
+                        audio_buffer = bytearray()
+                        
+                elif content_type == 'text_message':
+                    pass
+        except Exception as e:
+            logger.error(f"Error receiving stream: {e}")
+
     async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend', plan_type: int = 2):
         """Process audio message using the selected controller
         

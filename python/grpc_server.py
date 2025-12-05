@@ -33,47 +33,46 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
     def __init__(self):
         self.ai_service = AIConversationService()
 
-    async def SendMessage(self, request, context):
-        """Process a single message and return response"""
+    async def StreamChat(self, request_iterator, context):
+        """Bidirectional streaming chat"""
         try:
-            # Check content type using oneof
-            content_type = request.WhichOneof('content')
-
-            if content_type != 'audio_data':
+            # First message should be setup
+            first_msg = await request_iterator.__anext__()
+            if first_msg.WhichOneof('content') != 'setup':
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-                context.set_details("Only audio_data is supported")
-                yield ai_pb2.SendMessageResponse()
+                context.set_details("First message must be setup configuration")
+                return
 
-            logger.info(f"Received audio data: {len(request.audio_data)} bytes")
+            config = first_msg.setup
+            logger.info(f"Starting chat for user {config.username} ({config.user_id})")
+
+            # Accumulate audio chunks for now (Echo logic mainly, since we are mimicking previous behavior)
+            # In a real Gemini Live implementation, we'd pass the iterator directly to the AI service
+            # For now, let's just read chunks and process them when we get enough or satisfy previous logic
+            # OR pass the iterator to a new streaming method in ai_service
             
-            # Process audio using AI service - returns an async generator
-            async for chunk in self.ai_service.process_audio_message(
-                request.audio_data,
-                request.language,
-                request.user_id,
-                request.character,
-                request.plan_type
+            # Since AIConversationService.process_audio_message expects a full blob (previous logic),
+            # we might need to change ai_service or accumulate here.
+            # To unblock the "connection", let's accumulate here simplistically or call a new method.
+            
+            # Let's try to assume we just want to bridge for now.
+            # But wait, previous logic was: One Request -> Stream Response.
+            # New logic is: Stream Request -> Stream Response.
+            
+            # Temporary: Accumulate all audio until stream ends (?) or some silence?
+            # Go side sends chunks as they come.
+            # Let's just process chunks as a stream in the service.
+            
+            async for response in self.ai_service.stream_chat(
+                request_iterator,
+                config
             ):
-                logger.info(f"Generated audio chunk: {len(chunk)} bytes")
-
-                # Create response with audio chunk
-                response = ai_pb2.SendMessageResponse(
-                    response_id=str(uuid.uuid4()),
-                    language=request.language,
-                    timestamp=create_timestamp(),
-                    is_final=False, 
-                    audio_data=chunk
-                )
                 yield response
 
         except Exception as e:
-            error_msg = str(e)
-            logger.error(f"SendMessage error: {error_msg}")
-
-            # Return proper gRPC error
+            logger.error(f"StreamChat error: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
-            context.set_details(f"AI service error: {error_msg}")
-            yield ai_pb2.SendMessageResponse()
+            context.set_details(f"StreamChat error: {str(e)}")
 
 async def serve():
     """Start the gRPC server"""

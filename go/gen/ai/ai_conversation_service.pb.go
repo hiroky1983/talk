@@ -24,18 +24,19 @@ var File_ai_ai_conversation_service_proto protoreflect.FileDescriptor
 
 const file_ai_ai_conversation_service_proto_rawDesc = "" +
 	"\n" +
-	" ai/ai_conversation_service.proto\x12\x05ai.v1\x1a\x18ai/ai_conversation.proto2a\n" +
-	"\x15AIConversationService\x12H\n" +
-	"\vSendMessage\x12\x19.ai.v1.SendMessageRequest\x1a\x1a.ai.v1.SendMessageResponse\"\x000\x01B\x87\x01\n" +
+	" ai/ai_conversation_service.proto\x12\x05ai.v1\x1a\x18ai/ai_conversation.proto2T\n" +
+	"\x15AIConversationService\x12;\n" +
+	"\n" +
+	"StreamChat\x12\x12.ai.v1.ChatRequest\x1a\x13.ai.v1.ChatResponse\"\x00(\x010\x01B\x87\x01\n" +
 	"\tcom.ai.v1B\x1aAiConversationServiceProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03AXX\xaa\x02\x05Ai.V1\xca\x02\x05Ai\\V1\xe2\x02\x11Ai\\V1\\GPBMetadata\xea\x02\x06Ai::V1b\x06proto3"
 
 var file_ai_ai_conversation_service_proto_goTypes = []any{
-	(*SendMessageRequest)(nil),  // 0: ai.v1.SendMessageRequest
-	(*SendMessageResponse)(nil), // 1: ai.v1.SendMessageResponse
+	(*ChatRequest)(nil),  // 0: ai.v1.ChatRequest
+	(*ChatResponse)(nil), // 1: ai.v1.ChatResponse
 }
 var file_ai_ai_conversation_service_proto_depIdxs = []int32{
-	0, // 0: ai.v1.AIConversationService.SendMessage:input_type -> ai.v1.SendMessageRequest
-	1, // 1: ai.v1.AIConversationService.SendMessage:output_type -> ai.v1.SendMessageResponse
+	0, // 0: ai.v1.AIConversationService.StreamChat:input_type -> ai.v1.ChatRequest
+	1, // 1: ai.v1.AIConversationService.StreamChat:output_type -> ai.v1.ChatResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

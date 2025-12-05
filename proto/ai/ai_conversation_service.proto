@@ -7,6 +7,7 @@ import "ai/ai_conversation.proto";
 // AI Conversation Service
 service AIConversationService {
   // Sends a message to the AI and receives a streaming response
-  rpc SendMessage(SendMessageRequest) returns (stream SendMessageResponse) {};
+  // Establishes a bidirectional stream for conversation (audio/text)
+  rpc StreamChat(stream ChatRequest) returns (stream ChatResponse) {};
   
 }
