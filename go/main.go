@@ -80,8 +80,24 @@ func main() {
 			c.Next()
 			return
 		}
-		// Apply authentication middleware for all other routes
-		middleware.AuthMiddleware()(c)
+
+		// Extract user_id from X-User-ID header
+		userID := c.GetHeader(middleware.UserIDHeader)
+
+		// Validate that user_id is present
+		if userID == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "Unauthorized: user_id is required",
+			})
+			c.Abort()
+			return
+		}
+
+		// Store user_id in context for downstream handlers
+		c.Set(middleware.UserIDKey, userID)
+
+		// Continue to next handler
+		c.Next()
 	})
 
 	// Regular HTTP endpoints

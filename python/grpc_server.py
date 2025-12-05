@@ -42,7 +42,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             if content_type != 'audio_data':
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details("Only audio_data is supported")
-                return ai_pb2.AIConversationResponse()
+                return ai_pb2.SendMessageResponse()
 
             logger.info(f"Received audio data: {len(request.audio_data)} bytes")
             
@@ -58,7 +58,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             logger.info(f"Generated audio response: {len(response_audio)} bytes")
 
             # Create response with audio only
-            response = ai_pb2.AIConversationResponse(
+            response = ai_pb2.SendMessageResponse(
                 response_id=str(uuid.uuid4()),
                 language=request.language,
                 timestamp=create_timestamp(),
@@ -74,7 +74,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             # Return proper gRPC error
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"AI service error: {error_msg}")
-            return ai_pb2.AIConversationResponse()
+            return ai_pb2.SendMessageResponse()
 
 async def serve():
     """Start the gRPC server"""

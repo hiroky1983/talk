@@ -16,6 +16,16 @@ interface ConversationVariables {
 export const useConversationMutation = () => {
   const transport = createConnectTransport({
     baseUrl: "http://localhost:8000",
+    interceptors: [
+      (next) => async (req) => {
+        // Extract user_id from the request message and add to headers for authentication
+        const message = req.message as { userId?: string };
+        if (message.userId) {
+          req.header.set("X-User-ID", message.userId);
+        }
+        return await next(req);
+      },
+    ],
   });
   const client = createClient(AIConversationService, transport);
 
