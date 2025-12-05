@@ -55,22 +55,24 @@ export const useGeminiLive = ({
     try {
       console.log("Sending audio to backend:", audioData.length, "bytes");
 
-      const response = await conversationMutation.mutateAsync({
+      const responseGenerator = conversationMutation.mutateAsync({
         username,
         language,
         character,
         audioData,
       });
 
-      // Only play audio response if audio data exists and has content
-      if (response.content?.case === "audioData" &&
-          response.content.value &&
-          response.content.value.length > 0 &&
-          playerRef.current) {
-        await playerRef.current.play(response.content.value);
-        console.log("Received and playing audio response");
-      } else {
-        console.log("Received response but no audio data");
+      for await (const response of responseGenerator) {
+        // Only play audio response if audio data exists and has content
+        if (response.content?.case === "audioData" &&
+            response.content.value &&
+            response.content.value.length > 0 &&
+            playerRef.current) {
+          await playerRef.current.play(response.content.value);
+          console.log("Received and playing audio response chunk");
+        } else {
+          console.log("Received response but no audio data");
+        }
       }
     } catch (err) {
       console.error("Failed to send audio:", err);

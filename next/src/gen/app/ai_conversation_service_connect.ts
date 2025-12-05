@@ -15,7 +15,7 @@ export const AIConversationService = {
   typeName: "app.v1.AIConversationService",
   methods: {
     /**
-     * Send a single message and get response (unary)
+     * Sends a message to the AI and receives a streaming response
      *
      * @generated from rpc app.v1.AIConversationService.SendMessage
      */
@@ -23,7 +23,7 @@ export const AIConversationService = {
       name: "SendMessage",
       I: SendMessageRequest,
       O: SendMessageResponse,
-      kind: MethodKind.Unary,
+      kind: MethodKind.ServerStreaming,
     },
   }
 } as const;

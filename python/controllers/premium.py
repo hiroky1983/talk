@@ -92,30 +92,27 @@ class GeminiLiveSession:
             logger.error(f"Error in receive loop: {e}")
             await self.response_queue.put(None)
 
-    async def process_audio(self, audio_data: bytes) -> bytes:
-        """Send audio and wait for response"""
+    async def process_audio(self, audio_data: bytes):
+        """Send audio and yield response chunks"""
         if not self.session:
             await self.connect()
 
         # Send audio chunk
         await self.session.send(input=audio_data, end_of_turn=True)
         
-        # Collect response audio
-        audio_chunks = []
+        # Yield response audio chunks as they arrive
         while True:
             try:
                 chunk = await asyncio.wait_for(self.response_queue.get(), timeout=10.0)
                 if chunk is None:
                     break
-                audio_chunks.append(chunk)
+                yield chunk
             except asyncio.TimeoutError:
                 logger.warning("Timeout waiting for audio response")
                 break
             except Exception as e:
                 logger.error(f"Error receiving audio: {e}")
                 break
-        
-        return b"".join(audio_chunks)
 
     async def close(self):
         if self._receive_task:
@@ -163,12 +160,12 @@ class PremiumController(AIController):
             
         return self.sessions[session_key]
 
-    async def process_audio(self, audio_data: bytes, language: str, user_id: str, character: str) -> bytes:
+    async def process_audio(self, audio_data: bytes, language: str, user_id: str, character: str):
         """Process audio message using Gemini Live API"""
         try:
             session = await self.get_session(user_id, character)
-            response_audio = await session.process_audio(audio_data)
-            return response_audio
+            async for chunk in session.process_audio(audio_data):
+                yield chunk
         except Exception as e:
             logger.error(f"Error processing audio message in PremiumController: {e}")
             # Clean up session on error

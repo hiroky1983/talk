@@ -15,7 +15,7 @@ class AIConversationServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.SendMessage = channel.unary_unary(
+        self.SendMessage = channel.unary_stream(
                 '/ai.v1.AIConversationService/SendMessage',
                 request_serializer=ai_dot_ai__conversation__pb2.SendMessageRequest.SerializeToString,
                 response_deserializer=ai_dot_ai__conversation__pb2.SendMessageResponse.FromString,
@@ -27,7 +27,7 @@ class AIConversationServiceServicer(object):
     """
 
     def SendMessage(self, request, context):
-        """Send a single message and get response (unary)
+        """Sends a message to the AI and receives a streaming response
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -36,7 +36,7 @@ class AIConversationServiceServicer(object):
 
 def add_AIConversationServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'SendMessage': grpc.unary_unary_rpc_method_handler(
+            'SendMessage': grpc.unary_stream_rpc_method_handler(
                     servicer.SendMessage,
                     request_deserializer=ai_dot_ai__conversation__pb2.SendMessageRequest.FromString,
                     response_serializer=ai_dot_ai__conversation__pb2.SendMessageResponse.SerializeToString,
@@ -64,7 +64,7 @@ class AIConversationService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(
+        return grpc.experimental.unary_stream(
             request,
             target,
             '/ai.v1.AIConversationService/SendMessage',

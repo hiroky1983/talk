@@ -24,9 +24,9 @@ var File_app_ai_conversation_service_proto protoreflect.FileDescriptor
 
 const file_app_ai_conversation_service_proto_rawDesc = "" +
 	"\n" +
-	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto2_\n" +
-	"\x15AIConversationService\x12F\n" +
-	"\vSendMessage\x12\x1a.app.v1.SendMessageRequest\x1a\x1b.app.v1.SendMessageResponseB\x8e\x01\n" +
+	"!app/ai_conversation_service.proto\x12\x06app.v1\x1a\x19app/ai_conversation.proto2c\n" +
+	"\x15AIConversationService\x12J\n" +
+	"\vSendMessage\x12\x1a.app.v1.SendMessageRequest\x1a\x1b.app.v1.SendMessageResponse\"\x000\x01B\x8e\x01\n" +
 	"\n" +
 	"com.app.v1B\x1aAiConversationServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 

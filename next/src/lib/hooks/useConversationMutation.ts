@@ -29,8 +29,8 @@ export const useConversationMutation = () => {
   });
   const client = createClient(AIConversationService, transport);
 
-  return useMutation<SendMessageResponse, Error, ConversationVariables>({
-    mutationFn: async ({ username, language, character, audioData }) => {
+  const mutateAsync = async function* ({ username, language, character, audioData }: ConversationVariables) {
+    try {
       const request = create(SendMessageRequestSchema, {
         userId: `user_${username}`,
         username,
@@ -43,15 +43,23 @@ export const useConversationMutation = () => {
         },
       });
 
-      return await client.sendMessage(request);
-    },
-    onError: (error) => {
+      for await (const response of client.sendMessage(request, {
+        headers: {
+          "X-User-ID": `user_${username}`,
+        }
+      })) {
+        yield response;
+      }
+    } catch (error) {
       console.error("Failed to send audio:", error);
-      // Extract meaningful error message
-      if (error.message.includes("429") || error.message.includes("RESOURCE_EXHAUSTED")) {
-        throw new Error("API quota exceeded. Please wait a moment and try again.");
+      if (error instanceof Error) {
+        if (error.message.includes("429") || error.message.includes("RESOURCE_EXHAUSTED")) {
+          throw new Error("API quota exceeded. Please wait a moment and try again.");
+        }
       }
       throw error;
-    },
-  });
+    }
+  };
+
+  return { mutateAsync };
 };

@@ -17,11 +17,13 @@ class AIConversationService:
         if not self.api_key:
             logger.error("GOOGLE_GEMINI_API_KEY not found in environment variables")
 
-    async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend', plan_type: int = 2) -> bytes:
+    async def process_audio_message(self, audio_data: bytes, language: str, user_id: str, character: str = 'friend', plan_type: int = 2):
         """Process audio message using the selected controller
         
         Args:
             plan_type: PlanType enum value (0=FREE, 1=LITE, 2=PREMIUM)
+        Yields:
+            bytes: Audio chunks
         """
         try:
             # Import here to avoid circular dependency
@@ -35,8 +37,9 @@ class AIConversationService:
             
             logger.info(f"Using {controller.__class__.__name__} for plan_type={plan_type}")
                 
-            return await controller.process_audio(audio_data, language, user_id, character)
+            async for chunk in controller.process_audio(audio_data, language, user_id, character):
+                yield chunk
             
         except Exception as e:
             logger.error(f"Error processing audio message: {e}")
-            return b""
+            yield b""

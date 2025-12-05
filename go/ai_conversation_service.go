@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -64,21 +65,22 @@ func NewAIConversationService() *AIConversationService {
 	return service
 }
 
-// SendMessage processes a single message and returns a response
+// SendMessage processes a single message and streams back responses
 func (s *AIConversationService) SendMessage(
 	ctx context.Context,
 	req *connect.Request[app.SendMessageRequest],
-) (*connect.Response[app.SendMessageResponse], error) {
+	stream *connect.ServerStream[app.SendMessageResponse],
+) error {
 	// Extract user_id from context (set by AuthMiddleware)
 	userID, ok := ctx.Value(middleware.UserIDKey).(string)
 	if !ok || userID == "" {
-		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user_id not found in context"))
+		return connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("user_id not found in context"))
 	}
 
 	log.Printf("Processing message from user %s (ID: %s) in language %s with character %s", req.Msg.Username, userID, req.Msg.Language, req.Msg.Character)
 
 	if s.grpcClient == nil {
-		return nil, connect.NewError(connect.CodeUnavailable, fmt.Errorf("AI service is not available"))
+		return connect.NewError(connect.CodeUnavailable, fmt.Errorf("AI service is not available"))
 	}
 
 	// Map app request to ai request
@@ -88,7 +90,7 @@ func (s *AIConversationService) SendMessage(
 		Language:  req.Msg.Language,
 		Character: req.Msg.Character,
 		Timestamp: req.Msg.Timestamp,
-		Plan:      &ai.SendMessageRequest_PlanType{PlanType: ai.PlanType_PLAN_TYPE_LITE},
+		Plan:      &ai.SendMessageRequest_PlanType{PlanType: ai.PlanType_PLAN_TYPE_LITE}, // Use LITE plan (gTTS)
 	}
 
 	if audioData, ok := req.Msg.Content.(*app.SendMessageRequest_AudioData); ok {
@@ -101,50 +103,50 @@ func (s *AIConversationService) SendMessage(
 		}
 	}
 
-	// Call Python gRPC service
-	grpcResp, err := s.grpcClient.SendMessage(ctx, aiReq)
-
+	// Call Python gRPC service (returns a stream)
+	grpcStream, err := s.grpcClient.SendMessage(ctx, aiReq)
 	if err != nil {
 		log.Printf("gRPC call failed: %v", err)
-		return nil, err
+		return err
 	}
 
-	// Validate response - check if it has valid audio content
-	hasValidContent := false
+	// Stream responses back to client
+	for {
+		grpcResp, err := grpcStream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Printf("Error receiving from gRPC stream: %v", err)
+			return err
+		}
 
-	// Map ai response back to app response
-	appResp := &app.SendMessageResponse{
-		ResponseId: grpcResp.ResponseId,
-		Language:   grpcResp.Language,
-		Timestamp:  grpcResp.Timestamp,
-		IsFinal:    grpcResp.IsFinal,
-	}
+		// Map ai response back to app response
+		appResp := &app.SendMessageResponse{
+			ResponseId: grpcResp.ResponseId,
+			Language:   grpcResp.Language,
+			Timestamp:  grpcResp.Timestamp,
+			IsFinal:    grpcResp.IsFinal,
+		}
 
-	if grpcResp.Content != nil {
-		if audioContent, ok := grpcResp.Content.(*ai.SendMessageResponse_AudioData); ok {
-			// Check if audio data is not empty and has reasonable size
-			if len(audioContent.AudioData) > 100 {
-				hasValidContent = true
+		if grpcResp.Content != nil {
+			if audioContent, ok := grpcResp.Content.(*ai.SendMessageResponse_AudioData); ok {
 				appResp.Content = &app.SendMessageResponse_AudioData{
 					AudioData: audioContent.AudioData,
 				}
-			} else {
-				log.Printf("Warning: Audio data is too small (%d bytes), likely invalid", len(audioContent.AudioData))
-			}
-		} else if textContent, ok := grpcResp.Content.(*ai.SendMessageResponse_TextMessage); ok {
-			hasValidContent = true
-			appResp.Content = &app.SendMessageResponse_TextMessage{
-				TextMessage: textContent.TextMessage,
+			} else if textContent, ok := grpcResp.Content.(*ai.SendMessageResponse_TextMessage); ok {
+				appResp.Content = &app.SendMessageResponse_TextMessage{
+					TextMessage: textContent.TextMessage,
+				}
 			}
 		}
-	}
 
-	if !hasValidContent {
-		log.Printf("Warning: Response has no valid audio content, returning error")
-		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("AI service returned invalid or empty response"))
+		// Send to client stream
+		if err := stream.Send(appResp); err != nil {
+			log.Printf("Error sending to client stream: %v", err)
+			return err
+		}
 	}
-
-	return connect.NewResponse(appResp), nil
 }
 
 // Cleanup connection on shutdown

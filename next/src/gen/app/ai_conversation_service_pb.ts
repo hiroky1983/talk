@@ -11,7 +11,7 @@ import { file_app_ai_conversation } from "./ai_conversation_pb";
  * Describes the file app/ai_conversation_service.proto.
  */
 export const file_app_ai_conversation_service: GenFile = /*@__PURE__*/
-  fileDesc("CiFhcHAvYWlfY29udmVyc2F0aW9uX3NlcnZpY2UucHJvdG8SBmFwcC52MTJfChVBSUNvbnZlcnNhdGlvblNlcnZpY2USRgoLU2VuZE1lc3NhZ2USGi5hcHAudjEuU2VuZE1lc3NhZ2VSZXF1ZXN0GhsuYXBwLnYxLlNlbmRNZXNzYWdlUmVzcG9uc2VCjgEKCmNvbS5hcHAudjFCGkFpQ29udmVyc2F0aW9uU2VydmljZVByb3RvUAFaK2dpdGh1Yi5jb20vaGlyb2t5MTk4My90YWxrL2dvL2dlbi9hcHA7YXBwdjGiAgNBWFiqAgZBcHAuVjHKAgZBcHBcVjHiAhJBcHBcVjFcR1BCTWV0YWRhdGHqAgdBcHA6OlYxYgZwcm90bzM", [file_app_ai_conversation]);
+  fileDesc("CiFhcHAvYWlfY29udmVyc2F0aW9uX3NlcnZpY2UucHJvdG8SBmFwcC52MTJjChVBSUNvbnZlcnNhdGlvblNlcnZpY2USSgoLU2VuZE1lc3NhZ2USGi5hcHAudjEuU2VuZE1lc3NhZ2VSZXF1ZXN0GhsuYXBwLnYxLlNlbmRNZXNzYWdlUmVzcG9uc2UiADABQo4BCgpjb20uYXBwLnYxQhpBaUNvbnZlcnNhdGlvblNlcnZpY2VQcm90b1ABWitnaXRodWIuY29tL2hpcm9reTE5ODMvdGFsay9nby9nZW4vYXBwO2FwcHYxogIDQVhYqgIGQXBwLlYxygIGQXBwXFYx4gISQXBwXFYxXEdQQk1ldGFkYXRh6gIHQXBwOjpWMWIGcHJvdG8z", [file_app_ai_conversation]);
 
 /**
  * AI Conversation Service
@@ -20,12 +20,12 @@ export const file_app_ai_conversation_service: GenFile = /*@__PURE__*/
  */
 export const AIConversationService: GenService<{
   /**
-   * Send a single message and get response (unary)
+   * Sends a message to the AI and receives a streaming response
    *
    * @generated from rpc app.v1.AIConversationService.SendMessage
    */
   sendMessage: {
-    methodKind: "unary";
+    methodKind: "server_streaming";
     input: typeof SendMessageRequestSchema;
     output: typeof SendMessageResponseSchema;
   },

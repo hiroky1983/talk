@@ -42,30 +42,29 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             if content_type != 'audio_data':
                 context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
                 context.set_details("Only audio_data is supported")
-                return ai_pb2.SendMessageResponse()
+                yield ai_pb2.SendMessageResponse()
 
             logger.info(f"Received audio data: {len(request.audio_data)} bytes")
             
-            # Process audio using AI service
-            response_audio = await self.ai_service.process_audio_message(
+            # Process audio using AI service - returns an async generator
+            async for chunk in self.ai_service.process_audio_message(
                 request.audio_data,
                 request.language,
                 request.user_id,
                 request.character,
                 request.plan_type
-            )
-            
-            logger.info(f"Generated audio response: {len(response_audio)} bytes")
+            ):
+                logger.info(f"Generated audio chunk: {len(chunk)} bytes")
 
-            # Create response with audio only
-            response = ai_pb2.SendMessageResponse(
-                response_id=str(uuid.uuid4()),
-                language=request.language,
-                timestamp=create_timestamp(),
-                is_final=True,
-                audio_data=response_audio
-            )
-            return response
+                # Create response with audio chunk
+                response = ai_pb2.SendMessageResponse(
+                    response_id=str(uuid.uuid4()),
+                    language=request.language,
+                    timestamp=create_timestamp(),
+                    is_final=False, 
+                    audio_data=chunk
+                )
+                yield response
 
         except Exception as e:
             error_msg = str(e)
@@ -74,7 +73,7 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
             # Return proper gRPC error
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"AI service error: {error_msg}")
-            return ai_pb2.SendMessageResponse()
+            yield ai_pb2.SendMessageResponse()
 
 async def serve():
     """Start the gRPC server"""
