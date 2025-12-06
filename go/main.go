@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -30,25 +29,6 @@ func Logger() gin.HandlerFunc {
 		latency := time.Since(t)
 		statusCode := c.Writer.Status()
 		log.Printf("| %3d | %13v | %s |", statusCode, latency, path)
-	}
-}
-
-// wrapConnectHandler wraps a Connect RPC handler to pass user_id from gin.Context to context.Context
-func wrapConnectHandler(handler http.Handler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Get user_id from gin.Context (set by AuthMiddleware)
-		userID, exists := middleware.GetUserID(c)
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "user_id not found in context"})
-			return
-		}
-
-		// Create new context with user_id
-		ctx := context.WithValue(c.Request.Context(), middleware.UserIDKey, userID)
-		r := c.Request.WithContext(ctx)
-
-		// Call Connect RPC handler with updated request
-		handler.ServeHTTP(c.Writer, r)
 	}
 }
 
