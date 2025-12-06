@@ -9,7 +9,8 @@ const backendProtocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
 const wsProtocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
 
 const nextConfig: NextConfig = {
-  // Security headers to mitigate CVE-2025-55182 and other vulnerabilities
+  // Security headers for defense-in-depth
+  // Note: CVE-2025-55182 (RSC RCE) is mitigated by Next.js 15.2.6+ and React 19.2.1+
   async headers() {
     return [
       {

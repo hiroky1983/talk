@@ -21,12 +21,16 @@ const geistMono = Geist_Mono({
 });
 
 /**
- * Validates locale parameter with strict security checks
+ * Validates locale parameter with strict security checks to prevent:
+ * - Prototype pollution attacks
+ * - Path traversal attempts
+ * - Injection of unsupported locales
+ *
  * @param paramsData - The params object to validate
  * @returns Valid locale or triggers notFound()
  */
 function validateLocale(paramsData: unknown): Locale {
-  // Ensure params is a plain object
+  // Ensure params is a plain object (prevents prototype pollution)
   if (
     !paramsData ||
     typeof paramsData !== 'object' ||
