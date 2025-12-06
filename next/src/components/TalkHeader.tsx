@@ -1,35 +1,36 @@
-"use client";
+'use client'
 
-import { Language } from "@/types/types";
-import { useTranslations } from "next-intl";
-import React from "react";
+import { Language } from '@/types/types'
+import { useTranslations } from 'next-intl'
+import React from 'react'
+import { ThemeToggle } from './ThemeToggle'
 
 interface User {
-  username: string;
-  language: Language;
+  username: string
+  language: Language
 }
 
 interface Character {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
+  id: string
+  name: string
+  description: string
+  emoji: string
 }
 
 interface TalkHeaderProps {
-  user: User | null;
-  selectedLanguage: Language;
-  selectedCharacter: string;
-  isConnected: boolean;
-  languageNames: Record<string, string>;
-  characters: Character[];
-  onLanguageChange: (language: Language) => void;
-  onCharacterChange: (character: string) => void;
-  onStartConversation: () => void;
-  onLogout: () => void;
+  user: User | null
+  selectedLanguage: Language
+  selectedCharacter: string
+  isConnected: boolean
+  languageNames: Record<string, string>
+  characters: Character[]
+  onLanguageChange: (language: Language) => void
+  onCharacterChange: (character: string) => void
+  onStartConversation: () => void
+  onLogout: () => void
 }
 
-const TalkHeader = ({
+export const TalkHeader = ({
   user,
   selectedLanguage,
   selectedCharacter,
@@ -41,30 +42,35 @@ const TalkHeader = ({
   onStartConversation,
   onLogout,
 }: TalkHeaderProps) => {
-  const t = useTranslations('common');
+  const t = useTranslations('common')
 
   return (
-    <div className="bg-white/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md border-b border-white/20 dark:border-gray-700/20 sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
               {t('appName')}
             </h1>
-            <p className="text-sm text-gray-600 font-medium">
-              {user ? t('welcome', { username: user.username }) : t('welcomeDefault')}
+            <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+              {user
+                ? t('welcome', { username: user.username })
+                : t('welcomeDefault')}
             </p>
           </div>
-          
+
           {user ? (
             <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Language Selector */}
               <div className="relative group">
                 <select
                   value={selectedLanguage}
                   onChange={(e) => onLanguageChange(e.target.value as Language)}
                   title={t('selectLanguage')}
-                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer shadow-sm transition-all"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/30 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 cursor-pointer shadow-sm transition-all"
                 >
                   {Object.entries(languageNames).map(([code, name]) => (
                     <option key={code} value={code}>
@@ -72,8 +78,20 @@ const TalkHeader = ({
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 dark:text-gray-400">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
                 </div>
               </div>
 
@@ -83,7 +101,7 @@ const TalkHeader = ({
                   value={selectedCharacter}
                   onChange={(e) => onCharacterChange(e.target.value)}
                   title={t('selectCharacter')}
-                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer shadow-sm transition-all"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/30 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 cursor-pointer shadow-sm transition-all"
                 >
                   {characters.map((character) => (
                     <option key={character.id} value={character.id}>
@@ -91,16 +109,34 @@ const TalkHeader = ({
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 dark:text-gray-400">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
                 </div>
               </div>
 
               {/* Status Indicator */}
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
-                  isConnected ? "bg-green-100/80 text-green-700 border border-green-200" : "bg-red-100/80 text-red-700 border border-red-200"
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></span>
+              <div
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
+                  isConnected
+                    ? 'bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
+                    : 'bg-red-100/80 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
+                ></span>
                 {isConnected ? t('online') : t('offline')}
               </div>
 
@@ -114,26 +150,24 @@ const TalkHeader = ({
                   {t('connect')}
                 </button>
               )}
-              
+
               <button
                 type="button"
                 onClick={onLogout}
-                className="bg-white/50 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-white/30 hover:border-red-200 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
+                className="bg-white/50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 border border-white/30 dark:border-gray-700/30 hover:border-red-200 dark:hover:border-red-700/50 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
               >
                 {t('logout')}
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-32"></div>
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-24"></div>
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-20"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-32"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-24"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-20"></div>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-};
-
-export default TalkHeader;
+  )
+}

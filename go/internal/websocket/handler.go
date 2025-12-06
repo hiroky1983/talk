@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	ai "github.com/hiroky1983/talk/go/gen/ai"
+	"github.com/hiroky1983/talk/go/middleware"
 )
 
 var upgrader = websocket.Upgrader{
@@ -36,16 +37,19 @@ func NewHandler(provider AIClientProvider) *Handler {
 // HandleConnection upgrades the HTTP connection to a WebSocket connection
 // and handles the conversation loop.
 func (h *Handler) HandleConnection(c *gin.Context) {
+	// Get request ID from context
+	requestID, _ := middleware.GetRequestID(c)
+
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		log.Printf("Failed to upgrade to websocket: %v", err)
+		log.Printf("[%s] Failed to upgrade to websocket: %v", requestID, err)
 		return
 	}
 	defer conn.Close()
 
 	client := h.aiProvider.GetGRPCClient()
 	if client == nil {
-		log.Println("AI Service client is not available")
+		log.Printf("[%s] AI Service client is not available", requestID)
 		return
 	}
 
@@ -56,11 +60,11 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 	// Start bi-directional gRPC stream
 	stream, err := client.StreamChat(ctx)
 	if err != nil {
-		log.Printf("Failed to start StreamChat: %v", err)
+		log.Printf("[%s] Failed to start StreamChat: %v", requestID, err)
 		return
 	}
 
-	log.Println("WebSocket connection established and gRPC stream started")
+	log.Printf("[%s] WebSocket connection established and gRPC stream started", requestID)
 
 	// Helper to send setup message (Temporary hardcoded until FE sends it)
 	// Ideally FE should send a JSON setup message first.
@@ -81,7 +85,7 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 			},
 		},
 	}); err != nil {
-		log.Printf("Failed to send setup message: %v", err)
+		log.Printf("[%s] Failed to send setup message: %v", requestID, err)
 		return
 	}
 
@@ -94,11 +98,11 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 		for {
 			resp, err := stream.Recv()
 			if err == io.EOF {
-				log.Println("AI stream finished")
+				log.Printf("[%s] AI stream finished", requestID)
 				return
 			}
 			if err != nil {
-				log.Printf("Error receiving from AI stream: %v", err)
+				log.Printf("[%s] Error receiving from AI stream: %v", requestID, err)
 				conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -107,13 +111,13 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 			if audio := resp.GetAudioChunk(); len(audio) > 0 {
 				// Send audio as binary message
 				if err := conn.WriteMessage(websocket.BinaryMessage, audio); err != nil {
-					log.Printf("Error sending audio to WS: %v", err)
+					log.Printf("[%s] Error sending audio to WS: %v", requestID, err)
 					return
 				}
 			} else if text := resp.GetTextMessage(); text != "" {
 				// Send text as text message
 				if err := conn.WriteMessage(websocket.TextMessage, []byte(text)); err != nil {
-					log.Printf("Error sending text to WS: %v", err)
+					log.Printf("[%s] Error sending text to WS: %v", requestID, err)
 					return
 				}
 			}
@@ -125,9 +129,9 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("WebSocket error: %v", err)
+				log.Printf("[%s] WebSocket error: %v", requestID, err)
 			} else {
-				log.Println("WebSocket closed")
+				log.Printf("[%s] WebSocket closed", requestID)
 			}
 			break
 		}
@@ -146,7 +150,7 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 					AudioChunk: p,
 				},
 			}); err != nil {
-				log.Printf("Error sending audio chunk to AI: %v", err)
+				log.Printf("[%s] Error sending audio chunk to AI: %v", requestID, err)
 				break
 			}
 		} else if messageType == websocket.TextMessage {
@@ -159,11 +163,11 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 						EndOfInput: true,
 					},
 				}); err != nil {
-					log.Printf("Error sending EOS to AI: %v", err)
+					log.Printf("[%s] Error sending EOS to AI: %v", requestID, err)
 					break
 				}
 			} else {
-				log.Printf("Received text: %s", text)
+				log.Printf("[%s] Received text: %s", requestID, text)
 			}
 		}
 	}

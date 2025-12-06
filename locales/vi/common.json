@@ -10,6 +10,8 @@
   "logout": "Đăng xuất",
   "selectLanguage": "Chọn ngôn ngữ luyện tập",
   "selectCharacter": "Chọn nhân vật AI",
+  "switchToDarkMode": "Chuyển sang chế độ tối",
+  "switchToLightMode": "Chuyển sang chế độ sáng",
   "loadingProfile": "Đang tải hồ sơ...",
   "startConversation": "Bắt đầu cuộc trò chuyện",
   "startPrompt": "Nhấn vào nút micro bên dưới và nói xin chào!",

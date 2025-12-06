@@ -1,8 +1,42 @@
 @import "tailwindcss";
 
-:root {
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme='light'] {
   --background: #ffffff;
   --foreground: #171717;
+  --background-gradient-from: #e0e7ff;
+  --background-gradient-via: #faf5ff;
+  --background-gradient-to: #fce7f3;
+  --card-background: rgba(255, 255, 255, 0.8);
+  --header-background: rgba(255, 255, 255, 0.3);
+  --input-background: rgba(255, 255, 255, 0.5);
+  --border-color: rgba(255, 255, 255, 0.3);
+  --text-primary: #374151;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --blob-blue: rgba(96, 165, 250, 0.2);
+  --blob-purple: rgba(192, 132, 252, 0.2);
+  --blob-pink: rgba(244, 114, 182, 0.2);
+}
+
+[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --background-gradient-from: #1e1b4b;
+  --background-gradient-via: #27272a;
+  --background-gradient-to: #3f1d38;
+  --card-background: rgba(30, 30, 30, 0.8);
+  --header-background: rgba(20, 20, 20, 0.3);
+  --input-background: rgba(40, 40, 40, 0.5);
+  --border-color: rgba(60, 60, 60, 0.3);
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-tertiary: #6b7280;
+  --blob-blue: rgba(59, 130, 246, 0.15);
+  --blob-purple: rgba(147, 51, 234, 0.15);
+  --blob-pink: rgba(236, 72, 153, 0.15);
 }
 
 @theme inline {
@@ -10,13 +44,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

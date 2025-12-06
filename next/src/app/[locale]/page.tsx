@@ -1,7 +1,7 @@
-import AuthScreen from "@/components/AuthScreen";
+import { AuthScreen } from '@/components/AuthScreen'
 
 const Page = () => {
-  return <AuthScreen />;
-};
+  return <AuthScreen />
+}
 
-export default Page;
+export default Page
