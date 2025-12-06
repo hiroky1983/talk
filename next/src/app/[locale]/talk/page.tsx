@@ -1,7 +1,7 @@
-import TalkScreen from "@/components/TalkScreen";
+import { TalkScreen } from '@/components/TalkScreen'
 
 const Page = () => {
-  return <TalkScreen />;
-};
+  return <TalkScreen />
+}
 
-export default Page;
+export default Page

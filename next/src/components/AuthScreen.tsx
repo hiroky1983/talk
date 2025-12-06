@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
 import { Language } from '../types/types'
 
-const AuthScreen = () => {
+export const AuthScreen = () => {
   const tAuth = useTranslations('auth')
   const tCommon = useTranslations('common')
   const locale = useLocale()

@@ -1,35 +1,35 @@
-"use client";
+'use client'
 
-import { Language } from "@/types/types";
-import { useTranslations } from "next-intl";
-import React from "react";
+import { Language } from '@/types/types'
+import { useTranslations } from 'next-intl'
+import React from 'react'
 
 interface User {
-  username: string;
-  language: Language;
+  username: string
+  language: Language
 }
 
 interface Character {
-  id: string;
-  name: string;
-  description: string;
-  emoji: string;
+  id: string
+  name: string
+  description: string
+  emoji: string
 }
 
 interface TalkHeaderProps {
-  user: User | null;
-  selectedLanguage: Language;
-  selectedCharacter: string;
-  isConnected: boolean;
-  languageNames: Record<string, string>;
-  characters: Character[];
-  onLanguageChange: (language: Language) => void;
-  onCharacterChange: (character: string) => void;
-  onStartConversation: () => void;
-  onLogout: () => void;
+  user: User | null
+  selectedLanguage: Language
+  selectedCharacter: string
+  isConnected: boolean
+  languageNames: Record<string, string>
+  characters: Character[]
+  onLanguageChange: (language: Language) => void
+  onCharacterChange: (character: string) => void
+  onStartConversation: () => void
+  onLogout: () => void
 }
 
-const TalkHeader = ({
+export const TalkHeader = ({
   user,
   selectedLanguage,
   selectedCharacter,
@@ -41,7 +41,7 @@ const TalkHeader = ({
   onStartConversation,
   onLogout,
 }: TalkHeaderProps) => {
-  const t = useTranslations('common');
+  const t = useTranslations('common')
 
   return (
     <div className="bg-white/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
@@ -52,10 +52,12 @@ const TalkHeader = ({
               {t('appName')}
             </h1>
             <p className="text-sm text-gray-600 font-medium">
-              {user ? t('welcome', { username: user.username }) : t('welcomeDefault')}
+              {user
+                ? t('welcome', { username: user.username })
+                : t('welcomeDefault')}
             </p>
           </div>
-          
+
           {user ? (
             <div className="flex flex-wrap items-center justify-center gap-3">
               {/* Language Selector */}
@@ -73,7 +75,19 @@ const TalkHeader = ({
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
                 </div>
               </div>
 
@@ -92,15 +106,33 @@ const TalkHeader = ({
                   ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 9l-7 7-7-7"
+                    ></path>
+                  </svg>
                 </div>
               </div>
 
               {/* Status Indicator */}
-              <div className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
-                  isConnected ? "bg-green-100/80 text-green-700 border border-green-200" : "bg-red-100/80 text-red-700 border border-red-200"
-              }`}>
-                <span className={`w-2 h-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></span>
+              <div
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
+                  isConnected
+                    ? 'bg-green-100/80 text-green-700 border border-green-200'
+                    : 'bg-red-100/80 text-red-700 border border-red-200'
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}
+                ></span>
                 {isConnected ? t('online') : t('offline')}
               </div>
 
@@ -114,7 +146,7 @@ const TalkHeader = ({
                   {t('connect')}
                 </button>
               )}
-              
+
               <button
                 type="button"
                 onClick={onLogout}
@@ -133,7 +165,5 @@ const TalkHeader = ({
         </div>
       </div>
     </div>
-  );
-};
-
-export default TalkHeader;
+  )
+}
