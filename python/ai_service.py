@@ -17,22 +17,7 @@ class AIConversationService:
         if not self.api_key:
             logger.error("GOOGLE_GEMINI_API_KEY not found in environment variables")
 
-    async def stream_chat(self, request_iterator, config):
-        """
-        Handle bidirectional streaming chat.
-        For now, we act as a bridge:
-        1. Accumulate audio chunks from request_iterator (simulating VAD end or stream end)
-        2. Pass to process_audio_message
-        3. Yield results
-        
-        In the future, this should pass the iterator down to a True bidirectional controller.
-        """
-        from ai import ai_conversation_pb2 as ai_pb2
-        from google.protobuf.timestamp_pb2 import Timestamp
-        import uuid
 
-
-        
     async def stream_chat(self, request_iterator, config):
         """
         Handle bidirectional streaming chat using controller's streaming interface.
@@ -71,27 +56,55 @@ class AIConversationService:
             # Select controller
             if config.plan_type == ai_pb2.PLAN_TYPE_PREMIUM:
                 controller = PremiumController(self.api_key)
-            else:
-                controller = LightController(self.api_key)
-
-            logger.info(f"Streaming chat with {controller.__class__.__name__}")
-
-            # Pass the audio generator to the controller
-            async for chunk in controller.process_stream(
-                audio_generator(), 
-                config.language, 
-                config.user_id, 
-                config.character
-            ):
-                timestamp = Timestamp()
-                timestamp.GetCurrentTime()
+                logger.info(f"Streaming chat with PremiumController")
                 
-                yield ai_pb2.ChatResponse(
-                    response_id=str(uuid.uuid4()),
-                    language=config.language,
-                    timestamp=timestamp,
-                    audio_chunk=chunk
-                )
+                # Pass the audio generator to the controller
+                async for chunk in controller.process_stream(
+                    audio_generator(), 
+                    config.language, 
+                    config.user_id, 
+                    config.character
+                ):
+                    timestamp = Timestamp()
+                    timestamp.GetCurrentTime()
+                    
+                    yield ai_pb2.ChatResponse(
+                        response_id=str(uuid.uuid4()),
+                        language=config.language,
+                        timestamp=timestamp,
+                        audio_chunk=chunk
+                    )
+            else:
+                # Fallback for Lite (non-streaming)
+                controller = LightController(self.api_key)
+                logger.info(f"Buffered chat with LightController")
+                
+                audio_buffer = bytearray()
+                async for request in request_iterator:
+                    ct = request.WhichOneof('content')
+                    if ct == 'audio_chunk':
+                        audio_buffer.extend(request.audio_chunk)
+                    elif ct == 'end_of_input':
+                         # Process buffered audio
+                         if len(audio_buffer) > 0:
+                            async for chunk in controller.process_audio(
+                                bytes(audio_buffer), 
+                                config.language, 
+                                config.user_id, 
+                                config.character
+                            ):
+                                timestamp = Timestamp()
+                                timestamp.GetCurrentTime()
+                                
+                                yield ai_pb2.ChatResponse(
+                                    response_id=str(uuid.uuid4()),
+                                    language=config.language,
+                                    timestamp=timestamp,
+                                    audio_chunk=chunk
+                                )
+                            audio_buffer = bytearray() # Clear buffer
+                    elif ct == 'text_message':
+                        pass
 
         except Exception as e:
             logger.error(f"Error in stream_chat: {e}")
