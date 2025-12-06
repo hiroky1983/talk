@@ -72,14 +72,7 @@ class LightController(AIController):
             language_map = {
                 'en': 'English',
                 'ja': 'Japanese',
-                'es': 'Spanish',
-                'fr': 'French',
-                'de': 'German',
-                'zh': 'Chinese',
-                'ko': 'Korean',
-                'it': 'Italian',
-                'pt': 'Portuguese',
-                'ru': 'Russian'
+                'vi': 'Vietnamese'
             }
             language_name = language_map.get(language, language)
 
