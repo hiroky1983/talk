@@ -28,7 +28,11 @@ func Logger() gin.HandlerFunc {
 		// リクエスト後の処理
 		latency := time.Since(t)
 		statusCode := c.Writer.Status()
-		log.Printf("| %3d | %13v | %s |", statusCode, latency, path)
+
+		// リクエストIDを取得
+		requestID, _ := middleware.GetRequestID(c)
+
+		log.Printf("[%s] | %3d | %13v | %s |", requestID, statusCode, latency, path)
 	}
 }
 
@@ -41,6 +45,7 @@ func main() {
 
 	// Create Gin router
 	router := gin.Default()
+	router.Use(middleware.RequestIDMiddleware())
 	router.Use(Logger())
 
 	// Configure CORS
