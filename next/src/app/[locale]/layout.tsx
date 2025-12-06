@@ -47,7 +47,12 @@ const LocaleLayout = async ({
 
   // Enhanced security validation for params to mitigate CVE-2025-55182
   // Ensure params is a plain object and locale is a string
-  if (!paramsData || typeof paramsData !== 'object' || Array.isArray(paramsData)) {
+  if (
+    !paramsData ||
+    typeof paramsData !== 'object' ||
+    Array.isArray(paramsData) ||
+    Object.getPrototypeOf(paramsData) !== Object.prototype
+  ) {
     notFound();
   }
 
@@ -58,14 +63,17 @@ const LocaleLayout = async ({
     notFound();
   }
 
-  // Only allow alphanumeric characters and hyphens
+  // Only allow aa-BB format (two lowercase letters, optionally followed by hyphen and two uppercase letters)
   if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(resolvedLocale)) {
     notFound();
   }
 
-  const locale = locales.includes(resolvedLocale as Locale)
-    ? (resolvedLocale as Locale)
-    : defaultLocale;
+  // Only allow explicitly supported locales
+  if (!locales.includes(resolvedLocale as Locale)) {
+    notFound();
+  }
+
+  const locale = resolvedLocale as Locale;
   const messages = await getMessages(locale);
 
   if (!messages) {
