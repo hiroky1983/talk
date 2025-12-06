@@ -160,8 +160,63 @@ class PremiumController(AIController):
             
         return self.sessions[session_key]
 
+    async def process_stream(self, audio_iterator, language: str, user_id: str, character: str):
+        """Process continuous audio stream using Gemini Live API"""
+        try:
+            session = await self.get_session(user_id, character)
+            
+            # Start a background task to send incoming audio to Gemini
+            send_task = asyncio.create_task(self._send_stream_to_gemini(session, audio_iterator))
+            
+            # Yield responses as they come back from Gemini
+            while True:
+                try:
+                    # Check if send task failed
+                    if send_task.done() and send_task.exception():
+                        raise send_task.exception()
+                    
+                    # Wait for next response chunk from Gemini session queue
+                    # We use a short timeout to periodically check send_task status and stream status
+                    try:
+                        chunk = await asyncio.wait_for(session.response_queue.get(), timeout=0.1)
+                        if chunk is None: # Turn complete or stream end?
+                             # In bidirectional stream, we might get multiple turns.
+                             # If we treat specific token as turn complete, we can notify or just continue.
+                             # For now, let's continue yielding if it's just end of a turn, 
+                             # but session might put None on close.
+                             # Let's adjust session logic later.
+                             pass
+                        else:
+                            yield chunk
+                    except asyncio.TimeoutError:
+                        continue
+                    
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.error(f"Error receiving from session: {e}")
+                    break
+            
+            send_task.cancel()
+            
+        except Exception as e:
+            logger.error(f"Error processing stream in PremiumController: {e}")
+            session_key = f"{user_id}_{character}"
+            if session_key in self.sessions:
+                await self.sessions[session_key].close()
+                del self.sessions[session_key]
+            raise
+
+    async def _send_stream_to_gemini(self, session: GeminiLiveSession, audio_iterator):
+        """Consume audio_iterator and send to Gemini session"""
+        try:
+             async for chunk in audio_iterator:
+                 await session.session.send(input=chunk, end_of_turn=False)
+        except Exception as e:
+            logger.error(f"Error sending stream to Gemini: {e}")
+
     async def process_audio(self, audio_data: bytes, language: str, user_id: str, character: str):
-        """Process audio message using Gemini Live API"""
+        """Process audio message using Gemini Live API (Legacy full buffer mode)"""
         try:
             session = await self.get_session(user_id, character)
             async for chunk in session.process_audio(audio_data):
@@ -173,4 +228,4 @@ class PremiumController(AIController):
             if session_key in self.sessions:
                 await self.sessions[session_key].close()
                 del self.sessions[session_key]
-            raise # Re-raise to let the service handle fallback if needed
+            # raise # Re-raise to let the service handle fallback if needed

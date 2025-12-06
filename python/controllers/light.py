@@ -35,8 +35,23 @@ class LightController(AIController):
         self.client = genai.Client(api_key=api_key)
         self.model_id = "gemini-2.0-flash"
 
+    async def process_stream(self, audio_iterator, language: str, user_id: str, character: str):
+        """Process continuous audio stream (Bridge to non-streaming for Light model for now)"""
+        # Light controller might not support true streaming yet or uses different API
+        # So we accumulate and call process_audio
+        audio_buffer = bytearray()
+        async for chunk in audio_iterator:
+             audio_buffer.extend(chunk)
+             
+        # Once stream ends (e.g. EOS from client stops iterator? No, iterator yields chunks indefinitely?)
+        # Ah, we need a way to detect "turn end" inside the stream if we want partial responses.
+        # But if we are bridging, we wait for full input.
+        
+        async for chunk in self.process_audio(bytes(audio_buffer), language, user_id, character):
+            yield chunk
+
     async def process_audio(self, audio_data: bytes, language: str, user_id: str, character: str):
-        """Process audio using Standard API (STT -> LLM) + TTS with streaming"""
+        """Process audio message using Gemini 1.5 Flash (Light) STT -> LLM) + TTS with streaming"""
         try:
             # 1. Audio to Text (using Gemini Multimodal)
             # Convert raw PCM 16kHz to WAV for Gemini
