@@ -15,6 +15,8 @@ RUN go install github.com/go-delve/delve/cmd/dlv@latest
 # ソースコードのコピー
 COPY go/ .
 
+COPY go/.env .env
+
 # airの設定ファイルを指定して実行
 CMD ["air", "-c", "debug/.air.toml"]
 # CMD ["/bin/sh", "-c", "cd debug && ls -la"]
