@@ -1,47 +1,47 @@
-"use client";
+'use client'
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { useLocale, useTranslations } from "next-intl";
-import { Language } from "../types/types";
+import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { useLocale, useTranslations } from 'next-intl'
+import { Language } from '../types/types'
 
 const AuthScreen = () => {
-  const tAuth = useTranslations('auth');
-  const tCommon = useTranslations('common');
-  const locale = useLocale();
+  const tAuth = useTranslations('auth')
+  const tCommon = useTranslations('common')
+  const locale = useLocale()
   const normalizedLocale = (
     Object.values(Language) as readonly string[]
   ).includes(locale)
     ? (locale as Language)
-    : Language.EN;
+    : Language.EN
 
-  const [username, setUsername] = useState("");
-  const [language, setLanguage] = useState<Language>(normalizedLocale);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [username, setUsername] = useState('')
+  const [language, setLanguage] = useState<Language>(normalizedLocale)
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleLogin = async () => {
     if (!username.trim()) {
-      setError(tAuth('usernameRequired'));
-      return;
+      setError(tAuth('usernameRequired'))
+      return
     }
 
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     try {
       // Simulate a small delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      localStorage.setItem("user", JSON.stringify({ username, language }));
-      router.push(`/${language}/talk`);
+      localStorage.setItem('user', JSON.stringify({ username, language }))
+      router.push(`/${language}/talk`)
     } catch (err) {
-      setError(tAuth('errorGeneric'));
-      setIsLoading(false);
+      setError(tAuth('errorGeneric'))
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4 relative overflow-hidden">
@@ -67,9 +67,7 @@ const AuthScreen = () => {
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
             {tCommon('appName')}
           </h1>
-          <p className="text-gray-600 font-medium">
-            {tCommon('tagline')}
-          </p>
+          <p className="text-gray-600 font-medium">{tCommon('tagline')}</p>
         </div>
 
         <div className="space-y-6">
@@ -82,12 +80,12 @@ const AuthScreen = () => {
                 type="text"
                 value={username}
                 onChange={(e) => {
-                  setUsername(e.target.value);
-                  if (error) setError(null);
+                  setUsername(e.target.value)
+                  if (error) setError(null)
                 }}
                 className="w-full p-4 pl-5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-gray-800 placeholder-gray-400 shadow-sm group-hover:border-blue-300"
                 placeholder={tAuth('usernameHint')}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
               />
             </div>
           </div>
@@ -135,8 +133,8 @@ const AuthScreen = () => {
               className={`w-full font-bold py-4 px-6 rounded-xl shadow-lg transform transition-all duration-200 
                 ${
                   !username.trim()
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0"
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0'
                 }`}
             >
               {isLoading ? (
@@ -222,7 +220,7 @@ const AuthScreen = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AuthScreen;
+export default AuthScreen
