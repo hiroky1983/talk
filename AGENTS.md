@@ -2,8 +2,16 @@
 
 ## Architecture Overview
 
-- Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`) supporting both Gemini Live API (WebSocket) and standard REST fallback.
-- gRPC APIs defined in `proto/app/` with Buf-driven codegen to `go/gen/`, `next/src/gen/`, and Python stubs.
+- Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`).
+- **Real-time Communication**:
+  - Frontend <-> Backend: **WebSocket** for bidirectional audio/text streaming.
+  - Backend <-> AI Service: **gRPC Bidirectional Streaming**.
+- **Dual-Mode AI Service**:
+  - **Premium**: Uses Gemini Live API for true real-time, interruptible bidirectional audio streaming.
+  - **Lite**: Uses buffered processing with standard Gemini 1.5 Flash API (fallback mode).
+- gRPC APIs defined in `proto/` with Buf-driven codegen.
+- Local dev via Docker Compose with hot reload.
+- React Native mobile clients live under `mobile/`.
 - Local dev via Docker Compose with hot reload; Go debugger on port `2349`.
 - React Native mobile clients live under `mobile/` with shared business logic mirroring the web app's flows.
 

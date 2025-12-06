@@ -30,22 +30,24 @@ AI キャラクターとの音声会話を通じて外国語を学習できる�
 ## アーキテクチャ概要
 
 ```
-Next.js (Connect-Web, Web Speech API / AudioRecorder)
+Next.js (Web Speech API / AudioWorklet)
           │
-          ▼
-       Go API (Gin, Connect-Go)
+          ▼ WebSocket (Binary Audio / Text Control)
           │
-          ▼
-    Python AI サービス (gRPC)
+       Go API (Gin, Gorilla WebSocket) ─── Auth Bypass for WS
           │
-          ├── Premium Mode: Gemini Live API (WebSocket)
-          └── Light Mode: Gemini Flash (REST) + gTTS
+          ▼ gRPC Bidirectional Streaming (StreamChat)
+          │
+    Python AI サービス (gRPC Server)
+          │
+          ├── Premium Mode: Gemini Live API (Full Duplex Streaming via WebSocket)
+          └── Light Mode: Gemini Flash (Buffered Input -> REST API)
 ```
 
-- フロントエンドは Connect-Web を経由して Go のバックエンドへストリーミング接続
-- Go の API が Python で実装した AI 会話サービスと通信し、音声応答を生成
-- **Premium Mode**: Gemini Live API を使用し、低遅延で自然な双方向音声会話を実現
-- **Light Mode**: Gemini Flash と gTTS を組み合わせた軽量モード（フォールバック用）
+- フロントエンドは WebSocket を経由して Go のバックエンドへ接続し、オーディオチャンクをリアルタイム送信
+- Go バックエンドは **Proxy** として機能し、gRPC 双方向ストリームで Python サービスへデータを転送
+- **Premium Mode**: Gemini Live API を使用し、真のリアルタイム・双方向ストリーミング会話を実現（低遅延）
+- **Light Mode**: 従来のバッファリング方式。発話終了（VAD 検知）までを蓄積し、Gemini Flash で一括処理する軽量モード
 
 ### 状態管理
 
