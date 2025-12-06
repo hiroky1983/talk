@@ -8,6 +8,7 @@ import type { ReactNode } from 'react'
 import { getMessages } from '@/lib/i18n/messages'
 import { defaultLocale, locales, type Locale } from '@/lib/i18n/config'
 import { QueryProvider } from '@/providers/QueryProvider'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import '../globals.css'
 
 const geistSans = Geist({
@@ -85,11 +86,13 @@ const LocaleLayout = async ({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            {children}
-          </NextIntlClientProvider>
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              {children}
+            </NextIntlClientProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
