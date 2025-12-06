@@ -45,14 +45,14 @@ export const TalkHeader = ({
   const t = useTranslations('common')
 
   return (
-    <div className="bg-white/30 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md border-b border-white/20 dark:border-gray-700/20 sticky top-0 z-50">
       <div className="max-w-5xl mx-auto px-4 py-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400">
               {t('appName')}
             </h1>
-            <p className="text-sm text-gray-600 font-medium">
+            <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">
               {user
                 ? t('welcome', { username: user.username })
                 : t('welcomeDefault')}
@@ -70,7 +70,7 @@ export const TalkHeader = ({
                   value={selectedLanguage}
                   onChange={(e) => onLanguageChange(e.target.value as Language)}
                   title={t('selectLanguage')}
-                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer shadow-sm transition-all"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/30 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 cursor-pointer shadow-sm transition-all"
                 >
                   {Object.entries(languageNames).map(([code, name]) => (
                     <option key={code} value={code}>
@@ -78,7 +78,7 @@ export const TalkHeader = ({
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 dark:text-gray-400">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -101,7 +101,7 @@ export const TalkHeader = ({
                   value={selectedCharacter}
                   onChange={(e) => onCharacterChange(e.target.value)}
                   title={t('selectCharacter')}
-                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 border border-white/30 rounded-xl text-sm font-medium text-gray-700 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-purple-400 cursor-pointer shadow-sm transition-all"
+                  className="appearance-none pl-3 pr-8 py-2 bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/30 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-500 cursor-pointer shadow-sm transition-all"
                 >
                   {characters.map((character) => (
                     <option key={character.id} value={character.id}>
@@ -109,7 +109,7 @@ export const TalkHeader = ({
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
+                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500 dark:text-gray-400">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -130,8 +130,8 @@ export const TalkHeader = ({
               <div
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium shadow-sm transition-all ${
                   isConnected
-                    ? 'bg-green-100/80 text-green-700 border border-green-200'
-                    : 'bg-red-100/80 text-red-700 border border-red-200'
+                    ? 'bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700'
+                    : 'bg-red-100/80 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700'
                 }`}
               >
                 <span
@@ -154,16 +154,16 @@ export const TalkHeader = ({
               <button
                 type="button"
                 onClick={onLogout}
-                className="bg-white/50 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-white/30 hover:border-red-200 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
+                className="bg-white/50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 border border-white/30 dark:border-gray-700/30 hover:border-red-200 dark:hover:border-red-700/50 px-4 py-2 rounded-xl text-sm font-medium shadow-sm transition-all"
               >
                 {t('logout')}
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-32"></div>
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-24"></div>
-              <div className="h-10 bg-white/40 rounded-xl animate-pulse w-20"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-32"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-24"></div>
+              <div className="h-10 bg-white/40 dark:bg-gray-700/40 rounded-xl animate-pulse w-20"></div>
             </div>
           )}
         </div>

@@ -175,12 +175,12 @@ export const TalkScreen = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-indigo-950 dark:via-gray-900 dark:to-pink-950 flex flex-col relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-400 dark:bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10 animate-blob"></div>
+        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-400 dark:bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-400 dark:bg-pink-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 dark:opacity-10 animate-blob animation-delay-4000"></div>
       </div>
 
       <TalkHeader
@@ -198,7 +198,7 @@ export const TalkScreen = () => {
 
       {error && (
         <div className="max-w-4xl mx-auto w-full px-4 py-2 z-20">
-          <div className="bg-red-50/90 backdrop-blur-sm border border-red-200 text-red-700 p-4 rounded-xl shadow-lg flex items-center animate-fadeIn">
+          <div className="bg-red-50/90 dark:bg-red-900/40 backdrop-blur-sm border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 p-4 rounded-xl shadow-lg flex items-center animate-fadeIn">
             <svg
               className="w-5 h-5 mr-3 flex-shrink-0"
               fill="none"
@@ -218,20 +218,20 @@ export const TalkScreen = () => {
       )}
 
       <div className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 flex flex-col h-[calc(100vh-80px)]">
-        <div className="bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl flex-1 flex flex-col overflow-hidden relative">
+        <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border border-white/40 dark:border-gray-700/40 rounded-3xl shadow-2xl flex-1 flex flex-col overflow-hidden relative">
           {/* Chat Area */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
             {!user ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 dark:border-blue-400 mb-4"></div>
                 <p>{t('loadingProfile')}</p>
               </div>
             ) : conversation.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 opacity-70">
-                <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400 opacity-70">
+                <div className="w-24 h-24 bg-blue-100 dark:bg-blue-900/40 rounded-full flex items-center justify-center mb-6">
                   <span className="text-4xl">🎙️</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-700 mb-2">
+                <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">
                   {t('startConversation')}
                 </h3>
                 <p>{t('startPrompt')}</p>
@@ -248,12 +248,12 @@ export const TalkScreen = () => {
                     className={`max-w-[85%] md:max-w-[75%] rounded-2xl p-5 shadow-sm relative group transition-all duration-200 hover:shadow-md ${
                       message.sender === 'user'
                         ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-tr-none'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
+                        : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700 rounded-tl-none'
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       {message.sender === 'ai' && (
-                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 text-lg shadow-inner">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/40 flex items-center justify-center flex-shrink-0 text-lg shadow-inner">
                           {characters.find((c) => c.id === selectedCharacter)
                             ?.emoji || '🤖'}
                         </div>
@@ -269,7 +269,7 @@ export const TalkScreen = () => {
                             className={`text-xs ${
                               message.sender === 'user'
                                 ? 'text-blue-100/80'
-                                : 'text-gray-400'
+                                : 'text-gray-400 dark:text-gray-500'
                             }`}
                           >
                             {message.timestamp.toLocaleTimeString([], {
@@ -300,7 +300,7 @@ export const TalkScreen = () => {
           </div>
 
           {/* Footer / Controls */}
-          <div className="p-6 bg-white/40 backdrop-blur-md border-t border-white/30">
+          <div className="p-6 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border-t border-white/30 dark:border-gray-700/30">
             {user ? (
               <div className="flex flex-col items-center justify-center gap-3">
                 <button
@@ -342,20 +342,20 @@ export const TalkScreen = () => {
 
                 <div className="text-center">
                   <div
-                    className={`font-bold text-lg ${isStreaming ? 'text-red-600' : 'text-gray-700'}`}
+                    className={`font-bold text-lg ${isStreaming ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}
                   >
                     {isStreaming ? t('liveConversation') : t('tapToStart')}
                   </div>
-                  <div className="text-xs text-gray-500 font-medium tracking-wide uppercase">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide uppercase">
                     {isStreaming ? t('clickToStop') : t('realTimeChat')}
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-center gap-4 opacity-60">
-                <div className="p-4 rounded-full bg-gray-200">
+                <div className="p-4 rounded-full bg-gray-200 dark:bg-gray-700">
                   <svg
-                    className="w-6 h-6 text-gray-400"
+                    className="w-6 h-6 text-gray-400 dark:text-gray-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -367,10 +367,10 @@ export const TalkScreen = () => {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <div className="font-medium text-gray-400">
+                  <div className="font-medium text-gray-400 dark:text-gray-500">
                     {t('pleaseWait')}
                   </div>
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-gray-400 dark:text-gray-500">
                     {t('loadingAudio')}
                   </div>
                 </div>
