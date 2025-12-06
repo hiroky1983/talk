@@ -43,7 +43,26 @@ const LocaleLayout = async ({
   children: ReactNode;
   params: Promise<{ locale: string }>;
 }) => {
-  const { locale: resolvedLocale } = await params;
+  const paramsData = await params;
+
+  // Enhanced security validation for params to mitigate CVE-2025-55182
+  // Ensure params is a plain object and locale is a string
+  if (!paramsData || typeof paramsData !== 'object' || Array.isArray(paramsData)) {
+    notFound();
+  }
+
+  const resolvedLocale = paramsData.locale;
+
+  // Strict type and value validation
+  if (typeof resolvedLocale !== 'string' || resolvedLocale.length === 0 || resolvedLocale.length > 10) {
+    notFound();
+  }
+
+  // Only allow alphanumeric characters and hyphens
+  if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(resolvedLocale)) {
+    notFound();
+  }
+
   const locale = locales.includes(resolvedLocale as Locale)
     ? (resolvedLocale as Locale)
     : defaultLocale;
