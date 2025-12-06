@@ -20,12 +20,49 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/**
+ * Validates locale parameter with strict security checks
+ * @param paramsData - The params object to validate
+ * @returns Valid locale or triggers notFound()
+ */
+function validateLocale(paramsData: unknown): Locale {
+  // Ensure params is a plain object
+  if (
+    !paramsData ||
+    typeof paramsData !== 'object' ||
+    Array.isArray(paramsData) ||
+    Object.getPrototypeOf(paramsData) !== Object.prototype
+  ) {
+    notFound();
+  }
+
+  const resolvedLocale = (paramsData as { locale: unknown }).locale;
+
+  // Strict type and value validation
+  if (typeof resolvedLocale !== 'string' || resolvedLocale.length === 0 || resolvedLocale.length > 10) {
+    notFound();
+  }
+
+  // Only allow aa-BB format (two lowercase letters, optionally followed by hyphen and two uppercase letters)
+  if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(resolvedLocale)) {
+    notFound();
+  }
+
+  // Only allow explicitly supported locales
+  if (!locales.includes(resolvedLocale as Locale)) {
+    notFound();
+  }
+
+  return resolvedLocale as Locale;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
+  const paramsData = await params;
+  const locale = validateLocale(paramsData);
   const t = await getTranslations({ locale, namespace: "common" });
 
   return {
@@ -44,36 +81,7 @@ const LocaleLayout = async ({
   params: Promise<{ locale: string }>;
 }) => {
   const paramsData = await params;
-
-  // Enhanced security validation for params to mitigate CVE-2025-55182
-  // Ensure params is a plain object and locale is a string
-  if (
-    !paramsData ||
-    typeof paramsData !== 'object' ||
-    Array.isArray(paramsData) ||
-    Object.getPrototypeOf(paramsData) !== Object.prototype
-  ) {
-    notFound();
-  }
-
-  const resolvedLocale = paramsData.locale;
-
-  // Strict type and value validation
-  if (typeof resolvedLocale !== 'string' || resolvedLocale.length === 0 || resolvedLocale.length > 10) {
-    notFound();
-  }
-
-  // Only allow aa-BB format (two lowercase letters, optionally followed by hyphen and two uppercase letters)
-  if (!/^[a-z]{2}(-[A-Z]{2})?$/.test(resolvedLocale)) {
-    notFound();
-  }
-
-  // Only allow explicitly supported locales
-  if (!locales.includes(resolvedLocale as Locale)) {
-    notFound();
-  }
-
-  const locale = resolvedLocale as Locale;
+  const locale = validateLocale(paramsData);
   const messages = await getMessages(locale);
 
   if (!messages) {
