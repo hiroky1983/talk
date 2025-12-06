@@ -3,6 +3,7 @@
 import { Language } from '@/types/types'
 import { useTranslations } from 'next-intl'
 import React from 'react'
+import { ThemeToggle } from './ThemeToggle'
 
 interface User {
   username: string
@@ -60,6 +61,9 @@ export const TalkHeader = ({
 
           {user ? (
             <div className="flex flex-wrap items-center justify-center gap-3">
+              {/* Theme Toggle */}
+              <ThemeToggle />
+
               {/* Language Selector */}
               <div className="relative group">
                 <select

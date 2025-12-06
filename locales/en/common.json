@@ -10,6 +10,8 @@
   "logout": "Logout",
   "selectLanguage": "Select practice language",
   "selectCharacter": "Select AI character",
+  "switchToDarkMode": "Switch to dark mode",
+  "switchToLightMode": "Switch to light mode",
   "loadingProfile": "Loading your profile...",
   "startConversation": "Start a Conversation",
   "startPrompt": "Tap the microphone button below and say hello!",

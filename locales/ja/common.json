@@ -10,6 +10,8 @@
   "logout": "ログアウト",
   "selectLanguage": "練習する言語を選択",
   "selectCharacter": "AIキャラクターを選択",
+  "switchToDarkMode": "ダークモードに切り替え",
+  "switchToLightMode": "ライトモードに切り替え",
   "loadingProfile": "プロフィールを読み込み中...",
   "startConversation": "会話を始める",
   "startPrompt": "下のマイクボタンをタップして、挨拶してみましょう！",
