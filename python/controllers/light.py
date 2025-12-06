@@ -67,15 +67,40 @@ class LightController(AIController):
 
             # Generate content with audio
             char_config = CHARACTERS.get(character, CHARACTERS['friend'])
-            
+
+            # Map language codes to full language names for better clarity
+            language_map = {
+                'en': 'English',
+                'ja': 'Japanese',
+                'es': 'Spanish',
+                'fr': 'French',
+                'de': 'German',
+                'zh': 'Chinese',
+                'ko': 'Korean',
+                'it': 'Italian',
+                'pt': 'Portuguese',
+                'ru': 'Russian'
+            }
+            language_name = language_map.get(language, language)
+
+            # Enhanced system instruction with language requirement
+            enhanced_instruction = f"""{char_config['system_instruction']}
+
+CRITICAL LANGUAGE REQUIREMENT:
+- You MUST respond ONLY in {language_name} language (language code: {language})
+- The user is speaking to you in {language_name}
+- ALL of your responses must be in {language_name}
+- Do NOT use any other language in your response
+- Match the language that the user is using in the audio"""
+
             # Use generate_content_stream for streaming response
             response_stream = self.client.models.generate_content_stream(
                 model=self.model_id,
                 contents=[
                     types.Content(
                         parts=[
-                            types.Part(text=char_config['system_instruction']),
-                            types.Part(text=f"Listen to the audio and respond naturally in {language} language."),
+                            types.Part(text=enhanced_instruction),
+                            types.Part(text=f"Listen to the audio message from the user (speaking in {language_name}) and respond naturally in the SAME language ({language_name})."),
                             types.Part(
                                 inline_data=types.Blob(
                                     mime_type="audio/wav",
