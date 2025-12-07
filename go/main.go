@@ -52,8 +52,8 @@ func main() {
 
 	ctx := context.Background()
 
-	// Initialize PostgreSQL connection
-	db, err := database.NewPostgresPool(ctx)
+	// Initialize PostgreSQL connection with Bun ORM
+	db, err := database.NewBunDB(ctx)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}

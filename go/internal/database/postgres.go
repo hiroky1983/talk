@@ -2,16 +2,19 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/extra/bundebug"
 )
 
-// NewPostgresPool creates a new PostgreSQL connection pool
-func NewPostgresPool(ctx context.Context) (*pgxpool.Pool, error) {
+// NewBunDB creates a new Bun DB instance with PostgreSQL driver
+func NewBunDB(ctx context.Context) (*bun.DB, error) {
 	// Get database connection details from environment variables
 	host := getEnv("DB_HOST", "localhost")
 	port := getEnv("DB_PORT", "5432")
@@ -21,37 +24,33 @@ func NewPostgresPool(ctx context.Context) (*pgxpool.Pool, error) {
 	sslmode := getEnv("DB_SSLMODE", "disable")
 
 	// Build DSN (Data Source Name)
-	databaseURL := fmt.Sprintf(
+	dsn := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		user, password, host, port, dbname, sslmode,
 	)
 
-	// Configure connection pool
-	config, err := pgxpool.ParseConfig(databaseURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse database configuration")
-	}
+	// Create PostgreSQL connector
+	sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 
-	// Set pool configuration
-	config.MaxConns = 25
-	config.MinConns = 5
-	config.MaxConnLifetime = time.Hour
-	config.MaxConnIdleTime = 30 * time.Minute
+	// Create Bun DB instance with PostgreSQL dialect
+	db := bun.NewDB(sqldb, pgdialect.New())
 
-	// Create connection pool
-	pool, err := pgxpool.NewWithConfig(ctx, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool")
+	// Add query hook for debugging in development
+	if getEnv("GO_ENV", "development") == "development" {
+		db.AddQueryHook(bundebug.NewQueryHook(
+			bundebug.WithVerbose(true),
+			bundebug.FromEnv("BUNDEBUG"),
+		))
 	}
 
 	// Test connection
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("failed to connect to database")
+	if err := db.PingContext(ctx); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	log.Printf("Successfully connected to PostgreSQL at %s:%s", host, port)
-	return pool, nil
+	return db, nil
 }
 
 // getEnv gets environment variable with fallback
