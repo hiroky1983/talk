@@ -12,7 +12,10 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/hiroky1983/talk/go/internal/auth"
 	"github.com/hiroky1983/talk/go/internal/database"
+	"github.com/hiroky1983/talk/go/internal/handlers"
+	"github.com/hiroky1983/talk/go/internal/repository"
 	"github.com/hiroky1983/talk/go/internal/websocket"
 	"github.com/hiroky1983/talk/go/middleware"
 )
@@ -59,6 +62,24 @@ func main() {
 	}
 	defer db.Close()
 
+	// Run database migrations
+	log.Println("Running database migrations...")
+	if err := database.RunMigrations(ctx, db); err != nil {
+		log.Printf("Warning: Failed to run migrations: %v", err)
+	}
+
+	// Initialize JWT manager
+	jwtManager, err := auth.NewJWTManager()
+	if err != nil {
+		log.Fatal("Failed to initialize JWT manager:", err)
+	}
+
+	// Initialize repositories
+	userRepo := repository.NewUserRepository(db)
+
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
+
 	// Create AI service
 	aiService := NewAIConversationService()
 
@@ -74,48 +95,38 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3003"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms", "X-User-ID"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms"},
 		ExposeHeaders:    []string{"Content-Length", "Connect-Protocol-Version"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
 
-	// Apply authentication middleware to all routes except health checks and preflight requests
-	router.Use(func(c *gin.Context) {
-		// Skip authentication for health check endpoints and CORS preflight requests
-		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/ws/chat" || c.Request.Method == "OPTIONS" {
-			c.Next()
-			return
-		}
-
-		// Extract user_id from X-User-ID header
-		userID := c.GetHeader(middleware.UserIDHeader)
-
-		// Validate that user_id is present
-		if userID == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: user_id is required",
-			})
-			c.Abort()
-			return
-		}
-
-		// Store user_id in context for downstream handlers
-		c.Set(middleware.UserIDKey, userID)
-
-		// Continue to next handler
-		c.Next()
-	})
-
-	// Regular HTTP endpoints
+	// Public routes (no authentication required)
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "AI Language Learning API Server - gRPC streaming enabled!",
 		})
 	})
 
+	// Authentication routes (public)
+	authGroup := router.Group("/auth")
+	{
+		authGroup.POST("/register", authHandler.Register)
+		authGroup.POST("/login", authHandler.Login)
+		authGroup.POST("/refresh", authHandler.Refresh)
+		authGroup.POST("/logout", authHandler.Logout)
+	}
+
 	// WebSocket endpoint
 	router.GET("/ws/chat", wsHandler.HandleConnection)
+
+	// Protected routes (require JWT authentication)
+	protected := router.Group("/api")
+	protected.Use(middleware.JWTAuthMiddleware(jwtManager))
+	{
+		protected.GET("/me", authHandler.Me)
+		// Add more protected routes here
+	}
 
 	// Mount Connect RPC handler with wildcard to match all methods
 	// router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))
