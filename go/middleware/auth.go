@@ -13,8 +13,6 @@ const (
 	UserIDKey = "user_id"
 	// EmailKey is the key used to store email in gin.Context
 	EmailKey = "email"
-	// UserIDHeader is the HTTP header name for user identification (legacy)
-	UserIDHeader = "X-User-ID"
 )
 
 // JWTAuthMiddleware validates JWT tokens and extracts user information
@@ -61,30 +59,6 @@ func JWTAuthMiddleware(jwtManager *auth.JWTManager) gin.HandlerFunc {
 		// Store user information in context
 		c.Set(UserIDKey, claims.UserID)
 		c.Set(EmailKey, claims.Email)
-
-		// Continue to next handler
-		c.Next()
-	}
-}
-
-// LegacyAuthMiddleware extracts user_id from request headers (for backward compatibility)
-// This should be deprecated once frontend is updated
-func LegacyAuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Extract user_id from X-User-ID header
-		userID := c.GetHeader(UserIDHeader)
-
-		// Validate that user_id is present
-		if userID == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"error": "Unauthorized: user_id is required",
-			})
-			c.Abort()
-			return
-		}
-
-		// Store user_id in context for downstream handlers
-		c.Set(UserIDKey, userID)
 
 		// Continue to next handler
 		c.Next()

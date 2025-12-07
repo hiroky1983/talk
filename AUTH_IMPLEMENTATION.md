@@ -50,7 +50,6 @@ Two tables were added to support authentication:
 
 4. **Middleware** (`go/middleware/auth.go`):
    - `JWTAuthMiddleware`: Validates JWT tokens
-   - `LegacyAuthMiddleware`: Backward compatibility for X-User-ID header
 
 ### Frontend (Next.js)
 
@@ -195,10 +194,6 @@ curl -X GET http://localhost:8000/api/me \
    - Refresh tokens: 7 days
 4. **HTTP-Only Cookies**: Refresh tokens stored in HTTP-only cookies (when enabled)
 5. **Database Indexes**: Optimized queries for user lookup and token validation
-
-## Backward Compatibility
-
-The WebSocket endpoint (`/ws/chat`) still accepts the legacy `X-User-ID` header for backward compatibility. This allows existing clients to continue working while new clients can use JWT authentication.
 
 ## Future Enhancements
 

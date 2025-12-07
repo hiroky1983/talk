@@ -95,7 +95,7 @@ func main() {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:3003"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms", "X-User-ID"},
+		AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type", "Authorization", "Accept", "Accept-Encoding", "Accept-Language", "Connection", "Host", "User-Agent", "Connect-Protocol-Version", "Connect-Timeout-Ms"},
 		ExposeHeaders:    []string{"Content-Length", "Connect-Protocol-Version"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -117,15 +117,8 @@ func main() {
 		authGroup.POST("/logout", authHandler.Logout)
 	}
 
-	// WebSocket endpoint (using legacy auth for backward compatibility)
-	router.GET("/ws/chat", func(c *gin.Context) {
-		// For WebSocket, we still accept X-User-ID header for backward compatibility
-		userID := c.GetHeader(middleware.UserIDHeader)
-		if userID != "" {
-			c.Set(middleware.UserIDKey, userID)
-		}
-		wsHandler.HandleConnection(c)
-	})
+	// WebSocket endpoint
+	router.GET("/ws/chat", wsHandler.HandleConnection)
 
 	// Protected routes (require JWT authentication)
 	protected := router.Group("/api")
