@@ -61,7 +61,7 @@ func main() {
 	// Apply authentication middleware to all routes except health checks and preflight requests
 	router.Use(func(c *gin.Context) {
 		// Skip authentication for health check endpoints and CORS preflight requests
-		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/health" || c.Request.URL.Path == "/ws/chat" || c.Request.Method == "OPTIONS" {
+		if c.Request.URL.Path == "/" || c.Request.URL.Path == "/ws/chat" || c.Request.Method == "OPTIONS" {
 			c.Next()
 			return
 		}
@@ -94,11 +94,6 @@ func main() {
 
 	// WebSocket endpoint
 	router.GET("/ws/chat", wsHandler.HandleConnection)
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "healthy - AI conversation service running",
-		})
-	})
 
 	// Mount Connect RPC handler with wildcard to match all methods
 	// router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))

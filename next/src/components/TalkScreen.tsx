@@ -6,7 +6,6 @@ import { useLocale, useTranslations } from 'next-intl'
 import { TalkHeader } from './TalkHeader'
 import { Language } from '@/types/types'
 import { useWebSocketChat } from '@/lib/audio/useWebSocketChat'
-import { checkHealth } from '@/lib/api/health'
 
 interface User {
   username: string
@@ -118,20 +117,6 @@ export const TalkScreen = () => {
       setSelectedLanguage(parsedUser.language)
     }
   }, [router, locale])
-
-  // Health check on mount
-  useEffect(() => {
-    const performHealthCheck = async () => {
-      try {
-        const result = await checkHealth()
-        console.log('Health check successful:', result)
-      } catch (error) {
-        console.error('Health check failed:', error)
-      }
-    }
-
-    performHealthCheck()
-  }, [])
 
   const handleCharacterChange = async (newCharacter: string) => {
     if (newCharacter === selectedCharacter) return
