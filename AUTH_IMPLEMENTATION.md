@@ -127,7 +127,9 @@ Two tables were added to support authentication:
 Add to your `.env` file:
 
 ```bash
-# JWT Configuration
+# JWT Configuration (REQUIRED)
+# Generate a secure random string for production
+# Example: openssl rand -base64 32
 JWT_SECRET_KEY=your-secret-key-here-change-in-production
 
 # Existing database configuration
@@ -137,6 +139,12 @@ DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 DB_NAME=your_db_name
 DB_SSLMODE=disable
+```
+
+**Important:** `JWT_SECRET_KEY` is required. The application will not start if this environment variable is not set. For production, generate a strong random key using:
+
+```bash
+openssl rand -base64 32
 ```
 
 ### 2. Database Migration

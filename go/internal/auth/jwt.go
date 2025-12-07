@@ -14,6 +14,8 @@ var (
 	ErrInvalidToken = errors.New("invalid token")
 	// ErrExpiredToken is returned when the token has expired
 	ErrExpiredToken = errors.New("token has expired")
+	// ErrMissingSecretKey is returned when JWT_SECRET_KEY environment variable is not set
+	ErrMissingSecretKey = errors.New("JWT_SECRET_KEY environment variable is required")
 )
 
 // Claims represents the JWT claims
@@ -31,17 +33,17 @@ type JWTManager struct {
 }
 
 // NewJWTManager creates a new JWT manager
-func NewJWTManager() *JWTManager {
+func NewJWTManager() (*JWTManager, error) {
 	secretKey := os.Getenv("JWT_SECRET_KEY")
 	if secretKey == "" {
-		secretKey = "your-secret-key-change-this-in-production" // Default for development
+		return nil, ErrMissingSecretKey
 	}
 
 	return &JWTManager{
 		secretKey:            secretKey,
 		accessTokenDuration:  15 * time.Minute,  // Access token expires in 15 minutes
 		refreshTokenDuration: 7 * 24 * time.Hour, // Refresh token expires in 7 days
-	}
+	}, nil
 }
 
 // GenerateAccessToken generates a new access token

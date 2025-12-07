@@ -69,7 +69,10 @@ func main() {
 	}
 
 	// Initialize JWT manager
-	jwtManager := auth.NewJWTManager()
+	jwtManager, err := auth.NewJWTManager()
+	if err != nil {
+		log.Fatal("Failed to initialize JWT manager:", err)
+	}
 
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(db)
