@@ -52,12 +52,27 @@ func main() {
 
 	ctx := context.Background()
 
-	// Initialize PostgreSQL connection
-	db, err := database.NewPostgresPool(ctx)
+	// Initialize PostgreSQL connection (pgx pool - legacy)
+	pgxPool, err := database.NewPostgresPool(ctx)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	defer db.Close()
+	defer pgxPool.Close()
+
+	// Initialize GORM database connection
+	gormDB, err := database.NewGormDB()
+	if err != nil {
+		log.Fatal("Failed to connect to database with GORM:", err)
+	}
+
+	// Get underlying SQL database for cleanup
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		log.Fatal("Failed to get database instance:", err)
+	}
+	defer sqlDB.Close()
+
+	log.Println("Database connections initialized (pgx pool and GORM)")
 
 	// Create AI service
 	aiService := NewAIConversationService()
