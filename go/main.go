@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/hiroky1983/talk/go/internal/database"
 	"github.com/hiroky1983/talk/go/internal/websocket"
 	"github.com/hiroky1983/talk/go/middleware"
 )
@@ -37,6 +40,25 @@ func Logger() gin.HandlerFunc {
 }
 
 func main() {
+	// Load .env file (try multiple paths)
+	err := godotenv.Load()
+	if err != nil {
+		// Try loading from go/.env if running from project root
+		err = godotenv.Load("go/.env")
+		if err != nil {
+			log.Println("No .env file found, using environment variables")
+		}
+	}
+
+	ctx := context.Background()
+
+	// Initialize PostgreSQL connection
+	db, err := database.NewPostgresPool(ctx)
+	if err != nil {
+		log.Fatal("Failed to connect to database:", err)
+	}
+	defer db.Close()
+
 	// Create AI service
 	aiService := NewAIConversationService()
 
