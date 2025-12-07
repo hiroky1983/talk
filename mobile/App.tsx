@@ -1,37 +1,46 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { useTranslation } from "react-i18next";
+import React from 'react'
+import { NavigationContainer } from '@react-navigation/native'
+import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { StatusBar } from 'expo-status-bar'
+import { AuthProvider, useAuth } from './src/contexts/AuthContext'
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext'
+import { AuthScreen } from './src/screens/AuthScreen'
+import { TalkScreen } from './src/screens/TalkScreen'
 
-import "./src/lib/i18n";
+import './src/lib/i18n'
 
-export default function App(): JSX.Element {
-  const { t } = useTranslation();
+const Stack = createNativeStackNavigator()
+
+function AppNavigator() {
+  const { isAuthenticated, isLoading } = useAuth()
+  const { theme } = useTheme()
+
+  if (isLoading) {
+    return null // Or a loading screen
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.headline}>{t("common:welcome")}</Text>
-      <Text style={styles.subhead}>{t("common:tagline")}</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    <>
+      <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {!isAuthenticated ? (
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          ) : (
+            <Stack.Screen name="Talk" component={TalkScreen} />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
-  },
-  headline: {
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  subhead: {
-    fontSize: 16,
-    color: "#4b5563",
-    textAlign: "center",
-  },
-});
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
+    </ThemeProvider>
+  )
+}
