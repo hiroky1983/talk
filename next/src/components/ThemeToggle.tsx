@@ -8,6 +8,10 @@ export const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme()
   const t = useTranslations('common')
 
+  if (!theme) {
+    return null
+  }
+
   return (
     <button
       type="button"
@@ -15,9 +19,9 @@ export const ThemeToggle = () => {
       className="relative p-2 bg-white/50 dark:bg-gray-800/50 border border-white/30 dark:border-gray-700/30 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 shadow-sm transition-all"
       title={theme === 'light' ? t('switchToDarkMode') : t('switchToLightMode')}
     >
-      {theme === 'light' ? (
+      {theme === 'dark' ? (
         <svg
-          className="w-5 h-5 text-gray-700"
+          className="w-5 h-5 text-gray-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -31,7 +35,7 @@ export const ThemeToggle = () => {
         </svg>
       ) : (
         <svg
-          className="w-5 h-5 text-yellow-400"
+          className="w-5 h-5 text-yellow-500"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
