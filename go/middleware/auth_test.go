@@ -3,9 +3,11 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/hiroky1983/talk/go/internal/auth"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,10 +16,19 @@ func init() {
 	gin.SetMode(gin.TestMode)
 }
 
-func TestAuthMiddleware_WithValidUserID(t *testing.T) {
-	// Setup
+func TestJWTAuthMiddleware_WithValidToken(t *testing.T) {
+	// Setup JWT manager
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key-for-testing-only")
+	jwtManager, err := auth.NewJWTManager()
+	assert.NoError(t, err)
+
+	// Generate a valid token
+	token, err := jwtManager.GenerateAccessToken("test-user-123", "test@example.com")
+	assert.NoError(t, err)
+
+	// Setup router
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(JWTAuthMiddleware(jwtManager))
 	router.GET("/test", func(c *gin.Context) {
 		userID, exists := GetUserID(c)
 		assert.True(t, exists)
@@ -25,9 +36,9 @@ func TestAuthMiddleware_WithValidUserID(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{"user_id": userID})
 	})
 
-	// Create request with X-User-ID header
+	// Create request with valid token
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.Header.Set(UserIDHeader, "test-user-123")
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	// Execute request
 	w := httptest.NewRecorder()
@@ -38,15 +49,20 @@ func TestAuthMiddleware_WithValidUserID(t *testing.T) {
 	assert.Contains(t, w.Body.String(), "test-user-123")
 }
 
-func TestAuthMiddleware_WithoutUserID(t *testing.T) {
-	// Setup
+func TestJWTAuthMiddleware_WithoutToken(t *testing.T) {
+	// Setup JWT manager
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key-for-testing-only")
+	jwtManager, err := auth.NewJWTManager()
+	assert.NoError(t, err)
+
+	// Setup router
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(JWTAuthMiddleware(jwtManager))
 	router.GET("/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	// Create request without X-User-ID header
+	// Create request without Authorization header
 	req, _ := http.NewRequest("GET", "/test", nil)
 
 	// Execute request
@@ -55,21 +71,25 @@ func TestAuthMiddleware_WithoutUserID(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Contains(t, w.Body.String(), "Unauthorized")
-	assert.Contains(t, w.Body.String(), "user_id is required")
+	assert.Contains(t, w.Body.String(), "Authorization header is required")
 }
 
-func TestAuthMiddleware_WithEmptyUserID(t *testing.T) {
-	// Setup
+func TestJWTAuthMiddleware_WithInvalidToken(t *testing.T) {
+	// Setup JWT manager
+	os.Setenv("JWT_SECRET_KEY", "test-secret-key-for-testing-only")
+	jwtManager, err := auth.NewJWTManager()
+	assert.NoError(t, err)
+
+	// Setup router
 	router := gin.New()
-	router.Use(AuthMiddleware())
+	router.Use(JWTAuthMiddleware(jwtManager))
 	router.GET("/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 	})
 
-	// Create request with empty X-User-ID header
+	// Create request with invalid token
 	req, _ := http.NewRequest("GET", "/test", nil)
-	req.Header.Set(UserIDHeader, "")
+	req.Header.Set("Authorization", "Bearer invalid-token")
 
 	// Execute request
 	w := httptest.NewRecorder()
@@ -77,7 +97,7 @@ func TestAuthMiddleware_WithEmptyUserID(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.Contains(t, w.Body.String(), "Unauthorized")
+	assert.Contains(t, w.Body.String(), "Invalid token")
 }
 
 func TestGetUserID_WhenUserIDExists(t *testing.T) {

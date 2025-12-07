@@ -41,7 +41,7 @@ func NewJWTManager() (*JWTManager, error) {
 
 	return &JWTManager{
 		secretKey:            secretKey,
-		accessTokenDuration:  15 * time.Minute,  // Access token expires in 15 minutes
+		accessTokenDuration:  15 * time.Minute,   // Access token expires in 15 minutes
 		refreshTokenDuration: 7 * 24 * time.Hour, // Refresh token expires in 7 days
 	}, nil
 }
