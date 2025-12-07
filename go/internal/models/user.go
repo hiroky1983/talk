@@ -11,6 +11,7 @@ type User struct {
 	ID        string         `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Email     string         `gorm:"type:varchar(255);uniqueIndex;not null" json:"email"`
 	Name      string         `gorm:"type:varchar(255);not null" json:"name"`
+	Plan      string         `gorm:"type:varchar(50);not null;default:'free'" json:"plan"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`

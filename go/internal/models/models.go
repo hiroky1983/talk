@@ -6,8 +6,6 @@ import "gorm.io/gorm"
 func AllModels() []interface{} {
 	return []interface{}{
 		&User{},
-		&Conversation{},
-		&Message{},
 	}
 }
 
