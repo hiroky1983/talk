@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -50,10 +49,6 @@ func main() {
 			log.Println("No .env file found, using environment variables")
 		}
 	}
-
-	// Debug: Print DATABASE_URL to verify .env is loaded
-	databaseURL := os.Getenv("DATABASE_URL")
-	log.Printf("DATABASE_URL: %s", databaseURL)
 
 	ctx := context.Background()
 
