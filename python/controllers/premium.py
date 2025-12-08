@@ -130,7 +130,7 @@ class GeminiLiveSession:
 
 class PremiumController(AIController):
     def __init__(self, api_key: str):
-        self.client = genai.Client(api_key=api_key, http_options={'api_version': 'v1alpha'})
+        self.client = genai.Client(api_key=api_key, http_options={'api_version': 'v1beta'})
         self.sessions: Dict[str, GeminiLiveSession] = {}
         # self.model_id = "gemini-2.0-flash-exp" 
         self.model_id = "gemini-2.0-flash-live-001" # Experimental model for Live API
@@ -211,7 +211,7 @@ class PremiumController(AIController):
         """Consume audio_iterator and send to Gemini session"""
         try:
              async for chunk in audio_iterator:
-                 await session.session.send(input=chunk, end_of_turn=False)
+                 await session.session.send(input={"data": chunk, "mime_type": "audio/pcm"}, end_of_turn=False)
         except Exception as e:
             logger.error(f"Error sending stream to Gemini: {e}")
 
