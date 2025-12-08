@@ -1,12 +1,12 @@
-import createNextIntlPlugin from 'next-intl/plugin';
-import type { NextConfig } from "next";
+import createNextIntlPlugin from 'next-intl/plugin'
+import type { NextConfig } from 'next'
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin()
 
 // Backend URL configuration with fallback for development
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'localhost:8000';
-const backendProtocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-const wsProtocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws';
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'localhost:8000'
+const backendProtocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+const wsProtocol = process.env.NODE_ENV === 'production' ? 'wss' : 'ws'
 
 const nextConfig: NextConfig = {
   // Security headers for defense-in-depth
@@ -34,7 +34,8 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+            value:
+              'camera=(), microphone=(self), geolocation=(), interest-cohort=()',
           },
           {
             key: 'Content-Security-Policy',
@@ -53,8 +54,8 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-    ];
+    ]
   },
-};
+}
 
-export default withNextIntl(nextConfig);
+export default withNextIntl(nextConfig)

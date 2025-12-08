@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	ai "github.com/hiroky1983/talk/go/gen/ai"
 	"github.com/hiroky1983/talk/go/middleware"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var upgrader = websocket.Upgrader{
@@ -81,7 +83,7 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 				Username:  "User",
 				Language:  "en", // Default
 				Character: "friend",
-				PlanType:  ai.PlanType_PLAN_TYPE_LITE,
+				PlanType:  ai.PlanType_PLAN_TYPE_PREMIUM,
 			},
 		},
 	}); err != nil {
@@ -102,6 +104,10 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 				return
 			}
 			if err != nil {
+				if st, ok := status.FromError(err); ok && st.Code() == codes.Canceled {
+					log.Printf("[%s] AI stream context canceled (client disconnected)", requestID)
+					return
+				}
 				log.Printf("[%s] Error receiving from AI stream: %v", requestID, err)
 				conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
