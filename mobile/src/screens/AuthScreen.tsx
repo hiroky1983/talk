@@ -37,11 +37,11 @@ export const AuthScreen = ({ navigation }: any) => {
       return
     }
     if (!email.trim()) {
-      setError('Email is required')
+      setError(t('auth:emailRequired'))
       return
     }
     if (!password.trim()) {
-      setError('Password is required')
+      setError(t('auth:passwordRequired'))
       return
     }
 

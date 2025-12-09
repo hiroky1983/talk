@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useColorScheme } from 'react-native'
+import { useColorScheme, View, ActivityIndicator } from 'react-native'
 
 type Theme = 'light' | 'dark'
 
@@ -39,7 +39,11 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
-    return null
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    )
   }
 
   return (
