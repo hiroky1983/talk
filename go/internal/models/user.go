@@ -7,9 +7,10 @@ import (
 // User represents a user in the system
 type User struct {
 	UsersID      string    `json:"id" gorm:"primaryKey;type:uuid;column:users_id;default:gen_random_uuid()"`
+	Username     string    `json:"username" gorm:"not null;size:100"`
 	Email        string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
 	PasswordHash string    `json:"-" gorm:"not null;column:password_hash;size:255"`
-	Username     string    `json:"username" gorm:"not null;size:100"`
+	Plan         UserPlan  `json:"plan" gorm:"not null;type:varchar(50);default:'PLAN_FREE'"`
 	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
@@ -22,3 +23,5 @@ type RefreshToken struct {
 	ExpiresAt       time.Time `json:"expires_at" gorm:"not null"`
 	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime"`
 }
+
+type UserPlan string
