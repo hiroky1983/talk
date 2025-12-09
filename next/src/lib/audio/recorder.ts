@@ -4,28 +4,28 @@
  */
 
 export class AudioRecorder {
-  private audioContext: AudioContext | null = null;
-  private mediaStream: MediaStream | null = null;
-  private sourceNode: MediaStreamAudioSourceNode | null = null;
-  private analyserNode: AnalyserNode | null = null;
-  private workletNode: AudioWorkletNode | null = null;
-  private onDataCallback: ((data: Uint8Array) => void) | null = null;
-  private onSilenceCallback: (() => void) | null = null;
-  
-  private silenceThreshold = 0.01; // Volume threshold for silence detection
-  private silenceDuration = 1000; // 1 second of silence
-  private lastSoundTime = 0;
-  private silenceCheckInterval: NodeJS.Timeout | null = null;
-  private audioChunks: Uint8Array[] = [];
+  private audioContext: AudioContext | null = null
+  private mediaStream: MediaStream | null = null
+  private sourceNode: MediaStreamAudioSourceNode | null = null
+  private analyserNode: AnalyserNode | null = null
+  private workletNode: AudioWorkletNode | null = null
+  private onDataCallback: ((data: Uint8Array) => void) | null = null
+  private onSilenceCallback: (() => void) | null = null
+
+  private silenceThreshold = 0.01 // Volume threshold for silence detection
+  private silenceDuration = 1000 // 1 second of silence
+  private lastSoundTime = 0
+  private silenceCheckInterval: NodeJS.Timeout | null = null
+  private audioChunks: Uint8Array[] = []
 
   async start(
     onData: (data: Uint8Array) => void,
-    onSilence?: () => void
+    onSilence?: () => void,
   ): Promise<void> {
-    this.onDataCallback = onData;
-    this.onSilenceCallback = onSilence || null;
-    this.audioChunks = [];
-    this.lastSoundTime = Date.now();
+    this.onDataCallback = onData
+    this.onSilenceCallback = onSilence || null
+    this.audioChunks = []
+    this.lastSoundTime = Date.now()
 
     // Request microphone access
     this.mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -35,154 +35,177 @@ export class AudioRecorder {
         echoCancellation: true,
         noiseSuppression: true,
       },
-    });
+    })
 
     // Create audio context with 16kHz sample rate
-    this.audioContext = new AudioContext({ sampleRate: 16000 });
+    this.audioContext = new AudioContext({ sampleRate: 16000 })
 
     // Create source from microphone
     this.sourceNode = this.audioContext.createMediaStreamSource(
-      this.mediaStream
-    );
+      this.mediaStream,
+    )
 
     // Create analyser for volume detection
-    this.analyserNode = this.audioContext.createAnalyser();
-    this.analyserNode.fftSize = 2048;
-    this.sourceNode.connect(this.analyserNode);
+    this.analyserNode = this.audioContext.createAnalyser()
+    this.analyserNode.fftSize = 2048
+    this.sourceNode.connect(this.analyserNode)
 
     // Load and create AudioWorklet for processing
     try {
-        const workletUrl = new URL("/audio-processor.js", window.location.origin).toString();
-        // Check if module is already added by trying to create node first? 
-        // No, just addModule. It resolves if already added.
-        await this.audioContext.audioWorklet.addModule(workletUrl);
+      const workletUrl = new URL(
+        '/audio-processor.js',
+        window.location.origin,
+      ).toString()
+      // Check if module is already added by trying to create node first?
+      // No, just addModule. It resolves if already added.
+      await this.audioContext.audioWorklet.addModule(workletUrl)
     } catch (e) {
-        console.error("Failed to load audio-processor.js from", window.location.origin, e);
-        throw new Error(`Failed to load audio processor: ${e instanceof Error ? e.message : String(e)}`);
+      console.error(
+        'Failed to load audio-processor.js from',
+        window.location.origin,
+        e,
+      )
+      throw new Error(
+        `Failed to load audio processor: ${e instanceof Error ? e.message : String(e)}`,
+      )
     }
 
     this.workletNode = new AudioWorkletNode(
       this.audioContext,
-      "audio-processor"
-    );
+      'audio-processor',
+    )
 
     // Listen for processed audio data
     this.workletNode.port.onmessage = (event) => {
       if (event.data.audio) {
         // Convert Float32Array to Int16 PCM
-        const float32 = event.data.audio;
-        const int16 = new Int16Array(float32.length);
+        const float32 = event.data.audio
+        const int16 = new Int16Array(float32.length)
         for (let i = 0; i < float32.length; i++) {
-          const s = Math.max(-1, Math.min(1, float32[i]));
-          int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+          const s = Math.max(-1, Math.min(1, float32[i]))
+          int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff
         }
-        const chunk = new Uint8Array(int16.buffer);
-        this.audioChunks.push(chunk);
-        
+        const chunk = new Uint8Array(int16.buffer)
+        this.audioChunks.push(chunk)
+
         if (this.onDataCallback) {
-          this.onDataCallback(chunk);
+          this.onDataCallback(chunk)
         }
       }
-    };
+    }
 
     // Connect nodes
-    this.analyserNode.connect(this.workletNode);
-    this.workletNode.connect(this.audioContext.destination);
+    this.analyserNode.connect(this.workletNode)
+    this.workletNode.connect(this.audioContext.destination)
 
     // Start silence detection
-    this.startSilenceDetection();
+    this.startSilenceDetection()
   }
 
   private startSilenceDetection(): void {
-    this.silenceCheckInterval = setInterval(() => {
-      if (!this.analyserNode) return;
+    let waitingForSpeech = false
 
-      const dataArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-      this.analyserNode.getByteTimeDomainData(dataArray);
+    this.silenceCheckInterval = setInterval(() => {
+      if (!this.analyserNode) return
+
+      const dataArray = new Uint8Array(this.analyserNode.frequencyBinCount)
+      this.analyserNode.getByteTimeDomainData(dataArray)
 
       // Calculate average volume
-      let sum = 0;
+      let sum = 0
       for (let i = 0; i < dataArray.length; i++) {
-        const normalized = (dataArray[i] - 128) / 128;
-        sum += normalized * normalized;
+        const normalized = (dataArray[i] - 128) / 128
+        sum += normalized * normalized
       }
-      const rms = Math.sqrt(sum / dataArray.length);
+      const rms = Math.sqrt(sum / dataArray.length)
 
       // Check if sound is detected
       if (rms > this.silenceThreshold) {
-        this.lastSoundTime = Date.now();
+        this.lastSoundTime = Date.now()
+        if (waitingForSpeech) {
+          console.log('Speech detected, resuming silence monitoring')
+          waitingForSpeech = false
+        }
       } else {
-        // Check if silence duration exceeded
-        const silenceDuration = Date.now() - this.lastSoundTime;
-        if (silenceDuration >= this.silenceDuration && this.audioChunks.length > 0) {
-          console.log(`Silence detected for ${silenceDuration}ms, stopping recording`);
+        // If we are already waiting for new speech, do nothing
+        if (waitingForSpeech) return
 
-          // Stop the interval immediately to prevent multiple calls
-          if (this.silenceCheckInterval) {
-            clearInterval(this.silenceCheckInterval);
-            this.silenceCheckInterval = null;
-          }
+        // Check if silence duration exceeded
+        const silenceDuration = Date.now() - this.lastSoundTime
+        if (
+          silenceDuration >= this.silenceDuration &&
+          this.audioChunks.length > 0
+        ) {
+          console.log(
+            `Silence detected for ${silenceDuration}ms, sending turn end signal`,
+          )
 
           if (this.onSilenceCallback) {
-            this.onSilenceCallback();
+            this.onSilenceCallback()
           }
+
+          // Enter state waiting for next speech before triggering silence again
+          waitingForSpeech = true
         }
       }
-    }, 100); // Check every 100ms
+    }, 100) // Check every 100ms
   }
 
   getRecordedAudio(): Uint8Array {
     // Combine all chunks into single array
-    const totalLength = this.audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    const combined = new Uint8Array(totalLength);
-    let offset = 0;
+    const totalLength = this.audioChunks.reduce(
+      (sum, chunk) => sum + chunk.length,
+      0,
+    )
+    const combined = new Uint8Array(totalLength)
+    let offset = 0
     for (const chunk of this.audioChunks) {
-      combined.set(chunk, offset);
-      offset += chunk.length;
+      combined.set(chunk, offset)
+      offset += chunk.length
     }
 
     // Clear chunks after retrieving to prevent duplicate sends
-    this.audioChunks = [];
+    this.audioChunks = []
 
-    return combined;
+    return combined
   }
 
   stop(): void {
     if (this.silenceCheckInterval) {
-      clearInterval(this.silenceCheckInterval);
-      this.silenceCheckInterval = null;
+      clearInterval(this.silenceCheckInterval)
+      this.silenceCheckInterval = null
     }
 
     if (this.workletNode) {
-      this.workletNode.disconnect();
-      this.workletNode = null;
+      this.workletNode.disconnect()
+      this.workletNode = null
     }
 
     if (this.analyserNode) {
-      this.analyserNode.disconnect();
-      this.analyserNode = null;
+      this.analyserNode.disconnect()
+      this.analyserNode = null
     }
 
     if (this.sourceNode) {
-      this.sourceNode.disconnect();
-      this.sourceNode = null;
+      this.sourceNode.disconnect()
+      this.sourceNode = null
     }
 
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach((track) => track.stop());
-      this.mediaStream = null;
+      this.mediaStream.getTracks().forEach((track) => track.stop())
+      this.mediaStream = null
     }
 
     if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
+      this.audioContext.close()
+      this.audioContext = null
     }
 
-    this.onDataCallback = null;
-    this.onSilenceCallback = null;
+    this.onDataCallback = null
+    this.onSilenceCallback = null
   }
 
   isRecording(): boolean {
-    return this.audioContext !== null && this.audioContext.state === "running";
+    return this.audioContext !== null && this.audioContext.state === 'running'
   }
 }

@@ -83,7 +83,7 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 				Username:  "User",
 				Language:  "en", // Default
 				Character: "friend",
-				PlanType:  ai.PlanType_PLAN_TYPE_PREMIUM,
+				PlanType:  ai.PlanType_PLAN_TYPE_LITE,
 			},
 		},
 	}); err != nil {
