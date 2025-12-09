@@ -69,3 +69,11 @@ func NewGormDB() (*gorm.DB, error) {
 	log.Printf("Successfully connected to PostgreSQL via Gorm at %s:%s", host, port)
 	return db, nil
 }
+
+// getEnv gets environment variable with fallback
+func getEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}

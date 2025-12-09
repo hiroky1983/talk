@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"time"
@@ -54,32 +53,16 @@ func main() {
 		}
 	}
 
-	ctx := context.Background()
-
-	// Initialize PostgreSQL connection
-	db, err := database.NewPostgresPool(ctx)
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
-	defer db.Close()
-
 	// Initialize Gorm DB (Foundation)
-	// We are keeping the existing pgx implementation for now, but initializing Gorm to ensure the foundation is ready.
-	gormDB, err := database.NewGormDB()
+	db, err := database.NewGormDB()
 	if err != nil {
-		log.Printf("Warning: Failed to connect to database using Gorm: %v", err)
-	} else {
-		// Get underlying sql.DB to close it later if needed (though gorm manages its own pool usually)
-		sqlDB, err := gormDB.DB()
-		if err == nil {
-			defer sqlDB.Close()
-		}
-		log.Println("Successfully initialized Gorm foundation")
+		log.Fatal("Failed to connect to database using Gorm:", err)
 	}
+	log.Println("Successfully connected to database via Gorm")
 
 	// Run database migrations
 	log.Println("Running database migrations...")
-	if err := database.RunMigrations(ctx, db); err != nil {
+	if err := database.RunMigrations(db); err != nil {
 		log.Printf("Warning: Failed to run migrations: %v", err)
 	}
 

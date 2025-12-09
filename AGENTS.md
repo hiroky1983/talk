@@ -74,3 +74,7 @@
 - Follow these conventions for any edits; keep changes minimal and focused.
 - Honor directory scopes and naming patterns; avoid unrelated refactors.
 - Update tests and docs alongside code; prefer root-cause fixes over workarounds.
+
+## Communication Language
+
+- Respond to the user **in Japanese** unless specifically requested otherwise.

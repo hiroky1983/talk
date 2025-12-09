@@ -7,19 +7,18 @@ import (
 
 	"github.com/hiroky1983/talk/go/internal/models"
 	"github.com/hiroky1983/talk/go/internal/repository"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // UserRepository handles user data operations
 type UserRepository struct {
-	pool *pgxpool.Pool
+	db *gorm.DB
 }
 
 // NewUserRepository creates a new user repository
-func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
-	return &UserRepository{pool: pool}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 // CreateUser creates a new user
@@ -30,29 +29,25 @@ func (r *UserRepository) CreateUser(ctx context.Context, email, password, userna
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	user := models.User{
+		Email:        email,
+		PasswordHash: string(hashedPassword),
+		Username:     username,
+	}
+
 	// Insert user into database
-	query := `
-		INSERT INTO users (email, password_hash, username, created_at, updated_at)
-		VALUES ($1, $2, $3, NOW(), NOW())
-		RETURNING users_id, email, password_hash, username, created_at, updated_at
-	`
-
-	var user models.User
-	err = r.pool.QueryRow(ctx, query, email, string(hashedPassword), username).Scan(
-		&user.UsersID,
-		&user.Email,
-		&user.PasswordHash,
-		&user.Username,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		// Check if user already exists (unique constraint violation)
-		if err.Error() == "ERROR: duplicate key value violates unique constraint \"users_email_key\" (SQLSTATE 23505)" {
+	// Gorm will automatically populate ID, CreatedAt, etc. upon creation?
+	// Note: Since we defined default:gen_random_uuid() in database, GORM might need to read it back.
+	// GORM usually handles RETURNING * for Postgres.
+	result := r.db.WithContext(ctx).Create(&user)
+	if result.Error != nil {
+		// Check for unique constraint violation
+		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 			return nil, repository.ErrUserAlreadyExists
 		}
-		return nil, fmt.Errorf("failed to create user: %w", err)
+		// Also strict check on error string just in case
+		// (Optional step if Gorm's error mapping isn't sufficient for specific logic, but ErrDuplicatedKey checks SQLSTATE 23505)
+		return nil, fmt.Errorf("failed to create user: %w", result.Error)
 	}
 
 	return &user, nil
@@ -60,57 +55,27 @@ func (r *UserRepository) CreateUser(ctx context.Context, email, password, userna
 
 // GetUserByEmail retrieves a user by email
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
-	query := `
-		SELECT users_id, email, password_hash, username, created_at, updated_at
-		FROM users
-		WHERE email = $1
-	`
-
 	var user models.User
-	err := r.pool.QueryRow(ctx, query, email).Scan(
-		&user.UsersID,
-		&user.Email,
-		&user.PasswordHash,
-		&user.Username,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+	result := r.db.WithContext(ctx).Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, repository.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get user: %w", result.Error)
 	}
-
 	return &user, nil
 }
 
 // GetUserByID retrieves a user by ID
 func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*models.User, error) {
-	query := `
-		SELECT users_id, email, password_hash, username, created_at, updated_at
-		FROM users
-		WHERE users_id = $1
-	`
-
 	var user models.User
-	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&user.UsersID,
-		&user.Email,
-		&user.PasswordHash,
-		&user.Username,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+	result := r.db.WithContext(ctx).Where("users_id = ?", id).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, repository.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
+		return nil, fmt.Errorf("failed to get user: %w", result.Error)
 	}
-
 	return &user, nil
 }
 
@@ -125,66 +90,40 @@ func (r *UserRepository) VerifyPassword(user *models.User, password string) erro
 
 // SaveRefreshToken saves a refresh token to the database
 func (r *UserRepository) SaveRefreshToken(ctx context.Context, token *models.RefreshToken) error {
-	query := `
-		INSERT INTO refresh_tokens (user_id, token, expires_at, created_at)
-		VALUES ($1, $2, $3, NOW())
-	`
-
-	_, err := r.pool.Exec(ctx, query, token.UserID, token.Token, token.ExpiresAt)
-	if err != nil {
-		return fmt.Errorf("failed to save refresh token: %w", err)
+	result := r.db.WithContext(ctx).Create(token)
+	if result.Error != nil {
+		return fmt.Errorf("failed to save refresh token: %w", result.Error)
 	}
-
 	return nil
 }
 
 // GetRefreshToken retrieves a refresh token from the database
 func (r *UserRepository) GetRefreshToken(ctx context.Context, token string) (*models.RefreshToken, error) {
-	query := `
-		SELECT refresh_tokens_id, user_id, token, expires_at, created_at
-		FROM refresh_tokens
-		WHERE token = $1 AND expires_at > NOW()
-	`
-
 	var refreshToken models.RefreshToken
-	err := r.pool.QueryRow(ctx, query, token).Scan(
-		&refreshToken.RefreshTokensID,
-		&refreshToken.UserID,
-		&refreshToken.Token,
-		&refreshToken.ExpiresAt,
-		&refreshToken.CreatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+	result := r.db.WithContext(ctx).Where("token = ? AND expires_at > NOW()", token).First(&refreshToken)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, repository.ErrUserNotFound
 		}
-		return nil, fmt.Errorf("failed to get refresh token: %w", err)
+		return nil, fmt.Errorf("failed to get refresh token: %w", result.Error)
 	}
-
 	return &refreshToken, nil
 }
 
 // DeleteRefreshToken deletes a refresh token from the database
 func (r *UserRepository) DeleteRefreshToken(ctx context.Context, token string) error {
-	query := `DELETE FROM refresh_tokens WHERE token = $1`
-
-	_, err := r.pool.Exec(ctx, query, token)
-	if err != nil {
-		return fmt.Errorf("failed to delete refresh token: %w", err)
+	result := r.db.WithContext(ctx).Where("token = ?", token).Delete(&models.RefreshToken{})
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete refresh token: %w", result.Error)
 	}
-
 	return nil
 }
 
 // DeleteExpiredRefreshTokens deletes all expired refresh tokens
 func (r *UserRepository) DeleteExpiredRefreshTokens(ctx context.Context) error {
-	query := `DELETE FROM refresh_tokens WHERE expires_at <= NOW()`
-
-	_, err := r.pool.Exec(ctx, query)
-	if err != nil {
-		return fmt.Errorf("failed to delete expired refresh tokens: %w", err)
+	result := r.db.WithContext(ctx).Where("expires_at <= NOW()").Delete(&models.RefreshToken{})
+	if result.Error != nil {
+		return fmt.Errorf("failed to delete expired refresh tokens: %w", result.Error)
 	}
-
 	return nil
 }

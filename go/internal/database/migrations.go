@@ -1,17 +1,16 @@
 package database
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"gorm.io/gorm"
 )
 
 // RunMigrations executes all SQL migration files in the migrations directory
-func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
+func RunMigrations(db *gorm.DB) error {
 	// Get the migrations directory path
 	migrationsDir := filepath.Join("migrations")
 
@@ -37,8 +36,7 @@ func RunMigrations(ctx context.Context, pool *pgxpool.Pool) error {
 		}
 
 		// Execute the migration
-		_, err = pool.Exec(ctx, string(content))
-		if err != nil {
+		if err := db.Exec(string(content)).Error; err != nil {
 			return fmt.Errorf("failed to execute migration %s: %w", file, err)
 		}
 
