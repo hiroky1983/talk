@@ -92,7 +92,7 @@ export const AuthScreen = ({ navigation }: any) => {
             <View style={styles.header}>
               <View style={styles.imageContainer}>
                 <Image
-                  source={require('../../assets/language_learning_hero.png')}
+                  source={require('../../assets/language_learning_hero.jpg')}
                   style={styles.heroImage}
                   resizeMode="contain"
                 />
