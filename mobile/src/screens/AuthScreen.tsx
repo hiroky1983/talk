@@ -78,7 +78,7 @@ export const AuthScreen = ({ navigation }: any) => {
     : ['#e0e7ff', '#faf5ff', '#fce7f3'] // indigo-100, purple-50, pink-100
 
   return (
-    <LinearGradient colors={gradientColors} style={styles.container}>
+    <LinearGradient colors={gradientColors as any} style={styles.container}>
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -229,14 +229,6 @@ export const AuthScreen = ({ navigation }: any) => {
                     Google
                   </Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.socialButton, styles.socialButtonApple]}
-                  disabled={isLoading}
-                >
-                  <FontAwesome name="apple" size={20} color="#fff" />
-                  <Text style={styles.socialButtonTextWhite}>Apple</Text>
-                </TouchableOpacity>
               </View>
 
               <TouchableOpacity onPress={toggleMode} style={styles.toggleMode}>
@@ -370,10 +362,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: 'transparent', // Gradient text hack not supported easily in RN, use solid color
-    // but here we can't do gradient text easily.
     marginBottom: 8,
-    color: '#3B82F6', // Fallback
+    color: '#3B82F6',
   },
   tagline: {
     fontSize: 16,
@@ -492,10 +482,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#1F2937',
     borderColor: '#374151',
   },
-  socialButtonApple: {
-    backgroundColor: '#000',
-    borderWidth: 0,
-  },
   socialButtonText: {
     color: '#374151',
     fontSize: 15,
@@ -503,11 +489,6 @@ const styles = StyleSheet.create({
   },
   socialButtonTextDark: {
     color: '#D1D5DB',
-  },
-  socialButtonTextWhite: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
   },
   toggleMode: {
     alignItems: 'center',
