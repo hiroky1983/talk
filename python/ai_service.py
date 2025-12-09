@@ -4,7 +4,7 @@ import asyncio
 from typing import Dict, Optional
 from dotenv import load_dotenv
 from controllers.premium import PremiumController
-from controllers.light import LightController
+from controllers.lite import LiteController
 
 load_dotenv()
 
@@ -76,8 +76,8 @@ class AIConversationService:
                     )
             else:
                 # Fallback for Lite (non-streaming)
-                controller = LightController(self.api_key)
-                logger.info(f"Buffered chat with LightController")
+                controller = LiteController(self.api_key)
+                logger.info(f"Buffered chat with LiteController")
                 
                 audio_buffer = bytearray()
                 async for request in request_iterator:
@@ -125,7 +125,7 @@ class AIConversationService:
             if plan_type == ai_pb2.PLAN_TYPE_PREMIUM:
                 controller = PremiumController(self.api_key)
             else:  # LITE or FREE
-                controller = LightController(self.api_key)
+                controller = LiteController(self.api_key)
             
             logger.info(f"Using {controller.__class__.__name__} for plan_type={plan_type}")
                 

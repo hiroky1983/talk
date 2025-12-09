@@ -30,7 +30,7 @@ Speak with a lively and youthful tone."""
     }
 }
 
-class LightController(AIController):
+class LiteController(AIController):
     def __init__(self, api_key: str):
         self.client = genai.Client(api_key=api_key)
         self.model_id = "gemini-2.0-flash"
