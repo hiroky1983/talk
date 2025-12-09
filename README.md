@@ -139,3 +139,36 @@ docker compose up --build -d
 - 初期実装ではデータベースを使用せず、会話体験の構築を優先します。
 - 各キャラクターは異なるプロンプトと音声設定を持ち、状況に応じて音声 API を切り替える設計です。
 - 詳細なアプリ仕様は `docs/application/app.md` を参照してください。
+
+## task memo
+
+### frontend(next)
+
+- チャットインターフェイス
+
+### backend(go)
+
+- DB のマイグレーション
+- クリーンアーキテクチャベース
+- gin to gRPC-connect wrapper
+- error handling
+- logging
+
+### ai service(python)
+
+- free プラン
+
+### mobile app(mobile)
+
+- スプラッシュ画面表示
+
+### infra
+
+- terraform 設定
+
+### common（共通設定）
+
+- 認証
+- 課金設定
+- 利用規約
+- プライバシーポリシー
