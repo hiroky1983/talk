@@ -59,6 +59,16 @@
 - Ports: Go `8000`, Next `3000`, Python `50051`. Update `docker-compose.yaml` minimally.
 - After changing `.proto` files, run `make generate` in `proto/` and commit generated code.
 
+## Database Schema Conventions
+
+- **Primary Keys**: All tables must use `tablename_id` format for primary keys (e.g., `users_id`, `refresh_tokens_id`) instead of `id`.
+
+## Code Architecture
+
+- **Go Backend**:
+  - `internal/repository`: Contains **interfaces only**. No database implementation logic here.
+  - `internal/gateway`: Contains the **concrete implementations** of the repositories (e.g., PostgreSQL, Redis access).
+
 ## Agent-Specific Instructions
 
 - Follow these conventions for any edits; keep changes minimal and focused.

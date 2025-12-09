@@ -6,19 +6,19 @@ import (
 
 // User represents a user in the system
 type User struct {
-	ID           string    `json:"id"`
-	Email        string    `json:"email"`
-	PasswordHash string    `json:"-"` // Never expose password hash in JSON
-	Username     string    `json:"username"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
+	UsersID      string    `json:"id" gorm:"primaryKey;type:uuid;column:users_id;default:gen_random_uuid()"`
+	Email        string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
+	PasswordHash string    `json:"-" gorm:"not null;column:password_hash;size:255"`
+	Username     string    `json:"username" gorm:"not null;size:100"`
+	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
+	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }
 
 // RefreshToken represents a refresh token in the system
 type RefreshToken struct {
-	ID        string    `json:"id"`
-	UserID    string    `json:"user_id"`
-	Token     string    `json:"token"`
-	ExpiresAt time.Time `json:"expires_at"`
-	CreatedAt time.Time `json:"created_at"`
+	RefreshTokensID string    `json:"id" gorm:"primaryKey;type:uuid;column:refresh_tokens_id;default:gen_random_uuid()"`
+	UserID          string    `json:"user_id" gorm:"not null;type:uuid;index"`
+	Token           string    `json:"token" gorm:"uniqueIndex;not null;size:500"`
+	ExpiresAt       time.Time `json:"expires_at" gorm:"not null"`
+	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime"`
 }

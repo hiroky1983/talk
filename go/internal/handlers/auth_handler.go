@@ -12,12 +12,12 @@ import (
 
 // AuthHandler handles authentication requests
 type AuthHandler struct {
-	userRepo   *repository.UserRepository
+	userRepo   repository.UserRepository
 	jwtManager *auth.JWTManager
 }
 
 // NewAuthHandler creates a new auth handler
-func NewAuthHandler(userRepo *repository.UserRepository, jwtManager *auth.JWTManager) *AuthHandler {
+func NewAuthHandler(userRepo repository.UserRepository, jwtManager *auth.JWTManager) *AuthHandler {
 	return &AuthHandler{
 		userRepo:   userRepo,
 		jwtManager: jwtManager,
@@ -70,7 +70,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// Generate tokens
-	accessToken, err := h.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	accessToken, err := h.jwtManager.GenerateAccessToken(user.UsersID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
@@ -84,7 +84,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 
 	// Save refresh token to database
 	err = h.userRepo.SaveRefreshToken(c.Request.Context(), &models.RefreshToken{
-		UserID:    user.ID,
+		UserID:    user.UsersID,
 		Token:     refreshToken,
 		ExpiresAt: expiresAt,
 	})
@@ -138,7 +138,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Generate tokens
-	accessToken, err := h.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	accessToken, err := h.jwtManager.GenerateAccessToken(user.UsersID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return
@@ -152,7 +152,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	// Save refresh token to database
 	err = h.userRepo.SaveRefreshToken(c.Request.Context(), &models.RefreshToken{
-		UserID:    user.ID,
+		UserID:    user.UsersID,
 		Token:     refreshToken,
 		ExpiresAt: expiresAt,
 	})
@@ -214,7 +214,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	}
 
 	// Generate new access token
-	accessToken, err := h.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	accessToken, err := h.jwtManager.GenerateAccessToken(user.UsersID, user.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate access token"})
 		return

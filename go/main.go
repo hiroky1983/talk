@@ -14,6 +14,7 @@ import (
 
 	"github.com/hiroky1983/talk/go/internal/auth"
 	"github.com/hiroky1983/talk/go/internal/database"
+	"github.com/hiroky1983/talk/go/internal/gateway"
 	"github.com/hiroky1983/talk/go/internal/handlers"
 	"github.com/hiroky1983/talk/go/internal/repository"
 	"github.com/hiroky1983/talk/go/internal/websocket"
@@ -62,6 +63,20 @@ func main() {
 	}
 	defer db.Close()
 
+	// Initialize Gorm DB (Foundation)
+	// We are keeping the existing pgx implementation for now, but initializing Gorm to ensure the foundation is ready.
+	gormDB, err := database.NewGormDB()
+	if err != nil {
+		log.Printf("Warning: Failed to connect to database using Gorm: %v", err)
+	} else {
+		// Get underlying sql.DB to close it later if needed (though gorm manages its own pool usually)
+		sqlDB, err := gormDB.DB()
+		if err == nil {
+			defer sqlDB.Close()
+		}
+		log.Println("Successfully initialized Gorm foundation")
+	}
+
 	// Run database migrations
 	log.Println("Running database migrations...")
 	if err := database.RunMigrations(ctx, db); err != nil {
@@ -75,7 +90,7 @@ func main() {
 	}
 
 	// Initialize repositories
-	userRepo := repository.NewUserRepository(db)
+	var userRepo repository.UserRepository = gateway.NewUserRepository(db)
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
