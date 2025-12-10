@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
+import { createClient } from '@/lib/supabase/client'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -18,6 +19,7 @@ export const AuthScreen = () => {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const supabase = createClient()
 
   const handleAuth = async () => {
     // Validation
@@ -38,17 +40,31 @@ export const AuthScreen = () => {
     setError(null)
 
     try {
-      // Simulate a small delay for better UX
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      if (mode === 'signup') {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              username,
+            },
+          },
+        })
+        if (signUpError) throw signUpError
+        // Depending on email confirmation settings, you might want to show a message here
+        // For now, we assume auto-confirm or we treat it as success
+      } else {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        if (signInError) throw signInError
+      }
 
-      // TODO: Implement actual authentication
-      localStorage.setItem(
-        'user',
-        JSON.stringify({ username: username || email, email }),
-      )
       router.push('/en/talk')
-    } catch (err) {
-      setError(tAuth('errorGeneric'))
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || tAuth('errorGeneric'))
       setIsLoading(false)
     }
   }
@@ -58,11 +74,15 @@ export const AuthScreen = () => {
     setError(null)
 
     try {
-      // TODO: Implement social authentication
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      router.push('/en/talk')
-    } catch (err) {
-      setError(`${provider} authentication failed`)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+        },
+      })
+      if (error) throw error
+    } catch (err: any) {
+      setError(err.message || `${provider} authentication failed`)
       setIsLoading(false)
     }
   }
