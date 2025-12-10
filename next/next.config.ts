@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              `connect-src 'self' ${backendProtocol}://${backendUrl} ${wsProtocol}://${backendUrl}`,
+              `connect-src 'self' ${backendProtocol}://${backendUrl} ${wsProtocol}://${backendUrl} https://*.supabase.co wss://*.supabase.co`,
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
