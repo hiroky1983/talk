@@ -9,9 +9,9 @@ import "google/protobuf/timestamp.proto";
 message ChatRequest {
   oneof content {
     ChatConfiguration setup = 1; // First message must be setup
-    bytes audio_chunk = 2;      // Subsequent messages are audio chunks
-    string text_message = 3;    // Or text messages
-    bool end_of_input = 4;      // Signal that user finished speaking the current turn
+    bytes audio_chunk = 2; // Subsequent messages are audio chunks
+    string text_message = 3; // Or text messages
+    bool end_of_input = 4; // Signal that user finished speaking the current turn
   }
 }
 
@@ -27,14 +27,12 @@ message ChatConfiguration {
 message ChatResponse {
   string response_id = 1;
   oneof content {
-    bytes audio_chunk = 2;      // Streaming audio response
-    string text_message = 3;    // Streaming text/transcript response
+    bytes audio_chunk = 2; // Streaming audio response
+    string text_message = 3; // Streaming text/transcript response
   }
   string language = 4;
   google.protobuf.Timestamp timestamp = 5;
 }
-
-
 
 enum PlanType {
   PLAN_TYPE_FREE = 0;

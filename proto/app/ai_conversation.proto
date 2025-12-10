@@ -27,4 +27,3 @@ message SendMessageResponse {
   google.protobuf.Timestamp timestamp = 5;
   bool is_final = 6; // Whether this is the final response for the request
 }
-
