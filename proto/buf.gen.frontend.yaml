@@ -26,3 +26,10 @@ plugins:
   - remote: buf.build/connectrpc/es
     out: ../next/src/gen
     opt: target=ts
+  # TypeScript (for Mobile)
+  - remote: buf.build/bufbuild/es
+    out: ../mobile/src/gen
+    opt: target=ts
+  - remote: buf.build/connectrpc/es
+    out: ../mobile/src/gen
+    opt: target=ts
