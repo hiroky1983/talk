@@ -22,55 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type PlanType int32
-
-const (
-	PlanType_PLAN_TYPE_FREE    PlanType = 0
-	PlanType_PLAN_TYPE_LITE    PlanType = 1
-	PlanType_PLAN_TYPE_PREMIUM PlanType = 2
-)
-
-// Enum value maps for PlanType.
-var (
-	PlanType_name = map[int32]string{
-		0: "PLAN_TYPE_FREE",
-		1: "PLAN_TYPE_LITE",
-		2: "PLAN_TYPE_PREMIUM",
-	}
-	PlanType_value = map[string]int32{
-		"PLAN_TYPE_FREE":    0,
-		"PLAN_TYPE_LITE":    1,
-		"PLAN_TYPE_PREMIUM": 2,
-	}
-)
-
-func (x PlanType) Enum() *PlanType {
-	p := new(PlanType)
-	*p = x
-	return p
-}
-
-func (x PlanType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PlanType) Descriptor() protoreflect.EnumDescriptor {
-	return file_ai_ai_conversation_proto_enumTypes[0].Descriptor()
-}
-
-func (PlanType) Type() protoreflect.EnumType {
-	return &file_ai_ai_conversation_proto_enumTypes[0]
-}
-
-func (x PlanType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PlanType.Descriptor instead.
-func (PlanType) EnumDescriptor() ([]byte, []int) {
-	return file_ai_ai_conversation_proto_rawDescGZIP(), []int{0}
-}
-
 // AI Conversation message types
 // Request for the StreamChat bidirectional streaming RPC
 type ChatRequest struct {
@@ -193,7 +144,7 @@ type ChatConfiguration struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Language      string                 `protobuf:"bytes,3,opt,name=language,proto3" json:"language,omitempty"`   // Language code (vi, en, ja)
 	Character     string                 `protobuf:"bytes,4,opt,name=character,proto3" json:"character,omitempty"` // Character type (friend, parent, sister)
-	PlanType      PlanType               `protobuf:"varint,5,opt,name=plan_type,json=planType,proto3,enum=ai.v1.PlanType" json:"plan_type,omitempty"`
+	Plan          Plan                   `protobuf:"varint,5,opt,name=plan,proto3,enum=ai.v1.Plan" json:"plan,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -256,11 +207,11 @@ func (x *ChatConfiguration) GetCharacter() string {
 	return ""
 }
 
-func (x *ChatConfiguration) GetPlanType() PlanType {
+func (x *ChatConfiguration) GetPlan() Plan {
 	if x != nil {
-		return x.PlanType
+		return x.Plan
 	}
-	return PlanType_PLAN_TYPE_FREE
+	return Plan_PLAN_UNSPECIFIED
 }
 
 // Response for the StreamChat bidirectional streaming RPC
@@ -374,7 +325,7 @@ var File_ai_ai_conversation_proto protoreflect.FileDescriptor
 
 const file_ai_ai_conversation_proto_rawDesc = "" +
 	"\n" +
-	"\x18ai/ai_conversation.proto\x12\x05ai.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb6\x01\n" +
+	"\x18ai/ai_conversation.proto\x12\x05ai.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\rai/user.proto\"\xb6\x01\n" +
 	"\vChatRequest\x120\n" +
 	"\x05setup\x18\x01 \x01(\v2\x18.ai.v1.ChatConfigurationH\x00R\x05setup\x12!\n" +
 	"\vaudio_chunk\x18\x02 \x01(\fH\x00R\n" +
@@ -382,13 +333,13 @@ const file_ai_ai_conversation_proto_rawDesc = "" +
 	"\ftext_message\x18\x03 \x01(\tH\x00R\vtextMessage\x12\"\n" +
 	"\fend_of_input\x18\x04 \x01(\bH\x00R\n" +
 	"endOfInputB\t\n" +
-	"\acontent\"\xb0\x01\n" +
+	"\acontent\"\xa3\x01\n" +
 	"\x11ChatConfiguration\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x1a\n" +
 	"\blanguage\x18\x03 \x01(\tR\blanguage\x12\x1c\n" +
-	"\tcharacter\x18\x04 \x01(\tR\tcharacter\x12,\n" +
-	"\tplan_type\x18\x05 \x01(\x0e2\x0f.ai.v1.PlanTypeR\bplanType\"\xd8\x01\n" +
+	"\tcharacter\x18\x04 \x01(\tR\tcharacter\x12\x1f\n" +
+	"\x04plan\x18\x05 \x01(\x0e2\v.ai.v1.PlanR\x04plan\"\xd8\x01\n" +
 	"\fChatResponse\x12\x1f\n" +
 	"\vresponse_id\x18\x01 \x01(\tR\n" +
 	"responseId\x12!\n" +
@@ -397,11 +348,7 @@ const file_ai_ai_conversation_proto_rawDesc = "" +
 	"\ftext_message\x18\x03 \x01(\tH\x00R\vtextMessage\x12\x1a\n" +
 	"\blanguage\x18\x04 \x01(\tR\blanguage\x128\n" +
 	"\ttimestamp\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestampB\t\n" +
-	"\acontent*I\n" +
-	"\bPlanType\x12\x12\n" +
-	"\x0ePLAN_TYPE_FREE\x10\x00\x12\x12\n" +
-	"\x0ePLAN_TYPE_LITE\x10\x01\x12\x15\n" +
-	"\x11PLAN_TYPE_PREMIUM\x10\x02B\x80\x01\n" +
+	"\acontentB\x80\x01\n" +
 	"\tcom.ai.v1B\x13AiConversationProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03AXX\xaa\x02\x05Ai.V1\xca\x02\x05Ai\\V1\xe2\x02\x11Ai\\V1\\GPBMetadata\xea\x02\x06Ai::V1b\x06proto3"
 
 var (
@@ -416,18 +363,17 @@ func file_ai_ai_conversation_proto_rawDescGZIP() []byte {
 	return file_ai_ai_conversation_proto_rawDescData
 }
 
-var file_ai_ai_conversation_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_ai_ai_conversation_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_ai_ai_conversation_proto_goTypes = []any{
-	(PlanType)(0),                 // 0: ai.v1.PlanType
-	(*ChatRequest)(nil),           // 1: ai.v1.ChatRequest
-	(*ChatConfiguration)(nil),     // 2: ai.v1.ChatConfiguration
-	(*ChatResponse)(nil),          // 3: ai.v1.ChatResponse
+	(*ChatRequest)(nil),           // 0: ai.v1.ChatRequest
+	(*ChatConfiguration)(nil),     // 1: ai.v1.ChatConfiguration
+	(*ChatResponse)(nil),          // 2: ai.v1.ChatResponse
+	(Plan)(0),                     // 3: ai.v1.Plan
 	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_ai_ai_conversation_proto_depIdxs = []int32{
-	2, // 0: ai.v1.ChatRequest.setup:type_name -> ai.v1.ChatConfiguration
-	0, // 1: ai.v1.ChatConfiguration.plan_type:type_name -> ai.v1.PlanType
+	1, // 0: ai.v1.ChatRequest.setup:type_name -> ai.v1.ChatConfiguration
+	3, // 1: ai.v1.ChatConfiguration.plan:type_name -> ai.v1.Plan
 	4, // 2: ai.v1.ChatResponse.timestamp:type_name -> google.protobuf.Timestamp
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
@@ -441,6 +387,7 @@ func file_ai_ai_conversation_proto_init() {
 	if File_ai_ai_conversation_proto != nil {
 		return
 	}
+	file_ai_user_proto_init()
 	file_ai_ai_conversation_proto_msgTypes[0].OneofWrappers = []any{
 		(*ChatRequest_Setup)(nil),
 		(*ChatRequest_AudioChunk)(nil),
@@ -456,14 +403,13 @@ func file_ai_ai_conversation_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_ai_conversation_proto_rawDesc), len(file_ai_ai_conversation_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_ai_ai_conversation_proto_goTypes,
 		DependencyIndexes: file_ai_ai_conversation_proto_depIdxs,
-		EnumInfos:         file_ai_ai_conversation_proto_enumTypes,
 		MessageInfos:      file_ai_ai_conversation_proto_msgTypes,
 	}.Build()
 	File_ai_ai_conversation_proto = out.File

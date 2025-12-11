@@ -3,6 +3,7 @@ syntax = "proto3";
 package ai.v1;
 
 import "google/protobuf/timestamp.proto";
+import "ai/user.proto";
 
 // AI Conversation message types
 // Request for the StreamChat bidirectional streaming RPC
@@ -20,7 +21,7 @@ message ChatConfiguration {
   string username = 2;
   string language = 3; // Language code (vi, en, ja)
   string character = 4; // Character type (friend, parent, sister)
-  PlanType plan_type = 5;
+  Plan plan = 5;
 }
 
 // Response for the StreamChat bidirectional streaming RPC
@@ -32,10 +33,4 @@ message ChatResponse {
   }
   string language = 4;
   google.protobuf.Timestamp timestamp = 5;
-}
-
-enum PlanType {
-  PLAN_TYPE_FREE = 0;
-  PLAN_TYPE_LITE = 1;
-  PLAN_TYPE_PREMIUM = 2;
 }
