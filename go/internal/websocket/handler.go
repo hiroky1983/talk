@@ -81,7 +81,7 @@ func (h *Handler) HandleConnection(c *gin.Context) {
 			Setup: &ai.ChatConfiguration{
 				UserId:    "user-123", // TODO: Get from Auth
 				Username:  "User",
-				Language:  "vi", // Default
+				Language:  "ja", // Default
 				Character: "friend",
 				Plan:      ai.Plan_PLAN_LITE,
 			},

@@ -132,8 +132,8 @@ class PremiumController(AIController):
     def __init__(self, api_key: str):
         self.client = genai.Client(api_key=api_key, http_options={'api_version': 'v1beta'})
         self.sessions: Dict[str, GeminiLiveSession] = {}
-        # self.model_id = "gemini-2.0-flash-exp" 
-        self.model_id = "gemini-2.0-flash-live-001" # Experimental model for Live API
+        self.model_id = "gemini-2.0-flash-exp"
+        # self.model_id = "gemini-2.0-flash-live-001" # Experimental model for Live API
 
     async def get_session(self, user_id: str, character: str = 'friend') -> GeminiLiveSession:
         """Get or create a session for the user"""
