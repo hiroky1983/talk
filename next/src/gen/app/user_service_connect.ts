@@ -3,7 +3,7 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { User } from "./user_pb.js";
+import { GetUserRequest, User } from "./user_pb.js";
 import { MethodKind } from "@bufbuild/protobuf";
 
 /**
@@ -18,6 +18,15 @@ export const UserService = {
     createUser: {
       name: "CreateUser",
       I: User,
+      O: User,
+      kind: MethodKind.Unary,
+    },
+    /**
+     * @generated from rpc app.v1.UserService.GetUser
+     */
+    getUser: {
+      name: "GetUser",
+      I: GetUserRequest,
       O: User,
       kind: MethodKind.Unary,
     },

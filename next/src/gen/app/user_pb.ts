@@ -10,7 +10,24 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file app/user.proto.
  */
 export const file_app_user: GenFile = /*@__PURE__*/
-  fileDesc("Cg5hcHAvdXNlci5wcm90bxIGYXBwLnYxImcKBFVzZXISDwoHdXNlcl9pZBgBIAEoCRIRCgl1c2VyX25hbWUYAiABKAkSDQoFZW1haWwYAyABKAkSEAoIbGFuZ3VhZ2UYBSABKAkSGgoEcGxhbhgGIAEoDjIMLmFwcC52MS5QbGFuKkwKBFBsYW4SFAoQUExBTl9VTlNQRUNJRklFRBAAEg0KCVBMQU5fRlJFRRABEg0KCVBMQU5fTElURRACEhAKDFBMQU5fUFJFTUlVTRADQn0KCmNvbS5hcHAudjFCCVVzZXJQcm90b1ABWitnaXRodWIuY29tL2hpcm9reTE5ODMvdGFsay9nby9nZW4vYXBwO2FwcHYxogIDQVhYqgIGQXBwLlYxygIGQXBwXFYx4gISQXBwXFYxXEdQQk1ldGFkYXRh6gIHQXBwOjpWMWIGcHJvdG8z");
+  fileDesc("Cg5hcHAvdXNlci5wcm90bxIGYXBwLnYxIiEKDkdldFVzZXJSZXF1ZXN0Eg8KB3VzZXJfaWQYASABKAkiZwoEVXNlchIPCgd1c2VyX2lkGAEgASgJEhEKCXVzZXJfbmFtZRgCIAEoCRINCgVlbWFpbBgDIAEoCRIQCghsYW5ndWFnZRgFIAEoCRIaCgRwbGFuGAYgASgOMgwuYXBwLnYxLlBsYW4qTAoEUGxhbhIUChBQTEFOX1VOU1BFQ0lGSUVEEAASDQoJUExBTl9GUkVFEAESDQoJUExBTl9MSVRFEAISEAoMUExBTl9QUkVNSVVNEANCfQoKY29tLmFwcC52MUIJVXNlclByb3RvUAFaK2dpdGh1Yi5jb20vaGlyb2t5MTk4My90YWxrL2dvL2dlbi9hcHA7YXBwdjGiAgNBWFiqAgZBcHAuVjHKAgZBcHBcVjHiAhJBcHBcVjFcR1BCTWV0YWRhdGHqAgdBcHA6OlYxYgZwcm90bzM");
+
+/**
+ * @generated from message app.v1.GetUserRequest
+ */
+export type GetUserRequest = Message<"app.v1.GetUserRequest"> & {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId: string;
+};
+
+/**
+ * Describes the message app.v1.GetUserRequest.
+ * Use `create(GetUserRequestSchema)` to create a new message.
+ */
+export const GetUserRequestSchema: GenMessage<GetUserRequest> = /*@__PURE__*/
+  messageDesc(file_app_user, 0);
 
 /**
  * @generated from message app.v1.User
@@ -47,7 +64,7 @@ export type User = Message<"app.v1.User"> & {
  * Use `create(UserSchema)` to create a new message.
  */
 export const UserSchema: GenMessage<User> = /*@__PURE__*/
-  messageDesc(file_app_user, 0);
+  messageDesc(file_app_user, 1);
 
 /**
  * @generated from enum app.v1.Plan

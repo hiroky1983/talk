@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package app.v1;
 
+message GetUserRequest {
+  string user_id = 1;
+}
+
 message User {
   string user_id = 1;
   string user_name = 2;

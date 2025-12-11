@@ -24,21 +24,25 @@ var File_app_user_service_proto protoreflect.FileDescriptor
 
 const file_app_user_service_proto_rawDesc = "" +
 	"\n" +
-	"\x16app/user_service.proto\x12\x06app.v1\x1a\x0eapp/user.proto27\n" +
+	"\x16app/user_service.proto\x12\x06app.v1\x1a\x0eapp/user.proto2h\n" +
 	"\vUserService\x12(\n" +
 	"\n" +
-	"CreateUser\x12\f.app.v1.User\x1a\f.app.v1.UserB\x84\x01\n" +
+	"CreateUser\x12\f.app.v1.User\x1a\f.app.v1.User\x12/\n" +
+	"\aGetUser\x12\x16.app.v1.GetUserRequest\x1a\f.app.v1.UserB\x84\x01\n" +
 	"\n" +
 	"com.app.v1B\x10UserServiceProtoP\x01Z+github.com/hiroky1983/talk/go/gen/app;appv1\xa2\x02\x03AXX\xaa\x02\x06App.V1\xca\x02\x06App\\V1\xe2\x02\x12App\\V1\\GPBMetadata\xea\x02\aApp::V1b\x06proto3"
 
 var file_app_user_service_proto_goTypes = []any{
-	(*User)(nil), // 0: app.v1.User
+	(*User)(nil),           // 0: app.v1.User
+	(*GetUserRequest)(nil), // 1: app.v1.GetUserRequest
 }
 var file_app_user_service_proto_depIdxs = []int32{
 	0, // 0: app.v1.UserService.CreateUser:input_type -> app.v1.User
-	0, // 1: app.v1.UserService.CreateUser:output_type -> app.v1.User
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	1, // 1: app.v1.UserService.GetUser:input_type -> app.v1.GetUserRequest
+	0, // 2: app.v1.UserService.CreateUser:output_type -> app.v1.User
+	0, // 3: app.v1.UserService.GetUser:output_type -> app.v1.User
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

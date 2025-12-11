@@ -7,4 +7,5 @@ import "app/user.proto";
 
 service UserService {
   rpc CreateUser (User) returns (User);
+  rpc GetUser (GetUserRequest) returns (User);
 }

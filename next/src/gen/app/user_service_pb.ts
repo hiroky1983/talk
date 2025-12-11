@@ -4,14 +4,14 @@
 
 import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { UserSchema } from "./user_pb";
+import type { GetUserRequestSchema, UserSchema } from "./user_pb";
 import { file_app_user } from "./user_pb";
 
 /**
  * Describes the file app/user_service.proto.
  */
 export const file_app_user_service: GenFile = /*@__PURE__*/
-  fileDesc("ChZhcHAvdXNlcl9zZXJ2aWNlLnByb3RvEgZhcHAudjEyNwoLVXNlclNlcnZpY2USKAoKQ3JlYXRlVXNlchIMLmFwcC52MS5Vc2VyGgwuYXBwLnYxLlVzZXJChAEKCmNvbS5hcHAudjFCEFVzZXJTZXJ2aWNlUHJvdG9QAVorZ2l0aHViLmNvbS9oaXJva3kxOTgzL3RhbGsvZ28vZ2VuL2FwcDthcHB2MaICA0FYWKoCBkFwcC5WMcoCBkFwcFxWMeICEkFwcFxWMVxHUEJNZXRhZGF0YeoCB0FwcDo6VjFiBnByb3RvMw", [file_app_user]);
+  fileDesc("ChZhcHAvdXNlcl9zZXJ2aWNlLnByb3RvEgZhcHAudjEyaAoLVXNlclNlcnZpY2USKAoKQ3JlYXRlVXNlchIMLmFwcC52MS5Vc2VyGgwuYXBwLnYxLlVzZXISLwoHR2V0VXNlchIWLmFwcC52MS5HZXRVc2VyUmVxdWVzdBoMLmFwcC52MS5Vc2VyQoQBCgpjb20uYXBwLnYxQhBVc2VyU2VydmljZVByb3RvUAFaK2dpdGh1Yi5jb20vaGlyb2t5MTk4My90YWxrL2dvL2dlbi9hcHA7YXBwdjGiAgNBWFiqAgZBcHAuVjHKAgZBcHBcVjHiAhJBcHBcVjFcR1BCTWV0YWRhdGHqAgdBcHA6OlYxYgZwcm90bzM", [file_app_user]);
 
 /**
  * @generated from service app.v1.UserService
@@ -23,6 +23,14 @@ export const UserService: GenService<{
   createUser: {
     methodKind: "unary";
     input: typeof UserSchema;
+    output: typeof UserSchema;
+  },
+  /**
+   * @generated from rpc app.v1.UserService.GetUser
+   */
+  getUser: {
+    methodKind: "unary";
+    input: typeof GetUserRequestSchema;
     output: typeof UserSchema;
   },
 }> = /*@__PURE__*/
