@@ -11,6 +11,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
 	"github.com/hiroky1983/talk/go/internal/auth"
 	"github.com/hiroky1983/talk/go/internal/database"
 	"github.com/hiroky1983/talk/go/internal/gateway"
@@ -127,7 +128,9 @@ func main() {
 	}
 
 	// Mount Connect RPC handler with wildcard to match all methods
-	// router.Any(aiPath+"*filepath", wrapConnectHandler(aiHandler))
+	apiHandler := handlers.NewAPIHandler()
+	userPath, userHandler := appv1connect.NewUserServiceHandler(apiHandler.UserHandler)
+	router.Any(userPath+"*filepath", wrapConnectHandler(userHandler))
 
 	log.Println("Starting AI Language Learning server on :8000")
 	log.Println("WebSocket service available at: /ws/chat")
@@ -140,5 +143,11 @@ func main() {
 
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal("Server failed to start:", err)
+	}
+}
+
+func wrapConnectHandler(h http.Handler) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
 	}
 }
