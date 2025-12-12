@@ -12,11 +12,8 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/hiroky1983/talk/go/gen/app/appv1connect"
-	"github.com/hiroky1983/talk/go/internal/auth"
 	"github.com/hiroky1983/talk/go/internal/database"
-	"github.com/hiroky1983/talk/go/internal/gateway"
 	"github.com/hiroky1983/talk/go/internal/handlers"
-	"github.com/hiroky1983/talk/go/internal/repository"
 	"github.com/hiroky1983/talk/go/internal/websocket"
 	"github.com/hiroky1983/talk/go/middleware"
 )
@@ -67,18 +64,6 @@ func main() {
 		log.Printf("Warning: Failed to run migrations: %v", err)
 	}
 
-	// Initialize JWT manager
-	jwtManager, err := auth.NewJWTManager()
-	if err != nil {
-		log.Fatal("Failed to initialize JWT manager:", err)
-	}
-
-	// Initialize repositories
-	var userRepo repository.UserRepository = gateway.NewUserRepository(db)
-
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(userRepo, jwtManager)
-
 	// Create AI service
 	aiService := NewAIConversationService()
 
@@ -107,25 +92,11 @@ func main() {
 		})
 	})
 
-	// Authentication routes (public)
-	authGroup := router.Group("/auth")
-	{
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/login", authHandler.Login)
-		authGroup.POST("/refresh", authHandler.Refresh)
-		authGroup.POST("/logout", authHandler.Logout)
-	}
+	authHandler := handlers.NewAuthHandler()
+	router.GET("/auth/google/callback", authHandler.GoogleCallback)
 
 	// WebSocket endpoint
 	router.GET("/ws/chat", wsHandler.HandleConnection)
-
-	// Protected routes (require JWT authentication)
-	protected := router.Group("/api")
-	protected.Use(middleware.JWTAuthMiddleware(jwtManager))
-	{
-		protected.GET("/me", authHandler.Me)
-		// Add more protected routes here
-	}
 
 	// Mount Connect RPC handler with wildcard to match all methods
 	apiHandler := handlers.NewAPIHandler()
