@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.46.0
 	golang.org/x/net v0.47.0
+	golang.org/x/oauth2 v0.30.0
 	google.golang.org/grpc v1.75.0
 	google.golang.org/protobuf v1.36.6
 	gorm.io/driver/postgres v1.6.0
@@ -20,6 +21,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.7.0 // indirect
 	github.com/bytedance/sonic v1.13.3 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
