@@ -106,12 +106,6 @@ export const TalkScreen = () => {
   }, [conversation])
 
   useEffect(() => {
-    // const userData = localStorage.getItem('user')
-    // if (!userData) {
-    //   router.push(`/${locale}`)
-    //   return
-    // }
-    // const parsedUser = JSON.parse(userData) as User
     const parsedUser = {
       username: 'user',
       language: selectedLanguage,
