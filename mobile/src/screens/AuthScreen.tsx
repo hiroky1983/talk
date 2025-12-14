@@ -10,7 +10,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
-  Dimensions,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -20,12 +19,10 @@ import { useAuth } from '../contexts/AuthContext'
 
 type AuthMode = 'signin' | 'signup'
 
-const { width } = Dimensions.get('window')
-
 export const AuthScreen = ({ navigation }: any) => {
   const { t } = useTranslation()
   const { theme } = useTheme()
-  const { login, register } = useAuth()
+  const { login, register, signInWithGoogle } = useAuth()
 
   const [mode, setMode] = useState<AuthMode>('signin')
   const [username, setUsername] = useState('')
@@ -213,6 +210,13 @@ export const AuthScreen = ({ navigation }: any) => {
                     styles.socialButton,
                     isDark && styles.socialButtonDark,
                   ]}
+                  onPress={async () => {
+                    try {
+                      await signInWithGoogle()
+                    } catch (err: any) {
+                      setError(err.message || 'Failed to sign in with Google')
+                    }
+                  }}
                   disabled={isLoading}
                 >
                   <FontAwesome

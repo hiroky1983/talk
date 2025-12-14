@@ -8,13 +8,13 @@ import React, {
 import { supabase } from '../lib/supabase'
 import { createClient } from '@connectrpc/connect'
 import { createConnectTransport } from '@connectrpc/connect-web'
-// Note: You might need to adjust the import path for generated proto files in mobile
-// Assuming similar structure or shared files, but usually mobile has its own generation target or copied files
-// For now I will comment out the service import to avoid breaking build if path is wrong
-// import { UserService } from '@/gen/app/user_service_pb'
-
+import * as WebBrowser from 'expo-web-browser'
+import * as AuthSession from 'expo-auth-session'
 import { User } from '../lib/api/auth'
 import { UserService } from '../gen/app/user_service_pb'
+
+// Required for expo-web-browser
+WebBrowser.maybeCompleteAuthSession()
 
 interface AuthContextType {
   user: User | null
@@ -22,6 +22,7 @@ interface AuthContextType {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, username: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -104,6 +105,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }
 
+  const signInWithGoogle = async () => {
+    try {
+      // Create redirect URL for the current session
+      const redirectTo = AuthSession.makeRedirectUri({
+        scheme: 'talkmobile',
+        path: 'auth/callback',
+      })
+
+      console.log('Redirect URL:', redirectTo)
+
+      // Start OAuth flow
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
+      })
+
+      if (error) throw error
+
+      if (!data?.url) {
+        throw new Error('No authorization URL returned')
+      }
+
+      // Open browser for OAuth
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
+
+      if (result.type === 'success') {
+        const url = result.url
+        // Extract tokens from URL
+        const params = new URLSearchParams(
+          url.split('#')[1] || url.split('?')[1]
+        )
+        const access_token = params.get('access_token')
+        const refresh_token = params.get('refresh_token')
+
+        if (access_token && refresh_token) {
+          await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Google sign-in error:', error)
+      throw error
+    }
+  }
+
   const logout = async () => {
     await supabase.auth.signOut()
   }
@@ -116,6 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: user !== null,
         login,
         register,
+        signInWithGoogle,
         logout,
       }}
     >

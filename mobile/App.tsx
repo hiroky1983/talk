@@ -8,12 +8,16 @@ import { AuthScreen } from './src/screens/AuthScreen'
 import { TalkScreen } from './src/screens/TalkScreen'
 
 import './src/lib/i18n'
+import { useAuthCallback } from './src/hooks/useAuthCallback'
 
 const Stack = createNativeStackNavigator()
 
 function AppNavigator() {
   const { isAuthenticated, isLoading } = useAuth()
   const { theme } = useTheme()
+
+  // Handle OAuth callbacks
+  useAuthCallback()
 
   if (isLoading) {
     return null // Or a loading screen
