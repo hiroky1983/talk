@@ -8,11 +8,15 @@ export const useAuthCallback = () => {
     const handleDeepLink = async (event: { url: string }) => {
       const url = event.url
 
+      console.log('📱 Deep link received:', url)
+
       // Check if this is an auth callback
-      if (url.includes('auth/callback')) {
+      if (url.includes('auth/callback') || url.includes('--/auth/callback')) {
         try {
+          console.log('🔐 Processing auth callback...')
+
           // Supabase returns tokens in hash fragment (#) or query params (?)
-          // Example: talkmobile://auth/callback#access_token=xxx&refresh_token=yyy
+          // Example: exp://192.168.11.7:8084/--/auth/callback#access_token=xxx&refresh_token=yyy
 
           let access_token: string | null = null
           let refresh_token: string | null = null
@@ -20,6 +24,7 @@ export const useAuthCallback = () => {
           // Try to parse hash fragment first (most common for OAuth)
           if (url.includes('#')) {
             const hashPart = url.split('#')[1]
+            console.log('🔍 Hash part:', hashPart)
             const params = new URLSearchParams(hashPart)
             access_token = params.get('access_token')
             refresh_token = params.get('refresh_token')
@@ -32,16 +37,24 @@ export const useAuthCallback = () => {
             refresh_token = urlObj.searchParams.get('refresh_token')
           }
 
+          console.log('🔑 Tokens found:', {
+            hasAccessToken: !!access_token,
+            hasRefreshToken: !!refresh_token,
+          })
+
           if (access_token && refresh_token) {
             // Set the session
+            console.log('💾 Setting session...')
             await supabase.auth.setSession({
               access_token,
               refresh_token,
             })
-            console.log('OAuth session set successfully')
+            console.log('✅ OAuth session set successfully')
+          } else {
+            console.warn('⚠️ Tokens not found in callback URL')
           }
         } catch (error) {
-          console.error('Error handling OAuth callback:', error)
+          console.error('❌ Error handling OAuth callback:', error)
         }
       }
     }
@@ -52,6 +65,7 @@ export const useAuthCallback = () => {
     // Check if app was opened with a deep link
     Linking.getInitialURL().then((url) => {
       if (url) {
+        console.log('🚀 Initial URL:', url)
         handleDeepLink({ url })
       }
     })
