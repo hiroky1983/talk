@@ -2,9 +2,10 @@
  * Audio Recorder for React Native using expo-av
  * Records audio and sends complete file after recording stops
  */
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 
 export class AudioRecorder {
+  private recording: any = null
   private recordingUri: string | null = null
   private onDataCallback: ((data: Uint8Array) => void) | null = null
   private onSilenceCallback: (() => void) | null = null
@@ -18,8 +19,16 @@ export class AudioRecorder {
     this.onSilenceCallback = onSilence || null
 
     try {
-      // Note: expo-audio uses hooks, which can't be used in classes
-      // We'll use the old expo-av approach for now
+      // Stop any existing recording first
+      if (this.recording) {
+        try {
+          await this.recording.stopAndUnloadAsync()
+        } catch (e) {
+          // Ignore errors when stopping
+        }
+        this.recording = null
+      }
+
       const { Audio } = await import('expo-av')
 
       // Request permissions
@@ -39,6 +48,7 @@ export class AudioRecorder {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       )
 
+      this.recording = recording
       this.recordingUri = recording.getURI() || null
       this.isRecording = true
 
@@ -50,16 +60,13 @@ export class AudioRecorder {
   }
 
   async stop(): Promise<void> {
-    if (!this.isRecording) {
+    if (!this.isRecording || !this.recording) {
       return
     }
 
     try {
-      const { Audio } = await import('expo-av')
-
       // Stop recording
-      // Note: We need to keep a reference to the recording object
-      // For now, we'll just mark as not recording
+      await this.recording.stopAndUnloadAsync()
       this.isRecording = false
 
       console.log('🎤 Recording stopped')
@@ -82,6 +89,8 @@ export class AudioRecorder {
         // Send complete audio file
         this.onDataCallback(bytes)
       }
+
+      this.recording = null
     } catch (error) {
       console.error('Failed to stop recording:', error)
     }

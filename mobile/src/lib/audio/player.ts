@@ -3,7 +3,7 @@
  * Plays audio from URI or data
  */
 import { Audio } from 'expo-av'
-import * as FileSystem from 'expo-file-system'
+import * as FileSystem from 'expo-file-system/legacy'
 
 export class AudioPlayer {
   private sound: Audio.Sound | null = null
@@ -25,7 +25,7 @@ export class AudioPlayer {
       const base64 = btoa(binary)
 
       // Save to temporary file
-      const tempUri = FileSystem.Paths.cache + '/temp_audio.wav'
+      const tempUri = FileSystem.cacheDirectory + 'temp_audio.wav'
       await FileSystem.writeAsStringAsync(tempUri, base64, {
         encoding: 'base64',
       })
