@@ -77,7 +77,7 @@ export const AuthScreen = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: provider,
         options: {
-          redirectTo: `http://localhost:8000/auth/google/callback`,
+          redirectTo: `${location.origin}/auth/callback`,
         },
       })
       if (error) throw error
