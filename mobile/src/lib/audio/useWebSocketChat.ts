@@ -49,13 +49,10 @@ export const useWebSocketChat = ({
     // Use API URL from environment
     const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000'
     const wsUrl = apiUrl.replace('http', 'ws') + '/ws/chat'
-    console.log('Connecting to WebSocket:', wsUrl)
-
     const socket = new WebSocket(wsUrl)
     socketRef.current = socket
 
     socket.onopen = () => {
-      console.log('WebSocket connected')
       setIsConnected(true)
       setError(null)
     }
