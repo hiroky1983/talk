@@ -51,18 +51,12 @@ func main() {
 		}
 	}
 
-	// Initialize Gorm DB (Foundation)
-	db, err := database.NewGormDB()
+	// Initialize Gorm DB (Foundation) - Connection check only
+	_, err = database.NewGormDB()
 	if err != nil {
 		log.Fatal("Failed to connect to database using Gorm:", err)
 	}
 	log.Println("Successfully connected to database via Gorm")
-
-	// Run database migrations
-	log.Println("Running database migrations...")
-	if err := database.RunMigrations(db); err != nil {
-		log.Printf("Warning: Failed to run migrations: %v", err)
-	}
 
 	// Create AI service
 	aiService := NewAIConversationService()
