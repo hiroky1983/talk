@@ -14,7 +14,7 @@ import { createConnectTransport } from '@connectrpc/connect-web'
 // import { UserService } from '@/gen/app/user_service_pb'
 
 import { User } from '../lib/api/auth'
-import { UserService } from '../gen/app/user_service_connect'
+import { UserService } from '../gen/app/user_service_pb'
 
 interface AuthContextType {
   user: User | null
