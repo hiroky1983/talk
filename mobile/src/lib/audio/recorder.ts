@@ -54,8 +54,6 @@ export class AudioRecorder {
       this.recording = recording
       this.recordingUri = recording.getURI() || null
       this.isRecording = true
-
-      console.log('🎤 Recording started')
     } catch (error) {
       console.error('Failed to start recording:', error)
       throw error
@@ -72,8 +70,6 @@ export class AudioRecorder {
       await this.recording.stopAndUnloadAsync()
       this.isRecording = false
 
-      console.log('🎤 Recording stopped')
-
       if (this.recordingUri && this.onDataCallback) {
         // Read file as base64
         const base64 = await FileSystem.readAsStringAsync(this.recordingUri, {
@@ -86,8 +82,6 @@ export class AudioRecorder {
         for (let i = 0; i < binaryString.length; i++) {
           bytes[i] = binaryString.charCodeAt(i)
         }
-
-        console.log('📤 Sending audio data:', bytes.length, 'bytes')
 
         // Send complete audio file
         this.onDataCallback(bytes)

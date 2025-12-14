@@ -72,10 +72,13 @@ export const useWebSocketChat = ({
 
     socket.onmessage = async (event) => {
       if (typeof event.data === 'string') {
-        console.log('Received text message:', event.data)
         onMessageReceived?.(event.data)
+      } else if (event.data instanceof ArrayBuffer) {
+        const uint8Array = new Uint8Array(event.data)
+        if (playerRef.current) {
+          await playerRef.current.play(uint8Array)
+        }
       } else if (event.data instanceof Blob) {
-        console.log('Received audio blob:', event.data.size)
         // Convert Blob to ArrayBuffer -> Uint8Array for playback
         const arrayBuffer = await event.data.arrayBuffer()
         const uint8Array = new Uint8Array(arrayBuffer)
@@ -120,20 +123,17 @@ export const useWebSocketChat = ({
 
       await recorder.start(
         (chunk) => {
-          // Provide real-time streaming
           sendAudioChunk(chunk)
         },
         () => {
           // Silence detected - send EOS signal
           if (socketRef.current?.readyState === WebSocket.OPEN) {
-            console.log('Silence detected, sending EOS')
             socketRef.current.send('EOS')
           }
         },
         () => {
           // Recording complete - send EOS signal
           if (socketRef.current?.readyState === WebSocket.OPEN) {
-            console.log('Recording complete, sending EOS')
             socketRef.current.send('EOS')
           }
         }
