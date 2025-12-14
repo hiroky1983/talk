@@ -7,6 +7,7 @@ import os
 import asyncio
 import logging
 import uuid
+import time
 from concurrent import futures
 
 import grpc
@@ -18,7 +19,10 @@ from ai import ai_conversation_service_pb2_grpc as ai_grpc
 
 from ai_service import AIConversationService
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - [%(name)s] - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 def create_timestamp():
@@ -26,6 +30,37 @@ def create_timestamp():
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
     return timestamp
+
+class LoggingInterceptor(grpc.aio.ServerInterceptor):
+    """Interceptor to log request ID and timing"""
+    
+    async def intercept_service(self, continuation, handler_call_details):
+        # Generate request ID
+        request_id = str(uuid.uuid4())[:8]
+        start_time = time.time()
+        
+        # Log incoming request
+        method = handler_call_details.method
+        logger.info(f"[{request_id}] → Incoming RPC: {method}")
+        
+        # Store request_id in context metadata
+        metadata = dict(handler_call_details.invocation_metadata or [])
+        metadata['request-id'] = request_id
+        
+        try:
+            # Continue with the RPC
+            response = await continuation(handler_call_details)
+            
+            # Log completion
+            duration = time.time() - start_time
+            logger.info(f"[{request_id}] ✓ Completed in {duration:.2f}s")
+            
+            return response
+        except Exception as e:
+            # Log error
+            duration = time.time() - start_time
+            logger.error(f"[{request_id}] ✗ Failed after {duration:.2f}s: {e}")
+            raise
 
 class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
     """gRPC servicer for AI conversation"""
@@ -35,6 +70,10 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
 
     async def StreamChat(self, request_iterator, context):
         """Bidirectional streaming chat"""
+        # Extract request ID from metadata
+        metadata = dict(context.invocation_metadata())
+        request_id = metadata.get('request-id', 'unknown')
+        
         try:
             # First message should be setup
             first_msg = await request_iterator.__anext__()
@@ -44,25 +83,8 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 return
 
             config = first_msg.setup
-            logger.info(f"Starting chat for user {config.username} ({config.user_id})")
+            logger.info(f"[{request_id}] Starting chat for user {config.username} ({config.user_id})")
 
-            # Accumulate audio chunks for now (Echo logic mainly, since we are mimicking previous behavior)
-            # In a real Gemini Live implementation, we'd pass the iterator directly to the AI service
-            # For now, let's just read chunks and process them when we get enough or satisfy previous logic
-            # OR pass the iterator to a new streaming method in ai_service
-            
-            # Since AIConversationService.process_audio_message expects a full blob (previous logic),
-            # we might need to change ai_service or accumulate here.
-            # To unblock the "connection", let's accumulate here simplistically or call a new method.
-            
-            # Let's try to assume we just want to bridge for now.
-            # But wait, previous logic was: One Request -> Stream Response.
-            # New logic is: Stream Request -> Stream Response.
-            
-            # Temporary: Accumulate all audio until stream ends (?) or some silence?
-            # Go side sends chunks as they come.
-            # Let's just process chunks as a stream in the service.
-            
             async for response in self.ai_service.stream_chat(
                 request_iterator,
                 config
@@ -70,13 +92,19 @@ class AIConversationServicer(ai_grpc.AIConversationServiceServicer):
                 yield response
 
         except Exception as e:
-            logger.error(f"StreamChat error: {e}")
+            logger.error(f"[{request_id}] StreamChat error: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"StreamChat error: {str(e)}")
 
 async def serve():
     """Start the gRPC server"""
-    server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
+    # Create interceptors
+    interceptors = [LoggingInterceptor()]
+    
+    server = grpc.aio.server(
+        futures.ThreadPoolExecutor(max_workers=10),
+        interceptors=interceptors
+    )
 
     # Add the servicer
     servicer = AIConversationServicer()
