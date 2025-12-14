@@ -10,8 +10,15 @@ import { createClient } from '@connectrpc/connect'
 import { createConnectTransport } from '@connectrpc/connect-web'
 import * as WebBrowser from 'expo-web-browser'
 import * as AuthSession from 'expo-auth-session'
-import { User } from '../lib/api/auth'
 import { UserService } from '../gen/app/user_service_pb'
+
+type User = {
+  id: string
+  email: string
+  username: string
+  created_at: string
+  updated_at: string
+}
 
 // Required for expo-web-browser
 WebBrowser.maybeCompleteAuthSession()
