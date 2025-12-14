@@ -11,9 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "scheme": "talkmobile",
     "ios": {
       "supportsTablet": true,
@@ -30,9 +28,6 @@
       "bundler": "metro",
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      "expo-web-browser",
-      "expo-audio"
-    ]
+    "plugins": ["expo-web-browser", "expo-audio"]
   }
 }
