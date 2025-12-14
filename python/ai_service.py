@@ -53,10 +53,14 @@ class AIConversationService:
                     pass
 
         try:
-            # Select controller
-            if config.plan_type == ai_pb2.PLAN_TYPE_PREMIUM:
+            # Import enum from generated proto
+            from ai import user_pb2
+            
+            # Select controller based on plan
+            # PLAN_LITE = 2, PLAN_PREMIUM = 3
+            if config.plan == user_pb2.PLAN_PREMIUM:
                 controller = PremiumController(self.api_key)
-                logger.info(f"Streaming chat with PremiumController")
+                logger.info(f"Streaming chat with PremiumController (plan={config.plan})")
                 
                 # Pass the audio generator to the controller
                 async for chunk in controller.process_stream(
@@ -113,18 +117,19 @@ class AIConversationService:
         """Process audio message using the selected controller
         
         Args:
-            plan_type: PlanType enum value (0=FREE, 1=LITE, 2=PREMIUM)
+            plan_type: Plan enum value (0=UNSPECIFIED, 1=FREE, 2=LITE, 3=PREMIUM)
         Yields:
             bytes: Audio chunks
         """
         try:
             # Import here to avoid circular dependency
-            from ai import ai_conversation_pb2 as ai_pb2
+            from ai import user_pb2
             
             # Select controller based on plan_type
-            if plan_type == ai_pb2.PLAN_TYPE_PREMIUM:
+            # PLAN_LITE = 2, PLAN_PREMIUM = 3
+            if plan_type == user_pb2.PLAN_PREMIUM:
                 controller = PremiumController(self.api_key)
-            else:  # LITE or FREE
+            else:  # LITE, FREE, or UNSPECIFIED
                 controller = LiteController(self.api_key)
             
             logger.info(f"Using {controller.__class__.__name__} for plan_type={plan_type}")
