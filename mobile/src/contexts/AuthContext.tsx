@@ -5,7 +5,16 @@ import React, {
   useEffect,
   ReactNode,
 } from 'react'
-import { authAPI, User } from '../lib/api/auth'
+import { supabase } from '../lib/supabase'
+import { createClient } from '@connectrpc/connect'
+import { createConnectTransport } from '@connectrpc/connect-web'
+// Note: You might need to adjust the import path for generated proto files in mobile
+// Assuming similar structure or shared files, but usually mobile has its own generation target or copied files
+// For now I will comment out the service import to avoid breaking build if path is wrong
+// import { UserService } from '@/gen/app/user_service_pb'
+
+import { User } from '../lib/api/auth'
+import { UserService } from '../gen/app/user_service_connect'
 
 interface AuthContextType {
   user: User | null
@@ -23,33 +32,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is authenticated on mount
-    const checkAuth = async () => {
-      // const authenticated = await authAPI.isAuthenticated()
-      // if (authenticated) {
-      //   try {
-      //     const userData = await authAPI.getMe()
-      //     setUser(userData)
-      //   } catch (error) {
-      //     await authAPI.clearAccessToken()
-      //   }
-      // }
+    // Check if user is authenticated on mount via Supabase
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          username: session.user.user_metadata?.username || '',
+          created_at: session.user.created_at,
+          updated_at: session.user.updated_at || '',
+        })
+      }
       setIsLoading(false)
-    }
+    })
 
-    checkAuth()
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          username: session.user.user_metadata?.username || '',
+          created_at: session.user.created_at,
+          updated_at: session.user.updated_at || '',
+        })
+
+        // Call backend to ensure user exists
+        try {
+          const transport = createConnectTransport({
+            baseUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000',
+          })
+          const client = createClient(UserService, transport)
+
+          // TODO: Implement CreateUser call
+          // We need to match the UserService definition
+          // await client.createUser({ ... })
+        } catch (e) {
+          console.error('Failed to sync user with backend', e)
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const login = async (email: string, password: string) => {
-    // const response = await authAPI.login({ email, password })
-    // setUser(response.user)
-    setUser({
-      id: 'dummy-user-id',
-      email: email,
-      username: email.split('@')[0],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     })
+    if (error) throw error
   }
 
   const register = async (
@@ -57,20 +92,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     username: string
   ) => {
-    // const response = await authAPI.register({ email, password, username })
-    // setUser(response.user)
-    setUser({
-      id: 'dummy-user-id',
-      email: email,
-      username: username,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username,
+        },
+      },
     })
+    if (error) throw error
   }
 
   const logout = async () => {
-    await authAPI.logout()
-    setUser(null)
+    await supabase.auth.signOut()
   }
 
   return (
