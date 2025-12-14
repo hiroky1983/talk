@@ -1,12 +1,14 @@
 /**
  * Audio Player for React Native using expo-av
- * Plays audio from URI or data
+ * Plays audio from URI or data with queue-based playback
  */
 import { Audio } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
 
 export class AudioPlayer {
   private sound: Audio.Sound | null = null
+  private audioQueue: Uint8Array[] = []
+  private isPlaying = false
 
   async init(): Promise<void> {
     // Configure audio mode
@@ -59,6 +61,24 @@ export class AudioPlayer {
   }
 
   async play(pcmData: Uint8Array): Promise<void> {
+    // Add to queue
+    this.audioQueue.push(pcmData)
+
+    // Start playing if not already playing
+    if (!this.isPlaying) {
+      this.playQueue()
+    }
+  }
+
+  private async playQueue(): Promise<void> {
+    if (this.audioQueue.length === 0) {
+      this.isPlaying = false
+      return
+    }
+
+    this.isPlaying = true
+    const pcmData = this.audioQueue.shift()!
+
     try {
       // Convert PCM to WAV
       const wavData = this.createWavFile(pcmData)
@@ -76,12 +96,29 @@ export class AudioPlayer {
         encoding: 'base64',
       })
 
+      // Stop previous sound if playing
+      if (this.sound) {
+        await this.sound.unloadAsync()
+        this.sound = null
+      }
+
       // Create sound and play
       const { sound } = await Audio.Sound.createAsync({ uri: tempUri })
       this.sound = sound
+
+      // Set callback for when playback finishes
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          // Continue playing queue
+          this.playQueue()
+        }
+      })
+
       await sound.playAsync()
     } catch (error) {
       console.error('Failed to play audio:', error)
+      // Continue with next item in queue even if this one failed
+      this.playQueue()
     }
   }
 
@@ -96,6 +133,9 @@ export class AudioPlayer {
   }
 
   async stop(): Promise<void> {
+    this.audioQueue = []
+    this.isPlaying = false
+
     if (this.sound) {
       try {
         await this.sound.unloadAsync()
@@ -107,6 +147,6 @@ export class AudioPlayer {
   }
 
   clear(): void {
-    // No queue to clear
+    this.audioQueue = []
   }
 }
