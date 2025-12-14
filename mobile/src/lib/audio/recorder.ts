@@ -9,14 +9,17 @@ export class AudioRecorder {
   private recordingUri: string | null = null
   private onDataCallback: ((data: Uint8Array) => void) | null = null
   private onSilenceCallback: (() => void) | null = null
+  private onCompleteCallback: (() => void) | null = null
   private isRecording = false
 
   async start(
     onData: (data: Uint8Array) => void,
-    onSilence?: () => void
+    onSilence?: () => void,
+    onComplete?: () => void
   ): Promise<void> {
     this.onDataCallback = onData
     this.onSilenceCallback = onSilence || null
+    this.onCompleteCallback = onComplete || null
 
     try {
       // Stop any existing recording first
@@ -88,6 +91,11 @@ export class AudioRecorder {
 
         // Send complete audio file
         this.onDataCallback(bytes)
+
+        // Call onComplete after data is sent
+        if (this.onCompleteCallback) {
+          this.onCompleteCallback()
+        }
       }
 
       this.recording = null
@@ -97,6 +105,7 @@ export class AudioRecorder {
 
     this.onDataCallback = null
     this.onSilenceCallback = null
+    this.onCompleteCallback = null
   }
 
   isRecordingActive(): boolean {

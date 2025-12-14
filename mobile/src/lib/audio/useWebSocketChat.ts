@@ -129,6 +129,13 @@ export const useWebSocketChat = ({
             console.log('Silence detected, sending EOS')
             socketRef.current.send('EOS')
           }
+        },
+        () => {
+          // Recording complete - send EOS signal
+          if (socketRef.current?.readyState === WebSocket.OPEN) {
+            console.log('Recording complete, sending EOS')
+            socketRef.current.send('EOS')
+          }
         }
       )
 
