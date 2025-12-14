@@ -2,9 +2,10 @@
  * Hook for managing WebSocket-based conversation in React Native
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AudioRecorder } from '../audio/recorder'
-import { AudioPlayer } from '../audio/player'
-import { Language } from '@/types/types'
+import { AudioRecorder } from './recorder'
+import { AudioPlayer } from './player'
+
+type Language = 'en' | 'ja' | 'vi'
 
 interface UseWebSocketChatProps {
   username: string

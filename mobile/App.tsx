@@ -27,12 +27,12 @@ function AppNavigator() {
     <>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {!isAuthenticated ? (
-            <Stack.Screen name="Auth" component={AuthScreen} />
-          ) : (
-            <Stack.Screen name="Talk" component={TalkScreen} />
-          )}
+        <Stack.Navigator
+          screenOptions={{ headerShown: false }}
+          initialRouteName={isAuthenticated ? 'Talk' : 'Auth'}
+        >
+          <Stack.Screen name="Auth" component={AuthScreen} />
+          <Stack.Screen name="Talk" component={TalkScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

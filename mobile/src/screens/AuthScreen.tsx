@@ -509,6 +509,25 @@ const styles = StyleSheet.create({
   socialButtonTextDark: {
     color: '#D1D5DB',
   },
+  skipButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  skipButtonDark: {
+    backgroundColor: '#374151',
+  },
+  skipButtonText: {
+    color: '#6B7280',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  skipButtonTextDark: {
+    color: '#9CA3AF',
+  },
   toggleMode: {
     alignItems: 'center',
     paddingVertical: 16,
