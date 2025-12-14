@@ -92,9 +92,6 @@ func main() {
 		})
 	})
 
-	authHandler := handlers.NewAuthHandler()
-	router.GET("/auth/google/callback", authHandler.GoogleCallback)
-
 	// WebSocket endpoint
 	router.GET("/ws/chat", wsHandler.HandleConnection)
 
