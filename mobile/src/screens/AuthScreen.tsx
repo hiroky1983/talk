@@ -100,6 +100,21 @@ export const AuthScreen = ({ navigation }: any) => {
               <Text style={[styles.tagline, isDark && styles.taglineDark]}>
                 {t('common:tagline')}
               </Text>
+
+              {/* Skip Authentication Button (Development Only) */}
+              <TouchableOpacity
+                style={[styles.skipButton, isDark && styles.skipButtonDark]}
+                onPress={() => navigation.navigate('Talk')}
+              >
+                <Text
+                  style={[
+                    styles.skipButtonText,
+                    isDark && styles.skipButtonTextDark,
+                  ]}
+                >
+                  Skip to Talk (Dev Mode)
+                </Text>
+              </TouchableOpacity>
             </View>
 
             <View style={styles.form}>
