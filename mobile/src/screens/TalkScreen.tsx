@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { TalkHeader } from '../components/TalkHeader'
 import { useTheme } from '../contexts/ThemeContext'
 import { useAuth } from '../contexts/AuthContext'
+import { useWebSocketChat } from '../lib/audio/useWebSocketChat'
 import { Language } from '../types/types'
 
 interface Character {
@@ -60,27 +61,66 @@ export const TalkScreen = ({ navigation }: any) => {
   ]
 
   const [selectedCharacter, setSelectedCharacter] = useState<string>('friend')
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(Language.EN)
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
+    Language.EN
+  )
   const [conversation, setConversation] = useState<ConversationMessage[]>([])
-  const [isConnected] = useState(false)
-  const [isStreaming, setIsStreaming] = useState(false)
 
   const isDark = theme === 'dark'
 
+  // WebSocket chat hook
+  const {
+    isConnected,
+    isStreaming,
+    error,
+    connect,
+    disconnect,
+    startStreaming,
+    stopStreaming,
+  } = useWebSocketChat({
+    username: user?.username || 'Guest',
+    language: selectedLanguage,
+    character: selectedCharacter,
+    onMessageReceived: (message) => {
+      console.log('Received message:', message)
+      // Add message to conversation
+      if (typeof message === 'string') {
+        setConversation((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            sender: 'ai',
+            content: message,
+            timestamp: new Date(),
+          },
+        ])
+      }
+    },
+  })
+
   const handleLogout = async () => {
+    disconnect()
     await logout()
-    // Navigation will be handled by App.tsx
   }
 
   const handleToggleStreaming = () => {
-    setIsStreaming(!isStreaming)
-    // TODO: Implement WebSocket connection
+    if (isStreaming) {
+      stopStreaming()
+    } else {
+      // Connect if not connected
+      if (!isConnected) {
+        connect()
+      }
+      startStreaming()
+    }
   }
 
   return (
     <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
       <TalkHeader
-        user={user ? { username: user.username, language: selectedLanguage } : null}
+        user={
+          user ? { username: user.username, language: selectedLanguage } : null
+        }
         selectedLanguage={selectedLanguage}
         selectedCharacter={selectedCharacter}
         isConnected={isConnected}
@@ -93,16 +133,23 @@ export const TalkScreen = ({ navigation }: any) => {
 
       <View style={styles.content}>
         <View style={[styles.chatCard, isDark && styles.chatCardDark]}>
-          <ScrollView style={styles.chatArea} contentContainerStyle={styles.chatContent}>
+          <ScrollView
+            style={styles.chatArea}
+            contentContainerStyle={styles.chatContent}
+          >
             {conversation.length === 0 ? (
               <View style={styles.emptyState}>
                 <View style={styles.emptyIcon}>
                   <Text style={styles.emptyEmoji}>🎙️</Text>
                 </View>
-                <Text style={[styles.emptyTitle, isDark && styles.emptyTitleDark]}>
+                <Text
+                  style={[styles.emptyTitle, isDark && styles.emptyTitleDark]}
+                >
                   {t('common:startConversation')}
                 </Text>
-                <Text style={[styles.emptyText, isDark && styles.emptyTextDark]}>
+                <Text
+                  style={[styles.emptyText, isDark && styles.emptyTextDark]}
+                >
                   {t('common:startPrompt')}
                 </Text>
               </View>
@@ -120,8 +167,12 @@ export const TalkScreen = ({ navigation }: any) => {
                   <View
                     style={[
                       styles.messageBubble,
-                      message.sender === 'user' ? styles.messageBubbleUser : styles.messageBubbleAI,
-                      isDark && message.sender === 'ai' && styles.messageBubbleAIDark,
+                      message.sender === 'user'
+                        ? styles.messageBubbleUser
+                        : styles.messageBubbleAI,
+                      isDark &&
+                        message.sender === 'ai' &&
+                        styles.messageBubbleAIDark,
                     ]}
                   >
                     <Text
@@ -130,7 +181,9 @@ export const TalkScreen = ({ navigation }: any) => {
                         message.sender === 'user'
                           ? styles.messageTextUser
                           : styles.messageTextAI,
-                        isDark && message.sender === 'ai' && styles.messageTextAIDark,
+                        isDark &&
+                          message.sender === 'ai' &&
+                          styles.messageTextAIDark,
                       ]}
                     >
                       {message.content}
@@ -160,10 +213,19 @@ export const TalkScreen = ({ navigation }: any) => {
                   isDark && styles.statusTitleDark,
                 ]}
               >
-                {isStreaming ? t('common:liveConversation') : t('common:tapToStart')}
+                {isStreaming
+                  ? t('common:liveConversation')
+                  : t('common:tapToStart')}
               </Text>
-              <Text style={[styles.statusSubtitle, isDark && styles.statusSubtitleDark]}>
-                {isStreaming ? t('common:clickToStop') : t('common:realTimeChat')}
+              <Text
+                style={[
+                  styles.statusSubtitle,
+                  isDark && styles.statusSubtitleDark,
+                ]}
+              >
+                {isStreaming
+                  ? t('common:clickToStop')
+                  : t('common:realTimeChat')}
               </Text>
             </View>
           </View>
