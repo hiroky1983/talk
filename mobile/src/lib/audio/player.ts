@@ -2,7 +2,7 @@
  * Audio Player for React Native using expo-av
  * Plays audio from URI or data with queue-based playback
  */
-import { Audio } from 'expo-av'
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
 
 export class AudioPlayer {
@@ -18,7 +18,13 @@ export class AudioPlayer {
   async init(): Promise<void> {
     // Configure audio mode
     await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
+      staysActiveInBackground: false,
+      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+      playThroughEarpieceAndroid: false,
     })
   }
 

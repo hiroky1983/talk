@@ -12,6 +12,32 @@ export class AudioRecorder {
   private onCompleteCallback: (() => void) | null = null
   private isRecording = false
 
+  // Audio recording options for PCM 16-bit 16kHz mono (optimised for STT)
+  private options: any = {
+    android: {
+      extension: '.m4a',
+      outputFormat: 2, // MPEG_4
+      audioEncoder: 3, // AAC
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      bitRate: 128000,
+    },
+    ios: {
+      extension: '.wav',
+      audioQuality: 128, // MAX
+      sampleRate: 16000,
+      numberOfChannels: 1,
+      bitRate: 256000,
+      linearPCMBitDepth: 16,
+      linearPCMIsBigEndian: false,
+      linearPCMIsFloat: false,
+    },
+    web: {
+      mimeType: 'audio/wav',
+      bitsPerSecond: 128000,
+    },
+  }
+
   async start(
     onData: (data: Uint8Array) => void,
     onSilence?: () => void,
@@ -46,10 +72,8 @@ export class AudioRecorder {
         playsInSilentModeIOS: true,
       })
 
-      // Create recording
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      )
+      // Create recording with PCM options
+      const { recording } = await Audio.Recording.createAsync(this.options)
 
       this.recording = recording
       this.recordingUri = recording.getURI() || null
@@ -83,8 +107,32 @@ export class AudioRecorder {
           bytes[i] = binaryString.charCodeAt(i)
         }
 
-        // Send complete audio file
-        this.onDataCallback(bytes)
+        let pcmData = bytes
+
+        // Strip WAV header (44 bytes) if present and matches 'RIFF'
+        if (bytes.length > 44) {
+          // Check for 'RIFF' at start and 'WAVE' at 8
+          if (
+            bytes[0] === 0x52 && // R
+            bytes[1] === 0x49 && // I
+            bytes[2] === 0x46 && // F
+            bytes[3] === 0x46 && // F
+            bytes[8] === 0x57 && // W
+            bytes[9] === 0x41 && // A
+            bytes[10] === 0x56 && // V
+            bytes[11] === 0x45 // E
+          ) {
+            pcmData = bytes.slice(44)
+          }
+        }
+
+        // Ensure length is even (16-bit PCM = 2 bytes per sample)
+        if (pcmData.length % 2 !== 0) {
+          pcmData = pcmData.slice(0, pcmData.length - 1)
+        }
+
+        // Send PCM data
+        this.onDataCallback(pcmData)
 
         // Call onComplete after data is sent
         if (this.onCompleteCallback) {

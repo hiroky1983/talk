@@ -113,6 +113,27 @@ export const useWebSocketChat = ({
     }
   }, [])
 
+  const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
+
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (processingTimeoutRef.current) {
+        clearTimeout(processingTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  // Clear processing timeout when status changes from processing
+  useEffect(() => {
+    if (status !== 'processing' && processingTimeoutRef.current) {
+      clearTimeout(processingTimeoutRef.current)
+      processingTimeoutRef.current = null
+    }
+  }, [status])
+
   const startStreaming = useCallback(async () => {
     // If already listening, do nothing (or could be stop?)
     if (status === 'listening') return
@@ -145,6 +166,17 @@ export const useWebSocketChat = ({
           if (socketRef.current?.readyState === WebSocket.OPEN) {
             socketRef.current.send('EOS')
             setStatus('processing')
+
+            // Set safety timeout
+            if (processingTimeoutRef.current)
+              clearTimeout(processingTimeoutRef.current)
+            processingTimeoutRef.current = setTimeout(() => {
+              if (status === 'processing') {
+                console.warn('Processing timeout - resetting state')
+                setStatus('idle')
+                setError('Response timeout')
+              }
+            }, 15000) // 15 seconds timeout
           }
         },
         () => {
@@ -152,8 +184,16 @@ export const useWebSocketChat = ({
           if (socketRef.current?.readyState === WebSocket.OPEN) {
             socketRef.current.send('EOS')
             // Only transition to processing if we were listening
-            // (avoids race conditions if manually stopped)
             setStatus('processing')
+
+            // Set safety timeout
+            if (processingTimeoutRef.current)
+              clearTimeout(processingTimeoutRef.current)
+            processingTimeoutRef.current = setTimeout(() => {
+              console.warn('Processing timeout - resetting state')
+              setStatus('idle')
+              setError('Response timeout')
+            }, 15000) // 15 seconds timeout
           }
         }
       )
@@ -170,6 +210,14 @@ export const useWebSocketChat = ({
     recorderRef.current?.stop()
     // Explicitly set processing state as we wait for response
     setStatus('processing')
+
+    // Set safety timeout
+    if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current)
+    processingTimeoutRef.current = setTimeout(() => {
+      console.warn('Processing timeout - resetting state')
+      setStatus('idle')
+      setError('Response timeout')
+    }, 15000) // 15 seconds timeout
   }, [])
 
   return {
