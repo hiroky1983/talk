@@ -9,6 +9,11 @@ export class AudioPlayer {
   private sound: Audio.Sound | null = null
   private audioQueue: Uint8Array[] = []
   private isPlaying = false
+  private onPlayingStateChange: ((isPlaying: boolean) => void) | null = null
+
+  constructor(onPlayingStateChange?: (isPlaying: boolean) => void) {
+    this.onPlayingStateChange = onPlayingStateChange || null
+  }
 
   async init(): Promise<void> {
     // Configure audio mode
@@ -72,11 +77,18 @@ export class AudioPlayer {
 
   private async playQueue(): Promise<void> {
     if (this.audioQueue.length === 0) {
-      this.isPlaying = false
+      if (this.isPlaying) {
+        this.isPlaying = false
+        this.onPlayingStateChange?.(false)
+      }
       return
     }
 
-    this.isPlaying = true
+    if (!this.isPlaying) {
+      this.isPlaying = true
+      this.onPlayingStateChange?.(true)
+    }
+
     const pcmData = this.audioQueue.shift()!
 
     try {
@@ -124,17 +136,36 @@ export class AudioPlayer {
 
   async playFromUri(uri: string): Promise<void> {
     try {
+      if (!this.isPlaying) {
+        this.isPlaying = true
+        this.onPlayingStateChange?.(true)
+      }
+
       const { sound } = await Audio.Sound.createAsync({ uri })
       this.sound = sound
+
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          this.isPlaying = false
+          this.onPlayingStateChange?.(false)
+        }
+      })
+
       await sound.playAsync()
     } catch (error) {
       console.error('Failed to play audio from URI:', error)
+      this.isPlaying = false
+      this.onPlayingStateChange?.(false)
     }
   }
 
   async stop(): Promise<void> {
     this.audioQueue = []
-    this.isPlaying = false
+
+    if (this.isPlaying) {
+      this.isPlaying = false
+      this.onPlayingStateChange?.(false)
+    }
 
     if (this.sound) {
       try {

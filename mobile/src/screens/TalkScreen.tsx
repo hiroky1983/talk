@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TalkHeader } from '../components/TalkHeader'
@@ -71,7 +72,7 @@ export const TalkScreen = ({ navigation }: any) => {
   // WebSocket chat hook
   const {
     isConnected,
-    isStreaming,
+    status,
     error,
     connect,
     disconnect,
@@ -104,7 +105,7 @@ export const TalkScreen = ({ navigation }: any) => {
   }
 
   const handleToggleStreaming = () => {
-    if (isStreaming) {
+    if (status === 'listening') {
       stopStreaming()
     } else {
       // Connect if not connected
@@ -198,23 +199,46 @@ export const TalkScreen = ({ navigation }: any) => {
             <TouchableOpacity
               style={[
                 styles.micButton,
-                isStreaming ? styles.micButtonStreaming : styles.micButtonIdle,
+                status === 'listening'
+                  ? styles.micButtonListening
+                  : status === 'processing'
+                  ? styles.micButtonProcessing
+                  : status === 'speaking'
+                  ? styles.micButtonSpeaking
+                  : styles.micButtonIdle,
               ]}
               onPress={handleToggleStreaming}
+              disabled={status === 'processing'}
             >
-              <Text style={styles.micEmoji}>{isStreaming ? '⏹️' : '🎙️'}</Text>
+              {status === 'processing' ? (
+                <ActivityIndicator color="#fff" size="large" />
+              ) : (
+                <Text style={styles.micEmoji}>
+                  {status === 'listening'
+                    ? '⏹️'
+                    : status === 'speaking'
+                    ? '🔊'
+                    : '🎙️'}
+                </Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.statusInfo}>
               <Text
                 style={[
                   styles.statusTitle,
-                  isStreaming && styles.statusTitleStreaming,
+                  status === 'listening' && styles.statusTitleListening,
+                  status === 'processing' && styles.statusTitleProcessing,
+                  status === 'speaking' && styles.statusTitleSpeaking,
                   isDark && styles.statusTitleDark,
                 ]}
               >
-                {isStreaming
-                  ? t('common:liveConversation')
+                {status === 'listening'
+                  ? t('common:listening')
+                  : status === 'processing'
+                  ? t('common:processing')
+                  : status === 'speaking'
+                  ? t('common:speaking')
                   : t('common:tapToStart')}
               </Text>
               <Text
@@ -223,8 +247,12 @@ export const TalkScreen = ({ navigation }: any) => {
                   isDark && styles.statusSubtitleDark,
                 ]}
               >
-                {isStreaming
+                {status === 'listening'
                   ? t('common:clickToStop')
+                  : status === 'speaking'
+                  ? t('common:listeningToResponse')
+                  : status === 'processing'
+                  ? t('common:waitMoment')
                   : t('common:realTimeChat')}
               </Text>
             </View>
@@ -371,8 +399,14 @@ const styles = StyleSheet.create({
   micButtonIdle: {
     backgroundColor: '#3B82F6',
   },
-  micButtonStreaming: {
+  micButtonListening: {
     backgroundColor: '#EF4444',
+  },
+  micButtonProcessing: {
+    backgroundColor: '#9CA3AF',
+  },
+  micButtonSpeaking: {
+    backgroundColor: '#10B981',
   },
   micEmoji: {
     fontSize: 32,
@@ -386,8 +420,14 @@ const styles = StyleSheet.create({
     color: '#374151',
     marginBottom: 4,
   },
-  statusTitleStreaming: {
+  statusTitleListening: {
     color: '#DC2626',
+  },
+  statusTitleProcessing: {
+    color: '#6B7280',
+  },
+  statusTitleSpeaking: {
+    color: '#059669',
   },
   statusTitleDark: {
     color: '#D1D5DB',

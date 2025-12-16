@@ -21,7 +21,9 @@ export const useWebSocketChat = ({
   onMessageReceived,
 }: UseWebSocketChatProps) => {
   const [isConnected, setIsConnected] = useState(false)
-  const [isStreaming, setIsStreaming] = useState(false)
+  const [status, setStatus] = useState<
+    'idle' | 'listening' | 'processing' | 'speaking'
+  >('idle')
   const [error, setError] = useState<string | null>(null)
 
   const socketRef = useRef<WebSocket | null>(null)
@@ -31,7 +33,14 @@ export const useWebSocketChat = ({
   // Initialize audio components
   useEffect(() => {
     recorderRef.current = new AudioRecorder()
-    playerRef.current = new AudioPlayer()
+    playerRef.current = new AudioPlayer((isPlaying) => {
+      // Only update status if we are not recording (listening)
+      // This prevents conflict if user interrupts AI
+      setStatus((prev) => {
+        if (prev === 'listening') return prev
+        return isPlaying ? 'speaking' : 'idle'
+      })
+    })
     playerRef.current.init()
 
     return () => {
@@ -60,14 +69,14 @@ export const useWebSocketChat = ({
     socket.onclose = () => {
       console.log('WebSocket disconnected')
       setIsConnected(false)
-      setIsStreaming(false)
+      setStatus('idle')
     }
 
     socket.onerror = (event) => {
       console.error('WebSocket error:', event)
       setError('WebSocket connection failed')
       setIsConnected(false)
-      setIsStreaming(false)
+      setStatus('idle')
     }
 
     socket.onmessage = async (event) => {
@@ -95,7 +104,7 @@ export const useWebSocketChat = ({
       socketRef.current = null
     }
     setIsConnected(false)
-    setIsStreaming(false)
+    setStatus('idle')
   }, [])
 
   const sendAudioChunk = useCallback((data: Uint8Array) => {
@@ -105,7 +114,13 @@ export const useWebSocketChat = ({
   }, [])
 
   const startStreaming = useCallback(async () => {
-    if (isStreaming) return
+    // If already listening, do nothing (or could be stop?)
+    if (status === 'listening') return
+
+    // Stop playback if speaking
+    if (status === 'speaking') {
+      await playerRef.current?.stop()
+    }
 
     // Ensure connected
     if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
@@ -114,7 +129,7 @@ export const useWebSocketChat = ({
 
     try {
       setError(null)
-      setIsStreaming(true)
+      setStatus('listening')
 
       const recorder = recorderRef.current
       if (!recorder) {
@@ -129,12 +144,16 @@ export const useWebSocketChat = ({
           // Silence detected - send EOS signal
           if (socketRef.current?.readyState === WebSocket.OPEN) {
             socketRef.current.send('EOS')
+            setStatus('processing')
           }
         },
         () => {
           // Recording complete - send EOS signal
           if (socketRef.current?.readyState === WebSocket.OPEN) {
             socketRef.current.send('EOS')
+            // Only transition to processing if we were listening
+            // (avoids race conditions if manually stopped)
+            setStatus('processing')
           }
         }
       )
@@ -143,18 +162,19 @@ export const useWebSocketChat = ({
     } catch (err) {
       console.error('Streaming error:', err)
       setError(err instanceof Error ? err.message : 'Failed to start')
-      setIsStreaming(false)
+      setStatus('idle')
     }
-  }, [isStreaming, connect, sendAudioChunk])
+  }, [status, connect, sendAudioChunk])
 
   const stopStreaming = useCallback(() => {
     recorderRef.current?.stop()
-    setIsStreaming(false)
+    // Explicitly set processing state as we wait for response
+    setStatus('processing')
   }, [])
 
   return {
     isConnected,
-    isStreaming,
+    status,
     error,
     connect,
     disconnect,
