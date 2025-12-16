@@ -79,12 +79,16 @@ class LiteController(AIController):
             # Enhanced system instruction with language requirement
             enhanced_instruction = f"""{char_config['system_instruction']}
 
-CRITICAL LANGUAGE REQUIREMENT:
+CRITICAL REQUIREMENTS:
 - You MUST respond ONLY in {language_name} language (language code: {language})
 - The user is speaking to you in {language_name}
 - ALL of your responses must be in {language_name}
 - Do NOT use any other language in your response
-- Match the language that the user is using in the audio"""
+- Match the language that the user is using in the audio
+- Do NOT use emojis or emoticons (e.g. 😊, ^^, :))
+- Do NOT use Markdown formatting (e.g. **bold**, *italic*)
+- Do NOT describe actions or expressions in text (e.g. *laughs*, (smiling))
+- Provide ONLY the spoken response text"""
 
             # Use generate_content_stream for streaming response
             response_stream = self.client.models.generate_content_stream(
@@ -132,8 +136,12 @@ CRITICAL LANGUAGE REQUIREMENT:
                     for sentence in sentences:
                         if not sentence.strip(): continue
                         
-                        logger.info(f"Generating TTS for chunk: {sentence}")
-                        audio_chunk = self._generate_tts(sentence, language)
+                        # Clean text for TTS
+                        clean_sentence = self._clean_text_for_tts(sentence)
+                        if not clean_sentence.strip(): continue
+
+                        logger.info(f"Generating TTS for chunk: {clean_sentence}")
+                        audio_chunk = self._generate_tts(clean_sentence, language)
                         if audio_chunk:
                             yield audio_chunk
                     
@@ -142,14 +150,31 @@ CRITICAL LANGUAGE REQUIREMENT:
             
             # Process remaining buffer
             if text_buffer.strip():
-                logger.info(f"Generating TTS for final chunk: {text_buffer}")
-                audio_chunk = self._generate_tts(text_buffer, language)
-                if audio_chunk:
-                    yield audio_chunk
+                clean_text = self._clean_text_for_tts(text_buffer)
+                if clean_text.strip():
+                    logger.info(f"Generating TTS for final chunk: {clean_text}")
+                    audio_chunk = self._generate_tts(clean_text, language)
+                    if audio_chunk:
+                        yield audio_chunk
 
         except Exception as e:
             logger.error(f"Error in LightController: {e}")
             raise
+
+    def _clean_text_for_tts(self, text: str) -> str:
+        """Clean text for TTS: remove markdown, emojis, actions in brackets"""
+        # Remove bold/italic markdown
+        text = re.sub(r'\*+', '', text)
+        
+        # Remove actions/descriptions in brackets like (laughs), [smiling], （笑）
+        text = re.sub(r'[\(\[（].*?[\)\]）]', '', text)
+        
+        # Remove specific emoji characters/ranges if possible, but regex is tricky.
+        # Fallback: The prompt instruction should handle most. 
+        # We can remove common emoticon chars like ^^ or :) if isolated?
+        # For now, rely on prompt + bracket removal.
+        
+        return text.strip()
 
     def _generate_tts(self, text: str, language: str) -> bytes:
         """Generate TTS audio for a text chunk"""
