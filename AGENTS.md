@@ -1,80 +1,109 @@
-# Repository Guidelines
+# リポジトリ規約
 
-## Architecture Overview
+## アーキテクチャ概要
 
-- Monorepo with Go backend (`go/`), Next.js frontend (`next/`), and Python AI service (`python/`).
-- **Real-time Communication**:
-  - Frontend <-> Backend: **WebSocket** for bidirectional audio/text streaming.
-  - Backend <-> AI Service: **gRPC Bidirectional Streaming**.
-- **Dual-Mode AI Service**:
-  - **Premium**: Uses Gemini Live API for true real-time, interruptible bidirectional audio streaming.
-  - **Lite**: Uses buffered processing with standard Gemini 1.5 Flash API (fallback mode).
-- gRPC APIs defined in `proto/` with Buf-driven codegen.
-- Local dev via Docker Compose with hot reload.
-- React Native mobile clients live under `mobile/`.
-- Local dev via Docker Compose with hot reload; Go debugger on port `2349`.
-- React Native mobile clients live under `mobile/` with shared business logic mirroring the web app's flows.
+- Go バックエンド (`go/`)、Next.js フロントエンド (`next/`)、Python AI サービス (`python/`) で構成されるモノリポジトリ。
+- **リアルタイム通信**:
+  - フロントエンド <-> バックエンド: 双方向オーディオ/テキストストリーミングに **WebSocket** を使用。
+  - バックエンド <-> AI サービス: **gRPC 双方向ストリーミング** を使用。
+- **デュアルモード AI サービス**:
+  - **Premium (プレミアム)**: 割り込み可能な真のリアルタイム双方向オーディオストリーミングを実現する Gemini Live API を使用。
+  - **Lite (ライト)**: 標準の Gemini 1.5 Flash API を使用したバッファリング処理（フォールバックモード）。
+- `proto/` で定義された gRPC API は、Buf を使用してコード生成。
+- Docker Compose によるホットリロード対応のローカル開発環境。
+- `mobile/`配下に React Native モバイルクライアント。
+- Go デバッガーはポート `2349` を使用。
+- モバイルアプリのビジネスロジックは、Web アプリのフローを反映した共通の設計を採用。
 
-## Project Structure & Module Organization
+## プロジェクト構造とモジュール構成
 
-- `next/` — Next.js app (App Router, TypeScript, Tailwind). Tests near code or `next/__tests__/`.
-- `mobile/` — React Native app using Expo. Keep feature modules aligned with `next/` counterparts for parity.
-- `go/` — Gin + Connect RPC backend. Tests with `*_test.go`.
-- `python/` — AI service with dual-mode controllers (`premium` for Live API, `light` for standard API). Tests in `python/tests/`.
-- `proto/` — Protobuf schemas. Use Buf for lint/format/generate.
-- `docs/`, `.github/`, `docker-compose.yaml` — docs, CI, and local stack.
+- `next/` — Next.js アプリ (App Router, TypeScript, Tailwind)。テストはコードの近く、または `next/__tests__/` に配置。
+- `mobile/` — Expo を使用した React Native アプリ。機能モジュールは Web 版との一貫性を保つため `next/` と揃える。
+- `go/` — Gin + Connect RPC バックエンド。テストは `*_test.go`。
+- `python/` — デュアルモードコントローラー（Live API 用 `premium`、標準 API 用 `lite`）を備えた AI サービス。テストは `python/tests/`。
+- `proto/` — Protobuf スキーマ。Buf を使用して Lint/整形/コード生成を行う。
+- `docs/`, `.github/`, `docker-compose.yaml` — ドキュメント、CI/CD、ローカルスタック構成。
 
-## Build, Test, and Development Commands
+## ビルド、テスト、および開発コマンド
 
-- Docker: `docker compose up -d` (start) · `docker compose logs -f` (tail).
-- Proto (from `proto/`): `make setup` · `make fmt` · `make lint` · `make generate`.
-- Go (from `go/`): `make run` (hot reload) · `make build` · `make tidy` · `make lint-fix` · `go test ./... -race -cover`.
-- Next (from `next/`): `npm i` · `npm run dev` · `npm run build && npm start` · `npm run lint` · `npm test`.
-- Mobile (from `mobile/`): `npm i` · `npx expo start` for local dev · `npm run lint` · `npm test` (Jest) · use Expo Go or emulator for verification.
-- Python (from `python/`): `pip install -r requirements.txt` · `pytest -q --maxfail=1 --disable-warnings`.
+- **Docker**: `docker compose up -d` (開始) · `docker compose logs -f` (ログ確認)。
+- **Proto** (`proto/` 内): `make setup` · `make fmt` · `make lint` · `make generate`。
+- **Go** (`go/` 内): `make run` (ホットリロード) · `make build` · `make tidy` · `make lint-fix` · `go test ./... -race -cover`。
+- **Next** (`next/` 内): `pnpm i` · `pnpm dev` · `pnpm build && pnpm start` · `pnpm lint` · `pnpm test`。
+- **Mobile** (`mobile/` 内): `pnpm i` · `pnpm start` (ローカル開発) · `pnpm lint` · `pnpm test` (Jest) · Expo Go またはエミュレーターで動作確認。
+- **Python** (`python/` 内): `pip install -r requirements.txt` · `pytest -q --maxfail=1 --disable-warnings`。
 
-## Coding Style & Naming Conventions
+## コーディングスタイルと命名規則
 
-- Go: `go fmt ./...`; exported `CamelCase`; packages lower-case; one package per folder.
-- TypeScript: ESLint + Prettier (`npm run lint`); files `kebab-case.ts/tsx`; React components `PascalCase`.
-- Mobile: Follow React Native conventions; leverage shared UI primitives in `mobile/src/components/`; prefer TypeScript with `PascalCase` components and hooks in `camelCase`.
-- Python: `ruff .` and `black .`; modules `snake_case.py`; classes `CapWords`; functions `snake_case`.
+### 命名規則
 
-## Testing Guidelines
+- **Go**: `go fmt ./...`。エクスポートするものは `CamelCase`。パッケージ名は小文字、1 フォルダ 1 パッケージ。
+- **TypeScript**: ESLint + Prettier (`pnpm lint`)。ファイル名は `kebab-case.ts/tsx`。React コンポーネントは `PascalCase`。
+- **Mobile**: React Native の慣習に従う。`mobile/src/components/` の共通 UI 部品を活用。TypeScript を推奨し、コンポーネントは `PascalCase`、フックは `camelCase`。
+- **Python**: `ruff .` と `black .`。モジュール名は `snake_case.py`。クラス名は `CapWords`。関数名は `snake_case`。
 
-- Frontend: `*.test.ts(x)` next to code or `next/__tests__/`; run `npm test`.
-- Mobile: colocate Jest and Detox tests beside features under `mobile/src/`; favor React Native Testing Library for component coverage.
-- Go: table-driven tests; run `go test ./... -race -cover`.
-- Python: tests under `python/tests/`; run `pytest` (add `--cov` for coverage).
-- Aim for high confidence on changed lines; include error paths.
+### コーディングルール
 
-## Commit & Pull Request Guidelines
+#### Go バックエンド
 
-- Use Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:` (optional scope, e.g., `feat(next): ...`).
-- PRs: describe intent and approach, link issues (e.g., `Closes #123`), include screenshots/GIFs for UI, test notes, and doc updates when relevant.
+- **クリーンアーキテクチャ**: 原則に従った責務の分離を徹底する（`repository` インターフェース、`gateway` 実装、`usecase` ロジック）。
+- **API 実装**: インターフェース定義には Proto を使用。Gin への繋ぎ込みには Connect RPC (gRPC-connect) を採用する。
+- **UseCase テスト**: Repository 層の Mock を作成し、ビジネスロジックの独立性を担保したテストを実装する。
+- **ドメインテスト**: モデルの関数やメソッドに対して 1:1 で対応するテストを実装する。
+- **テーブル駆動テスト**: Go の標準的なテストパターンを採用し、網羅性を確保する。
+- **制御構造**: `else if` の使用を避け、`switch` 文や `map` による条件分岐で可読性を高める。
 
-## Security & Configuration Tips
+#### TypeScript (Next.js / React Native 共通)
 
-- Do not commit secrets. Keep env in `.env`/`.env.local` (ignored by Git).
-- Ports: Go `8000`, Next `3000`, Python `50051`. Update `docker-compose.yaml` minimally.
-- After changing `.proto` files, run `make generate` in `proto/` and commit generated code.
+- **制御構造**: `else if` の使用を避ける。
+- **型安全**: `any` の使用を原則禁止する。
+- **副作用の抑制**: `useEffect` の使用を最小限に留める。
+- **エクスポート**: `page.tsx` や Next.js 特有のファイル以外は Named Export (`export const`) を使用する。Default Export はページコンポーネント以外で使用しない。
+- **状態管理**: Global Context の利用は最小限に留め、コンポーネントの設計による解決を優先する。
 
-## Database Schema Conventions
+#### Next.js 特有
 
-- **Primary Keys**: All tables must use `tablename_id` format for primary keys (e.g., `users_id`, `refresh_tokens_id`) instead of `id`.
+- **サーバーコンポーネント**: `page.tsx` は必ず React Server Component (RSC) として実装する。
 
-## Code Architecture
+#### React Native (Mobile) 特有
 
-- **Go Backend**:
-  - `internal/repository`: Contains **interfaces only**. No database implementation logic here.
-  - `internal/gateway`: Contains the **concrete implementations** of the repositories (e.g., PostgreSQL, Redis access).
+- **コンポーネント設計**: 共通の UI は `mobile/src/components/` に集約し、各画面での再利用性を高める。
 
-## Agent-Specific Instructions
+## テストガイドライン
 
-- Follow these conventions for any edits; keep changes minimal and focused.
-- Honor directory scopes and naming patterns; avoid unrelated refactors.
-- Update tests and docs alongside code; prefer root-cause fixes over workarounds.
+- **フロントエンド**: `*.test.ts(x)` をコードの隣または `next/__tests__/` に配置。`npm test` で実行。
+- **モバイル**: `mobile/src/` の各機能の隣に Jest または Detox のテストを配置。コンポーネントのテストには React Native Testing Library を推奨。
+- **Go**: テーブル駆動テストを推奨。`go test ./... -race -cover` で実行。
+- **Python**: `python/tests/` 内に配置。`pytest` で実行（カバレッジ確認は `--cov` を追加）。
+- 変更した行に対して高い信頼性を確保し、異常系（エラーパス）も含めること。
 
-## Communication Language
+## コミットおよびプルリクエストのガイドライン
 
-- Respond to the user **in Japanese** unless specifically requested otherwise.
+- **Conventional Commits** を使用: `feat:`, `fix:`, `docs:`, `chore:` (必要に応じて `feat(next): ...` のようにスコープを指定)。
+- **PR**: 意図とアプローチを記載し、関連する Issue をリンク（例: `Closes #123`）。UI 変更の場合はスクリーンショット/GIF を含め、テスト結果や関連ドキュメントの更新も行う。
+
+## セキュリティと構成のヒント
+
+- シークレット（機密情報）をコミットしない。`.env` / `.env.local` で管理（Git からは除外）。
+- ポート番号: Go `8000`, Next `3000`, Python `50051`。`docker-compose.yaml` の変更は最小限にとどめる。
+- `.proto` ファイルを変更した後は、`proto/` で `make generate` を実行し、生成されたコードもコミットする。
+
+## データベーススキーマの規約
+
+- **主キー (Primary Keys)**: すべてのテーブルの主キーは、`id` ではなく `tablename_id` 形式にする（例: `users_id`, `refresh_tokens_id`）。
+
+## コードアーキテクチャ
+
+- **Go バックエンド**:
+  - `internal/repository`: **インターフェースのみ**を定義。データベースの実装ロジックはここには書かない。
+  - `internal/gateway`: リポジトリの**具体的な実装**（PostgreSQL, Redis へのアクセス等）を記述。
+
+## AI エージェント向け指示
+
+- 編集時は以上の規則に従い、変更は最小限かつ目的に沿ったものにすること。
+- ディレクトリ構成と命名規則を尊重し、不要なリファクタリングは避けること。
+- コードの更新に合わせてテストとドキュメントも更新すること。対症療法ではなく根本原因の解決を優先すること。
+
+## コミュニケーション言語
+
+- 特に指示がない限り、ユーザーへの応答は**日本語**で行う。
