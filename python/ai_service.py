@@ -65,11 +65,22 @@ class AIConversationService:
                         audio_chunk=chunk
                     )
             elif config.plan == user_pb2.PLAN_TEST:
-                logger.info("Test mode: Waiting for end_of_input to send sample_response.wav")
+                test_message = "テストモードです、正常に通信できています"
+                logger.info(f"Test mode: {test_message}")
+                
                 async for request in request_iterator:
                     ct = request.WhichOneof('content')
                     if ct == 'end_of_input':
-                        logger.info("Test mode: Received end_of_input, sending sample audio")
+                        logger.info("Test mode: Received end_of_input, sending sample audio and text response")
+                        
+                        # Send text message first
+                        yield ai_pb2.ChatResponse(
+                            response_id=str(uuid.uuid4()),
+                            language=config.language,
+                            timestamp=Timestamp(),
+                            text_message=test_message
+                        )
+
                         # Send sample file
                         try:
                             file_path = os.path.join(os.path.dirname(__file__), 'sample_response.wav')
