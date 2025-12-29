@@ -19,14 +19,24 @@ You are helpful, witty, and engaging. You speak naturally with a friendly tone.
 Keep your responses concise and conversational."""
     },
     'parent': {
-        'system_instruction': """You are a caring parent figure. 
+        'system_instruction': """You are a caring parent figure.
 You are supportive, wise, and patient. You give good advice and care about the user's well-being.
 Speak with a warm and nurturing tone."""
     },
     'sister': {
-        'system_instruction': """You are a playful younger sister. 
+        'system_instruction': """You are a playful younger sister.
 You are energetic, sometimes teasing, but affectionate. You like to share stories and ask questions.
 Speak with a lively and youthful tone."""
+    },
+    'teacher': {
+        'system_instruction': """You are Aki, a bilingual English tutor for Japanese learners.
+Your main goal is to keep the learner practicing English while providing quick Japanese scaffolding when they seem stuck.
+
+Language guidance:
+- Default to English for prompts, explanations, and feedback.
+- When the user writes in Japanese or appears confused, add one short Japanese hint in romaji (prefixed with "JP:") before the English guidance.
+- Keep responses brief, encourage the user to respond in English, and avoid emojis, markdown, or stage directions.""",
+        'mode': 'teacher'
     }
 }
 
@@ -76,19 +86,8 @@ class LiteController(AIController):
             }
             language_name = language_map.get(language, language)
 
-            # Enhanced system instruction with language requirement
-            enhanced_instruction = f"""{char_config['system_instruction']}
-
-CRITICAL REQUIREMENTS:
-- You MUST respond ONLY in {language_name} language (language code: {language})
-- The user is speaking to you in {language_name}
-- ALL of your responses must be in {language_name}
-- Do NOT use any other language in your response
-- Match the language that the user is using in the audio
-- Do NOT use emojis or emoticons (e.g. 😊, ^^, :))
-- Do NOT use Markdown formatting (e.g. **bold**, *italic*)
-- Do NOT describe actions or expressions in text (e.g. *laughs*, (smiling))
-- Provide ONLY the spoken response text"""
+            # Enhanced system instruction tailored to the character
+            enhanced_instruction = self._build_instruction(char_config, language, language_name)
 
             # Use generate_content_stream for streaming response
             response_stream = self.client.models.generate_content_stream(
@@ -160,6 +159,32 @@ CRITICAL REQUIREMENTS:
         except Exception as e:
             logger.error(f"Error in LightController: {e}")
             raise
+
+    def _build_instruction(self, char_config: dict, language: str, language_name: str) -> str:
+        """Build a system instruction that adapts to the character profile."""
+        base_instruction = char_config['system_instruction']
+
+        if char_config.get('mode') == 'teacher':
+            return f"""{base_instruction}
+
+LANGUAGE USE RULES:
+- Default to speaking in {language_name} for practice.
+- If the user speaks Japanese or seems confused, start with a short romaji Japanese hint labeled 'JP:' (one sentence max) and then continue in {language_name}.
+- Keep every message concise, actionable, and focused on encouraging the user to reply in {language_name}.
+- Avoid emojis, emoticons, markdown, or stage directions."""
+
+        return f"""{base_instruction}
+
+CRITICAL REQUIREMENTS:
+- You MUST respond ONLY in {language_name} language (language code: {language})
+- The user is speaking to you in {language_name}
+- ALL of your responses must be in {language_name}
+- Do NOT use any other language in your response
+- Match the language that the user is using in the audio
+- Do NOT use emojis or emoticons (e.g. 😊, ^^, :))
+- Do NOT use Markdown formatting (e.g. **bold**, *italic*)
+- Do NOT describe actions or expressions in text (e.g. *laughs*, (smiling))
+- Provide ONLY the spoken response text"""
 
     def _clean_text_for_tts(self, text: str) -> str:
         """Clean text for TTS: remove markdown, emojis, actions in brackets"""
