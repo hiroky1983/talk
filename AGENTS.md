@@ -92,12 +92,6 @@
 
 - **主キー (Primary Keys)**: すべてのテーブルの主キーは、`id` ではなく `tablename_id` 形式にする（例: `users_id`, `refresh_tokens_id`）。
 
-## コードアーキテクチャ
-
-- **Go バックエンド**:
-  - `internal/repository`: **インターフェースのみ**を定義。データベースの実装ロジックはここには書かない。
-  - `internal/gateway`: リポジトリの**具体的な実装**（PostgreSQL, Redis へのアクセス等）を記述。
-
 ## AI エージェント向け指示
 
 - 編集時は以上の規則に従い、変更は最小限かつ目的に沿ったものにすること。
