@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rai/user.proto\x12\x05\x61i.v1\"\x8f\x01\n\x04User\x12\x17\n\x07user_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n\tuser_name\x18\x02 \x01(\tR\x08userName\x12\x14\n\x05\x65mail\x18\x03 \x01(\tR\x05\x65mail\x12\x1a\n\x08language\x18\x05 \x01(\tR\x08language\x12\x1f\n\x04plan\x18\x06 \x01(\x0e\x32\x0b.ai.v1.PlanR\x04plan*L\n\x04Plan\x12\x14\n\x10PLAN_UNSPECIFIED\x10\x00\x12\r\n\tPLAN_FREE\x10\x01\x12\r\n\tPLAN_LITE\x10\x02\x12\x10\n\x0cPLAN_PREMIUM\x10\x03\x42v\n\tcom.ai.v1B\tUserProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rai/user.proto\x12\x05\x61i.v1\"\x8f\x01\n\x04User\x12\x17\n\x07user_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n\tuser_name\x18\x02 \x01(\tR\x08userName\x12\x14\n\x05\x65mail\x18\x03 \x01(\tR\x05\x65mail\x12\x1a\n\x08language\x18\x05 \x01(\tR\x08language\x12\x1f\n\x04plan\x18\x06 \x01(\x0e\x32\x0b.ai.v1.PlanR\x04plan*[\n\x04Plan\x12\x14\n\x10PLAN_UNSPECIFIED\x10\x00\x12\r\n\tPLAN_FREE\x10\x01\x12\r\n\tPLAN_LITE\x10\x02\x12\x10\n\x0cPLAN_PREMIUM\x10\x03\x12\r\n\tPLAN_TEST\x10\nBv\n\tcom.ai.v1B\tUserProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03\x41XX\xaa\x02\x05\x41i.V1\xca\x02\x05\x41i\\V1\xe2\x02\x11\x41i\\V1\\GPBMetadata\xea\x02\x06\x41i::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,7 +33,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\tcom.ai.v1B\tUserProtoP\001Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\242\002\003AXX\252\002\005Ai.V1\312\002\005Ai\\V1\342\002\021Ai\\V1\\GPBMetadata\352\002\006Ai::V1'
   _globals['_PLAN']._serialized_start=170
-  _globals['_PLAN']._serialized_end=246
+  _globals['_PLAN']._serialized_end=261
   _globals['_USER']._serialized_start=25
   _globals['_USER']._serialized_end=168
 # @@protoc_insertion_point(module_scope)

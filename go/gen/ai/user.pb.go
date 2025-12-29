@@ -28,21 +28,24 @@ const (
 	Plan_PLAN_FREE        Plan = 1
 	Plan_PLAN_LITE        Plan = 2
 	Plan_PLAN_PREMIUM     Plan = 3
+	Plan_PLAN_TEST        Plan = 10
 )
 
 // Enum value maps for Plan.
 var (
 	Plan_name = map[int32]string{
-		0: "PLAN_UNSPECIFIED",
-		1: "PLAN_FREE",
-		2: "PLAN_LITE",
-		3: "PLAN_PREMIUM",
+		0:  "PLAN_UNSPECIFIED",
+		1:  "PLAN_FREE",
+		2:  "PLAN_LITE",
+		3:  "PLAN_PREMIUM",
+		10: "PLAN_TEST",
 	}
 	Plan_value = map[string]int32{
 		"PLAN_UNSPECIFIED": 0,
 		"PLAN_FREE":        1,
 		"PLAN_LITE":        2,
 		"PLAN_PREMIUM":     3,
+		"PLAN_TEST":        10,
 	}
 )
 
@@ -159,12 +162,14 @@ const file_ai_user_proto_rawDesc = "" +
 	"\tuser_name\x18\x02 \x01(\tR\buserName\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x1a\n" +
 	"\blanguage\x18\x05 \x01(\tR\blanguage\x12\x1f\n" +
-	"\x04plan\x18\x06 \x01(\x0e2\v.ai.v1.PlanR\x04plan*L\n" +
+	"\x04plan\x18\x06 \x01(\x0e2\v.ai.v1.PlanR\x04plan*[\n" +
 	"\x04Plan\x12\x14\n" +
 	"\x10PLAN_UNSPECIFIED\x10\x00\x12\r\n" +
 	"\tPLAN_FREE\x10\x01\x12\r\n" +
 	"\tPLAN_LITE\x10\x02\x12\x10\n" +
-	"\fPLAN_PREMIUM\x10\x03Bv\n" +
+	"\fPLAN_PREMIUM\x10\x03\x12\r\n" +
+	"\tPLAN_TEST\x10\n" +
+	"Bv\n" +
 	"\tcom.ai.v1B\tUserProtoP\x01Z)github.com/hiroky1983/talk/go/gen/ai;aiv1\xa2\x02\x03AXX\xaa\x02\x05Ai.V1\xca\x02\x05Ai\\V1\xe2\x02\x11Ai\\V1\\GPBMetadata\xea\x02\x06Ai::V1b\x06proto3"
 
 var (

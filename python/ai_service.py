@@ -78,6 +78,33 @@ class AIConversationService:
                         timestamp=timestamp,
                         audio_chunk=chunk
                     )
+            elif config.plan == user_pb2.PLAN_TEST:
+                logger.info("Test mode: Waiting for end_of_input to send sample_response.wav")
+                async for request in request_iterator:
+                    ct = request.WhichOneof('content')
+                    if ct == 'end_of_input':
+                        logger.info("Test mode: Received end_of_input, sending sample audio")
+                        # Send sample file
+                        try:
+                            file_path = os.path.join(os.path.dirname(__file__), 'sample_response.wav')
+                            with open(file_path, 'rb') as f:
+                                audio_data = f.read()
+                            
+                            chunk_size = 4096
+                            for i in range(0, len(audio_data), chunk_size):
+                                chunk = audio_data[i:i+chunk_size]
+                                timestamp = Timestamp()
+                                timestamp.GetCurrentTime()
+                                yield ai_pb2.ChatResponse(
+                                    response_id=str(uuid.uuid4()),
+                                    language=config.language,
+                                    timestamp=timestamp,
+                                    audio_chunk=chunk
+                                )
+                                # Small delay to simulate streaming
+                                await asyncio.sleep(0.01)
+                        except Exception as e:
+                            logger.error(f"Error sending sample audio: {e}")
             else:
                 # Fallback for Lite (non-streaming)
                 controller = LiteController(self.api_key)
