@@ -1,12 +1,9 @@
-/**
- * Audio Player for React Native using expo-av
- * Plays audio from URI or data with queue-based playback
- */
+import { createAudioPlayer } from 'expo-audio'
 import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
 import * as FileSystem from 'expo-file-system/legacy'
 
 export class AudioPlayer {
-  private sound: Audio.Sound | null = null
+  private player: any = null
   private audioQueue: Uint8Array[] = []
   private isPlaying = false
   private onPlayingStateChange: ((isPlaying: boolean) => void) | null = null
@@ -16,16 +13,20 @@ export class AudioPlayer {
   }
 
   async init(): Promise<void> {
-    // Configure audio mode
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: false,
-      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-      shouldDuckAndroid: true,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-      playThroughEarpieceAndroid: false,
-    })
+    // Configure audio mode for high quality speaker output using expo-av
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true, // Maintain session
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+        playThroughEarpieceAndroid: false,
+      })
+    } catch (error) {
+      console.error('Failed to set audio mode:', error)
+    }
   }
 
   /**
@@ -40,30 +41,28 @@ export class AudioPlayer {
     const blockAlign = numChannels * (bitsPerSample / 8)
     const dataSize = pcmData.length
 
-    // WAV header is 44 bytes
     const header = new ArrayBuffer(44)
     const view = new DataView(header)
 
-    // "RIFF" chunk descriptor
-    view.setUint32(0, 0x52494646, false) // "RIFF"
-    view.setUint32(4, 36 + dataSize, true) // File size - 8
-    view.setUint32(8, 0x57415645, false) // "WAVE"
+    // "RIFF"
+    view.setUint32(0, 0x52494646, false)
+    view.setUint32(4, 36 + dataSize, true)
+    view.setUint32(8, 0x57415645, false)
 
-    // "fmt " sub-chunk
-    view.setUint32(12, 0x666d7420, false) // "fmt "
-    view.setUint32(16, 16, true) // Subchunk1Size (16 for PCM)
-    view.setUint16(20, 1, true) // AudioFormat (1 for PCM)
-    view.setUint16(22, numChannels, true) // NumChannels
-    view.setUint32(24, sampleRate, true) // SampleRate
-    view.setUint32(28, byteRate, true) // ByteRate
-    view.setUint16(32, blockAlign, true) // BlockAlign
-    view.setUint16(34, bitsPerSample, true) // BitsPerSample
+    // "fmt "
+    view.setUint32(12, 0x666d7420, false)
+    view.setUint32(16, 16, true)
+    view.setUint16(20, 1, true)
+    view.setUint16(22, numChannels, true)
+    view.setUint32(24, sampleRate, true)
+    view.setUint32(28, byteRate, true)
+    view.setUint16(32, blockAlign, true)
+    view.setUint16(34, bitsPerSample, true)
 
-    // "data" sub-chunk
-    view.setUint32(36, 0x64617461, false) // "data"
-    view.setUint32(40, dataSize, true) // Subchunk2Size
+    // "data"
+    view.setUint32(36, 0x64617461, false)
+    view.setUint32(40, dataSize, true)
 
-    // Combine header and PCM data
     const wavFile = new Uint8Array(44 + dataSize)
     wavFile.set(new Uint8Array(header), 0)
     wavFile.set(pcmData, 44)
@@ -72,113 +71,87 @@ export class AudioPlayer {
   }
 
   async play(pcmData: Uint8Array): Promise<void> {
-    // Add to queue
     this.audioQueue.push(pcmData)
 
-    // Start playing if not already playing
     if (!this.isPlaying) {
-      this.playQueue()
+      // Small delay (jitter buffer) to collect initial chunks
+      this.isPlaying = true
+      setTimeout(() => this.playQueue(), 150) // 150ms buffer
     }
   }
 
   private async playQueue(): Promise<void> {
     if (this.audioQueue.length === 0) {
-      if (this.isPlaying) {
-        this.isPlaying = false
-        this.onPlayingStateChange?.(false)
-      }
+      this.isPlaying = false
+      this.onPlayingStateChange?.(false)
       return
     }
 
-    if (!this.isPlaying) {
-      this.isPlaying = true
-      this.onPlayingStateChange?.(true)
+    // Merge all currently available chunks to reduce playback overhead and gaps
+    const totalLength = this.audioQueue.reduce(
+      (acc, chunk) => acc + chunk.length,
+      0
+    )
+    const mergedPcm = new Uint8Array(totalLength)
+    let offset = 0
+    while (this.audioQueue.length > 0) {
+      const chunk = this.audioQueue.shift()!
+      mergedPcm.set(chunk, offset)
+      offset += chunk.length
     }
 
-    const pcmData = this.audioQueue.shift()!
-
     try {
-      // Convert PCM to WAV
-      const wavData = this.createWavFile(pcmData)
+      const wavData = this.createWavFile(mergedPcm)
+      const base64 = this.uint8ToBase64(wavData)
 
-      // Convert to base64
-      let binary = ''
-      for (let i = 0; i < wavData.length; i++) {
-        binary += String.fromCharCode(wavData[i])
-      }
-      const base64 = btoa(binary)
-
-      // Save to temporary file
-      const tempUri = FileSystem.cacheDirectory + 'temp_audio.wav'
+      const tempUri = FileSystem.cacheDirectory + `temp_audio_${Date.now()}.wav`
       await FileSystem.writeAsStringAsync(tempUri, base64, {
         encoding: 'base64',
       })
 
-      // Stop previous sound if playing
-      if (this.sound) {
-        await this.sound.unloadAsync()
-        this.sound = null
-      }
+      const player = createAudioPlayer(tempUri)
+      this.player = player
 
-      // Create sound and play
-      const { sound } = await Audio.Sound.createAsync({ uri: tempUri })
-      this.sound = sound
-
-      // Set callback for when playback finishes
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          // Continue playing queue
-          this.playQueue()
+      player.addListener('playbackStatusUpdate', (status) => {
+        if (status.didJustFinish) {
+          FileSystem.deleteAsync(tempUri, { idempotent: true }).catch(() => {})
+          // Check if new chunks arrived during playback
+          if (this.audioQueue.length > 0) {
+            this.playQueue()
+          } else {
+            this.isPlaying = false
+            this.onPlayingStateChange?.(false)
+          }
         }
       })
 
-      await sound.playAsync()
+      player.play()
     } catch (error) {
-      console.error('Failed to play audio:', error)
-      // Continue with next item in queue even if this one failed
-      this.playQueue()
-    }
-  }
-
-  async playFromUri(uri: string): Promise<void> {
-    try {
-      if (!this.isPlaying) {
-        this.isPlaying = true
-        this.onPlayingStateChange?.(true)
-      }
-
-      const { sound } = await Audio.Sound.createAsync({ uri })
-      this.sound = sound
-
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          this.isPlaying = false
-          this.onPlayingStateChange?.(false)
-        }
-      })
-
-      await sound.playAsync()
-    } catch (error) {
-      console.error('Failed to play audio from URI:', error)
+      console.error('Failed to play merged audio:', error)
       this.isPlaying = false
       this.onPlayingStateChange?.(false)
     }
+  }
+
+  private uint8ToBase64(uint8: Uint8Array): string {
+    let binary = ''
+    for (let i = 0; i < uint8.length; i++) {
+      binary += String.fromCharCode(uint8[i])
+    }
+    return btoa(binary)
   }
 
   async stop(): Promise<void> {
     this.audioQueue = []
+    this.isPlaying = false
+    this.onPlayingStateChange?.(false)
 
-    if (this.isPlaying) {
-      this.isPlaying = false
-      this.onPlayingStateChange?.(false)
-    }
-
-    if (this.sound) {
+    if (this.player) {
       try {
-        await this.sound.unloadAsync()
-        this.sound = null
+        this.player.pause()
+        this.player = null
       } catch (error) {
-        console.error('Failed to stop audio:', error)
+        console.error('Failed to stop player:', error)
       }
     }
   }

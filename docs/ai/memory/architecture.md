@@ -13,4 +13,9 @@
 ## 3. デザイン原則
 
 - **Tailwind-first**: Web (Tailwind v4), Mobile (NativeWind) を用いた統一テーマ管理。
-- **Clean Architecture**: Go Backend は責務を明確に分離する。
+
+## 4. モバイルオーディオストリーミング手法
+
+- **Player (expo-audio)**: チャンク結合再生 + ジッターバッファ (150ms)。
+- **Recorder (expo-av)**: 高品質 PCM 設定 + 停止ノイズ低減（非同期停止 & 非同期データ処理）。
+- **Session**: `Audio.setAudioModeAsync` (expo-av) による一元管理。

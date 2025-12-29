@@ -52,9 +52,7 @@ export class AudioRecorder {
       if (this.recording) {
         try {
           await this.recording.stopAndUnloadAsync()
-        } catch (e) {
-          // Ignore errors when stopping
-        }
+        } catch (e) {}
         this.recording = null
       }
 
@@ -66,11 +64,7 @@ export class AudioRecorder {
         throw new Error('Microphone permission not granted')
       }
 
-      // Configure audio mode
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      })
+      // Audio mode is now managed by player.init() to avoid conflicts
 
       // Create recording with PCM options
       const { recording } = await Audio.Recording.createAsync(this.options)
@@ -90,54 +84,46 @@ export class AudioRecorder {
     }
 
     try {
+      // Minor delay to let the hardware stabilize before cutting off
+      this.isRecording = false
+      await new Promise((resolve) => setTimeout(resolve, 50))
+
       // Stop recording
       await this.recording.stopAndUnloadAsync()
-      this.isRecording = false
 
-      if (this.recordingUri && this.onDataCallback) {
-        // Read file as base64
-        const base64 = await FileSystem.readAsStringAsync(this.recordingUri, {
-          encoding: 'base64',
-        })
+      const uri = this.recordingUri
+      const callback = this.onDataCallback
+      const complete = this.onCompleteCallback
 
-        // Convert base64 to Uint8Array
-        const binaryString = atob(base64)
-        const bytes = new Uint8Array(binaryString.length)
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i)
-        }
+      // Process data in background to avoid blocking the main/audio thread
+      if (uri && callback) {
+        setTimeout(async () => {
+          try {
+            const base64 = await FileSystem.readAsStringAsync(uri, {
+              encoding: 'base64',
+            })
 
-        let pcmData = bytes
+            const binaryString = atob(base64)
+            const bytes = new Uint8Array(binaryString.length)
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i)
+            }
 
-        // Strip WAV header (44 bytes) if present and matches 'RIFF'
-        if (bytes.length > 44) {
-          // Check for 'RIFF' at start and 'WAVE' at 8
-          if (
-            bytes[0] === 0x52 && // R
-            bytes[1] === 0x49 && // I
-            bytes[2] === 0x46 && // F
-            bytes[3] === 0x46 && // F
-            bytes[8] === 0x57 && // W
-            bytes[9] === 0x41 && // A
-            bytes[10] === 0x56 && // V
-            bytes[11] === 0x45 // E
-          ) {
-            pcmData = bytes.slice(44)
+            let pcmData = bytes
+            if (bytes.length > 44 && bytes[0] === 0x52 && bytes[8] === 0x57) {
+              pcmData = bytes.slice(44)
+            }
+
+            if (pcmData.length % 2 !== 0) {
+              pcmData = pcmData.slice(0, pcmData.length - 1)
+            }
+
+            callback(pcmData)
+            complete?.()
+          } catch (e) {
+            console.error('Error processing recorded audio data:', e)
           }
-        }
-
-        // Ensure length is even (16-bit PCM = 2 bytes per sample)
-        if (pcmData.length % 2 !== 0) {
-          pcmData = pcmData.slice(0, pcmData.length - 1)
-        }
-
-        // Send PCM data
-        this.onDataCallback(pcmData)
-
-        // Call onComplete after data is sent
-        if (this.onCompleteCallback) {
-          this.onCompleteCallback()
-        }
+        }, 0)
       }
 
       this.recording = null

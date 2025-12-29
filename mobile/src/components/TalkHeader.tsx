@@ -58,13 +58,17 @@ export const TalkHeader = ({
             <View
               style={[
                 styles.statusBadge,
-                isConnected ? styles.statusConnected : styles.statusDisconnected,
+                isConnected
+                  ? styles.statusConnected
+                  : styles.statusDisconnected,
               ]}
             >
               <View
                 style={[
                   styles.statusDot,
-                  isConnected ? styles.statusDotConnected : styles.statusDotDisconnected,
+                  isConnected
+                    ? styles.statusDotConnected
+                    : styles.statusDotDisconnected,
                 ]}
               />
               <Text style={styles.statusText}>
@@ -76,7 +80,9 @@ export const TalkHeader = ({
               onPress={onLogout}
               style={[styles.logoutButton, isDark && styles.logoutButtonDark]}
             >
-              <Text style={[styles.logoutText, isDark && styles.logoutTextDark]}>
+              <Text
+                style={[styles.logoutText, isDark && styles.logoutTextDark]}
+              >
                 {t('common:logout')}
               </Text>
             </TouchableOpacity>
