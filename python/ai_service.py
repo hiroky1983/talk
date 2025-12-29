@@ -33,20 +33,6 @@ class AIConversationService:
                 if ct == 'audio_chunk':
                     yield request.audio_chunk
                 elif ct == 'end_of_input':
-                    # Optional: Could yield a sentinel if controller needs it, 
-                    # but PremiumController logic doesn't explicitly rely on sentinel in stream mode?
-                    # It relies on session events.
-                    # But for LightController buffer-bridge, it might need to know when to stop?
-                    # Actually, for bridging, the generator ending is the signal.
-                    # Does request_iterator end? 
-                    # If Client keeps stream open, iterator doesn't end.
-                    # So we need a way to say "This turn is done".
-                    # But current PremiumController logic runs continuously?
-                    # No, we implemented `process_stream` to just take iterator.
-                    # If we pipe iterator directly, we mix text/control messages.
-                    # So this generator yields audio.
-                    # If 'end_of_input' comes, we might pause? Or just keep going?
-                    # For real bidirectional, audio is continuous.
                     pass
                 elif ct == 'text_message':
                     # Handle text?
