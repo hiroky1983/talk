@@ -1,0 +1,4 @@
+interface:
+  display_name: "Next.js App Router v16"
+  short_description: "Next.js 16.1.6 App Router実装ガイド"
+  default_prompt: "Use $nextjs-app-router-v16 to implement this task with the official Next.js 16.1.6 App Router Getting Started patterns."
