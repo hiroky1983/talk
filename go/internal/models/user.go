@@ -25,3 +25,9 @@ type RefreshToken struct {
 }
 
 type UserPlan string
+
+const (
+	PlanFree    UserPlan = "PLAN_FREE"
+	PlanLite    UserPlan = "PLAN_LITE"
+	PlanPremium UserPlan = "PLAN_PREMIUM"
+)
