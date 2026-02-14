@@ -11,8 +11,8 @@ description: Next.js 16.1.6 App Router implementation and migration guidance. (R
 
 詳細は以下のディレクトリにあるファイルを確認してください。
 
-- **メインディレクトリ**: `/Users/yamadahiroki/myspace/talk/skills/nextjs-app-router-v16`
-- **主要なファイル**: `/Users/yamadahiroki/myspace/talk/skills/nextjs-app-router-v16/SKILL.md`
+- **メインディレクトリ**: `/Users/yamadahiroki/myspace/talk/docs/skills/nextjs-app-router-v16`
+- **主要なファイル**: `/Users/yamadahiroki/myspace/talk/docs/skills/nextjs-app-router-v16/SKILL.md`
 
 ## 指示 (For Claude Code)
 

@@ -11,8 +11,8 @@ description: Expo + mobile-mcp を使ったモバイル E2E テストの自動�
 
 詳細は以下のディレクトリにあるファイルを確認してください。
 
-- **メインディレクトリ**: `/Users/yamadahiroki/myspace/talk/skills/mobile-e2e-testing`
-- **主要なファイル**: `/Users/yamadahiroki/myspace/talk/skills/mobile-e2e-testing/SKILL.md`
+- **メインディレクトリ**: `/Users/yamadahiroki/myspace/talk/docs/skills/mobile-e2e-testing`
+- **主要なファイル**: `/Users/yamadahiroki/myspace/talk/docs/skills/mobile-e2e-testing/SKILL.md`
 
 ## 指示 (For Claude Code)
 

@@ -3,7 +3,7 @@ name: pr-review-handler
 description: GitHub PR のレビュー指摘（自動レビューボット含む）を gh コマンドで取得・分析し、対応要否の判断、コード修正、不要な指摘への返信を一括で行うワークフロー。
 ---
 
-# PR Review Handler (Claude Code Reference)
+# PR Review Handler (Reference)
 
 このスキルは、プロジェクトルートにあるメインのスキルディレクトリを参照するためのものです。
 
@@ -14,9 +14,9 @@ description: GitHub PR のレビュー指摘（自動レビューボット含む
 - **メインディレクトリ**: `/Users/yamadahiroki/myspace/talk/docs/skills/pr-review-handler`
 - **主要なファイル**: `/Users/yamadahiroki/myspace/talk/docs/skills/pr-review-handler/SKILL.md`
 
-## 指示 (For Claude Code)
+## 指示
 
-Claude Code がこのスキルを介してレビュー対応を行う際は、必ず上記のメインディレクトリ内にある `references/` の内容を読み込み、そこに記載されているワークフロー、判断基準、および実装ルールを遵守してください。
+このスキルが呼び出された場合、AIはまず上記のメインディレクトリの内容（`references/` を含む）をすべて読み込み、そこに記載されているワークフロー、判断基準、および実装ルールに従ってください。
 
 ### 主要なワークフロー
 
