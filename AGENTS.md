@@ -93,6 +93,12 @@
 ## データベーススキーマの規約
 
 - **主キー (Primary Keys)**: すべてのテーブルの主キーは、`id` ではなく `tablename_id` 形式にする（例: `users_id`, `refresh_tokens_id`）。
+- **マイグレーション管理**: Atlas + atlas-provider-gorm を使用し、GORM モデルを Single Source of Truth とする。詳細は [go/README.md](go/README.md) を参照。
+- **マイグレーションコマンド** (`go/` 内):
+  - `make migrate-diff name=xxx` — GORM モデルから差分マイグレーションを生成
+  - `make migrate-apply` — マイグレーションを適用
+  - `make migrate-status` — マイグレーション状態を確認
+  - `make er` — ER 図を `docs/db/er.md` に生成
 
 ## AI エージェント向け指示
 
