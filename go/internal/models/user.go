@@ -10,6 +10,7 @@ type User struct {
 	Username     string    `json:"username" gorm:"not null;size:100"`
 	Email        string    `json:"email" gorm:"uniqueIndex;not null;size:255"`
 	PasswordHash string    `json:"-" gorm:"not null;column:password_hash;size:255"`
+	Gender       string    `json:"gender" gorm:"type:varchar(20)"`
 	Plan         UserPlan  `json:"plan" gorm:"not null;type:varchar(50);default:'PLAN_FREE'"`
 	CreatedAt    time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"autoUpdateTime"`
@@ -19,6 +20,7 @@ type User struct {
 type RefreshToken struct {
 	RefreshTokensID string    `json:"id" gorm:"primaryKey;type:uuid;column:refresh_tokens_id;default:gen_random_uuid()"`
 	UserID          string    `json:"user_id" gorm:"not null;type:uuid;index"`
+	User            User      `json:"-" gorm:"foreignKey:UserID;references:UsersID;constraint:OnDelete:CASCADE"`
 	Token           string    `json:"token" gorm:"uniqueIndex;not null;size:500"`
 	ExpiresAt       time.Time `json:"expires_at" gorm:"not null"`
 	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime"`
