@@ -34,9 +34,10 @@ Refer to the project's `AGENTS.md`, `CLAUDE.md`, and `docs/ai/memory/` for archi
    - Consider soft deletes (`deleted_at`) if the project pattern supports it
 
 3. **Migration Management**:
-   - Create idempotent, reversible migrations (up/down)
-   - Use the migration tool already established in the project, or recommend one if none exists (prefer `golang-migrate` or `goose`)
-   - Number/timestamp migrations properly
+   - Use Atlas CLI with `atlas-provider-gorm` (プロジェクトで確立済みのマイグレーションツール)
+   - GORM モデルを変更後、`make migrate-diff name=xxx` で差分マイグレーションを自動生成
+   - `make migrate-apply` で適用、`make migrate-status` で状態確認
+   - タイムスタンプ付きのマイグレーションが自動生成される
    - Never modify existing migrations that may have been applied; create new ones instead
 
 4. **Repository Pattern Implementation**:
@@ -98,7 +99,7 @@ Examples of what to record:
 
 # Persistent Agent Memory
 
-You have a persistent Persistent Agent Memory directory at `/Users/yamadahiroki/myspace/talk/.claude/agent-memory/db-implementation/`. Its contents persist across conversations.
+You have a persistent Persistent Agent Memory directory at `.claude/agent-memory/db-implementation/` (relative to the project root). Its contents persist across conversations.
 
 As you work, consult your memory files to build on previous experience. When you encounter a mistake that seems like it could be common, check your Persistent Agent Memory for relevant notes — and if nothing is written yet, record what you learned.
 

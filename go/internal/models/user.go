@@ -22,7 +22,7 @@ type RefreshToken struct {
 	UserID          string    `json:"user_id" gorm:"not null;type:uuid;index"`
 	User            User      `json:"-" gorm:"foreignKey:UserID;references:UsersID;constraint:OnDelete:CASCADE"`
 	Token           string    `json:"token" gorm:"uniqueIndex;not null;size:500"`
-	ExpiresAt       time.Time `json:"expires_at" gorm:"not null"`
+	ExpiresAt       time.Time `json:"expires_at" gorm:"not null;index"`
 	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime"`
 }
 
